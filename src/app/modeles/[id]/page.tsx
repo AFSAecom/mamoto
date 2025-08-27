@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import SpecsTable from '@/components/SpecsTable';
 import { Button } from '@/components/ui/button';
-import useCompare from '@/hooks/use-compare';
+import AddToCompareButton from '@/components/AddToCompareButton';
 import { findById } from '@/lib/motos';
 
 interface PageProps {
@@ -50,15 +50,3 @@ export default function ModelePage({ params }: PageProps) {
   );
 }
 
-function AddToCompareButton({ id }: { id: string }) {
-  'use client';
-  const { compareMotos, addMoto } = useCompare();
-  const added = compareMotos.includes(id);
-  const handle = () => addMoto(id);
-
-  return (
-    <Button onClick={handle} disabled={added} aria-label="Ajouter au comparateur">
-      {added ? 'Ajouté' : 'Ajouter au comparateur'}
-    </Button>
-  );
-}
