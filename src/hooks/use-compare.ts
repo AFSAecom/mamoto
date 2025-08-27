@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'compareMotos';
+// LocalStorage key used for storing compared moto ids
+const STORAGE_KEY = 'compare:motos';
 
 export default function useCompare() {
   const [compareMotos, setCompareMotos] = useState<string[]>([]);
@@ -33,6 +34,11 @@ export default function useCompare() {
     });
   }, []);
 
-  return { compareMotos, addMoto, removeMoto };
+  const clear = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setCompareMotos([]);
+  }, []);
+
+  return { compareMotos, addMoto, removeMoto, clear };
 }
 
