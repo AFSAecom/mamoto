@@ -1,33 +1,27 @@
-import motosData from "../../data/generated/motos.json" assert { type: "json" };
 import type { Moto } from "@/types/moto";
-
-// The generated JSON may not be type-safe by default. Cast through unknown
-// to satisfy TypeScript while trusting the data shape at runtime.
-const motos = motosData as unknown as Moto[];
+import motos from "../../data/generated/motos.json" assert { type: "json" };
 
 export function getAllMotos(): Moto[] {
-  return motos;
+  return (motos as unknown as Moto[]) ?? [];
+}
+
+export function searchMotos(q: string): Moto[] {
+  const s = q?.toLowerCase().trim() ?? "";
+  if (!s) return getAllMotos();
+  return getAllMotos().filter(
+    (m) =>
+      m.brand.toLowerCase().includes(s) ||
+      m.model.toLowerCase().includes(s) ||
+      Object.entries(m.specs || {}).some(([k, v]) =>
+        `${k} ${v ?? ""}`.toLowerCase().includes(s),
+      ),
+  );
 }
 
 export function findByBrand(brandSlug: string): Moto[] {
-  return motos.filter((moto) => moto.brandSlug === brandSlug);
+  return getAllMotos().filter((m) => m.brandSlug === brandSlug);
 }
 
 export function findById(id: string): Moto | undefined {
-  return motos.find((moto) => moto.id === id);
-}
-
-export function search(query: string): Moto[] {
-  if (!query) return motos;
-  const lowerQuery = query.toLowerCase();
-
-  return motos.filter((moto) => {
-    if (moto.brand.toLowerCase().includes(lowerQuery)) return true;
-    if (moto.model.toLowerCase().includes(lowerQuery)) return true;
-    return Object.entries(moto.specs).some(([key, value]) => {
-      if (key.toLowerCase().includes(lowerQuery)) return true;
-      if (value === undefined || value === null) return false;
-      return String(value).toLowerCase().includes(lowerQuery);
-    });
-  });
+  return getAllMotos().find((m) => m.id === id);
 }
