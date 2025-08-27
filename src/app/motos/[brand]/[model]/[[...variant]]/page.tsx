@@ -102,16 +102,9 @@ export default async function MotoPage({ params }: PageProps) {
   const priceStr = general['Prix (TND)'];
   const priceTND = priceStr ? parseInt(priceStr.replace(/\s/g, ''), 10) : undefined;
 
-  const similarModels = motos
-    .filter(
-      (m) =>
-        m !== moto &&
-        m['Informations générales']['Marque'] === brandName
-    )
-    .map((m) => ({
-      name: m['Informations générales']['Modèle'],
-      slug: slugify(m['Informations générales']['Modèle']),
-    }));
+  const category = general['Catégorie']
+    ? slugify(general['Catégorie'])
+    : undefined;
 
   const families: SpecFamily[] = Object.entries(moto)
     .filter(([k]) => k !== 'name' && k !== 'Informations générales')
@@ -191,7 +184,11 @@ export default async function MotoPage({ params }: PageProps) {
         </TabsContent>
       </Tabs>
 
-      <SimilarModels brand={params.brand} models={similarModels} />
+      <SimilarModels
+        brand={params.brand}
+        model={params.model}
+        category={category}
+      />
 
       {jsonLd && (
         <script
