@@ -1,0 +1,2589 @@
+[
+  {
+    "name": "Aprilia RS 660",
+    "Informations générales": {
+      "Marque": "Aprilia",
+      "Modèle": "RS 660",
+      "Année": "2024",
+      "Prix (TND)": "70 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Aprilia Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "659",
+      "Alésage x Course": "81 x 63.9",
+      "Taux de compression": "13.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "100",
+      "Couple (Nm)": "67",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.6",
+      "Consommation (l/100km)": "4.9",
+      "Émissions CO₂ (g/km)": "110"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche Kayaba",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1370",
+      "Garde au sol (mm)": "150",
+      "Angle de chasse (°)": "24.1",
+      "Trail (mm)": "104",
+      "Longueur (mm)": "1995",
+      "Largeur (mm)": "745",
+      "Hauteur (mm)": "1115",
+      "Hauteur de selle (mm)": "820"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "169",
+      "Poids en ordre de marche (kg)": "183",
+      "Réservoir (L)": "15",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Sport/Rain/Road",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Aprilia RSV4 1100",
+    "Informations générales": {
+      "Marque": "Aprilia",
+      "Modèle": "RSV4 1100 Factory",
+      "Année": "2024",
+      "Version": "Factory",
+      "Prix (TND)": "110 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Aprilia Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V4",
+      "Cylindrée (cc)": "1099",
+      "Alésage x Course": "81 x 52.3",
+      "Taux de compression": "13.6:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "217",
+      "Couple (Nm)": "125",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "305",
+      "0-100 km/h (s)": "3.1",
+      "Consommation (l/100km)": "7.5",
+      "Émissions CO₂ (g/km)": "140"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche Öhlins",
+      "Suspension arrière": "Mono amortisseur Öhlins"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 330 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1450",
+      "Garde au sol (mm)": "125",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "104",
+      "Longueur (mm)": "2055",
+      "Largeur (mm)": "735",
+      "Hauteur (mm)": "1125",
+      "Hauteur de selle (mm)": "845"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "199",
+      "Poids en ordre de marche (kg)": "206",
+      "Réservoir (L)": "17.9",
+      "Autonomie estimée (km)": "320"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Race/Sport/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED adaptatif",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Aprilia Tuono V4",
+    "Informations générales": {
+      "Marque": "Aprilia",
+      "Modèle": "Tuono V4",
+      "Année": "2024",
+      "Version": "Factory",
+      "Prix (TND)": "95 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Aprilia Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V4",
+      "Cylindrée (cc)": "1077",
+      "Alésage x Course": "81 x 52.3",
+      "Taux de compression": "13.6:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "175",
+      "Couple (Nm)": "121",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "280",
+      "0-100 km/h (s)": "3.3",
+      "Consommation (l/100km)": "6.9",
+      "Émissions CO₂ (g/km)": "140"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche Öhlins",
+      "Suspension arrière": "Mono amortisseur Öhlins"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 330 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1450",
+      "Garde au sol (mm)": "125",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "104",
+      "Longueur (mm)": "2070",
+      "Largeur (mm)": "810",
+      "Hauteur (mm)": "1120",
+      "Hauteur de selle (mm)": "835"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "202",
+      "Poids en ordre de marche (kg)": "209",
+      "Réservoir (L)": "18.5",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Race/Sport/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "BMW F900R",
+    "Informations générales": {
+      "Marque": "BMW",
+      "Modèle": "F900R",
+      "Année": "2024",
+      "Prix (TND)": "55 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "BMW Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "895",
+      "Alésage x Course": "86 x 77",
+      "Taux de compression": "13.1:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "105",
+      "Couple (Nm)": "92",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "220",
+      "0-100 km/h (s)": "3.7",
+      "Consommation (l/100km)": "5.1",
+      "Émissions CO₂ (g/km)": "115"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche inversée",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 265 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1518",
+      "Garde au sol (mm)": "150",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2140",
+      "Largeur (mm)": "815",
+      "Hauteur (mm)": "1130",
+      "Hauteur de selle (mm)": "815"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "211",
+      "Poids en ordre de marche (kg)": "219",
+      "Réservoir (L)": "13",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Sport/Rain/Road",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "BMW R1250GS",
+    "Informations générales": {
+      "Marque": "BMW",
+      "Modèle": "R1250GS",
+      "Année": "2024",
+      "Version": "Adventure",
+      "Prix (TND)": "85 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "BMW Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Flat Twin Boxer",
+      "Cylindrée (cc)": "1254",
+      "Alésage x Course": "102.5 x 76",
+      "Taux de compression": "12.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide/Air",
+      "Puissance (ch)": "136",
+      "Couple (Nm)": "143",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Arbre"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "220",
+      "0-100 km/h (s)": "3.6",
+      "Consommation (l/100km)": "4.8",
+      "Émissions CO₂ (g/km)": "120"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Telelever",
+      "Suspension arrière": "Paralever"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 305 mm",
+      "Freins arrière": "Disque 276 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1515",
+      "Garde au sol (mm)": "200",
+      "Angle de chasse (°)": "25.5",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2200",
+      "Largeur (mm)": "950",
+      "Hauteur (mm)": "1450",
+      "Hauteur de selle (mm)": "850"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "249",
+      "Poids en ordre de marche (kg)": "268",
+      "Réservoir (L)": "30",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70R19",
+      "Pneu arrière": "170/60R17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Enduro/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "BMW S1000RR",
+    "Informations générales": {
+      "Marque": "BMW",
+      "Modèle": "S1000RR",
+      "Année": "2024",
+      "Version": "M Package",
+      "Prix (TND)": "85 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "BMW Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "999",
+      "Alésage x Course": "80 x 49.7",
+      "Taux de compression": "13.3:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "210",
+      "Couple (Nm)": "113",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "303",
+      "0-100 km/h (s)": "3.1",
+      "Consommation (l/100km)": "6.4",
+      "Émissions CO₂ (g/km)": "150"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée 45 mm",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1450",
+      "Garde au sol (mm)": "125",
+      "Angle de chasse (°)": "23.5",
+      "Trail (mm)": "93.9",
+      "Longueur (mm)": "2073",
+      "Largeur (mm)": "848",
+      "Hauteur (mm)": "1145",
+      "Hauteur de selle (mm)": "824"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "197",
+      "Poids en ordre de marche (kg)": "204",
+      "Réservoir (L)": "16.5",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Rain/Sport/Track",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED adaptatifs",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Ducati Monster",
+    "Informations générales": {
+      "Marque": "Ducati",
+      "Modèle": "Monster 937",
+      "Année": "2024",
+      "Version": "937",
+      "Prix (TND)": "70 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Ducati Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin Testastretta",
+      "Cylindrée (cc)": "937",
+      "Alésage x Course": "94 x 67.5",
+      "Taux de compression": "13.3:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "111",
+      "Couple (Nm)": "93",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.7",
+      "Consommation (l/100km)": "5.2",
+      "Émissions CO₂ (g/km)": "125"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 245 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1470",
+      "Garde au sol (mm)": "140",
+      "Angle de chasse (°)": "24",
+      "Trail (mm)": "93",
+      "Longueur (mm)": "2100",
+      "Largeur (mm)": "780",
+      "Hauteur (mm)": "1080",
+      "Hauteur de selle (mm)": "820"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "179",
+      "Poids en ordre de marche (kg)": "189",
+      "Réservoir (L)": "14",
+      "Autonomie estimée (km)": "280"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 4.3\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Sport/Touring",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Ducati Multistrada V4",
+    "Informations générales": {
+      "Marque": "Ducati",
+      "Modèle": "Multistrada V4",
+      "Année": "2024",
+      "Version": "S",
+      "Prix (TND)": "135 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Ducati Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V4 Granturismo",
+      "Cylindrée (cc)": "1158",
+      "Alésage x Course": "83 x 53.5",
+      "Taux de compression": "14.0:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "170",
+      "Couple (Nm)": "125",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "280",
+      "0-100 km/h (s)": "3.5",
+      "Consommation (l/100km)": "6.8",
+      "Émissions CO₂ (g/km)": "140"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche Marzocchi",
+      "Suspension arrière": "Mono amortisseur Marzocchi"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 330 mm",
+      "Freins arrière": "Disque 265 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1567",
+      "Garde au sol (mm)": "170",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "102",
+      "Longueur (mm)": "2260",
+      "Largeur (mm)": "975",
+      "Hauteur (mm)": "1450",
+      "Hauteur de selle (mm)": "840"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "215",
+      "Poids en ordre de marche (kg)": "240",
+      "Réservoir (L)": "22",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR19",
+      "Pneu arrière": "170/60ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Enduro/Sport",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Ducati Panigale V4",
+    "Informations générales": {
+      "Marque": "Ducati",
+      "Modèle": "Panigale V4",
+      "Année": "2024",
+      "Version": "V4S",
+      "Prix (TND)": "145 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Ducati Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V4 Desmosedici",
+      "Cylindrée (cc)": "1103",
+      "Alésage x Course": "81 x 53.5",
+      "Taux de compression": "14:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "215",
+      "Couple (Nm)": "123",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "310",
+      "0-100 km/h (s)": "2.9",
+      "Consommation (l/100km)": "7.8",
+      "Émissions CO₂ (g/km)": "160"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche Öhlins",
+      "Suspension arrière": "Mono amortisseur Öhlins"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 330 mm",
+      "Freins arrière": "Disque 245 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1469",
+      "Garde au sol (mm)": "120",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "100",
+      "Longueur (mm)": "2125",
+      "Largeur (mm)": "850",
+      "Hauteur (mm)": "1130",
+      "Hauteur de selle (mm)": "830"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "198",
+      "Poids en ordre de marche (kg)": "205",
+      "Réservoir (L)": "17",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/60ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Race/Sport/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Harley Davidson Iron 883",
+    "Informations générales": {
+      "Marque": "Harley-Davidson",
+      "Modèle": "Iron 883",
+      "Année": "2022",
+      "Prix (TND)": "60 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Harley Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin Evolution",
+      "Cylindrée (cc)": "883",
+      "Alésage x Course": "76.2 x 96.8",
+      "Taux de compression": "9:1",
+      "Distribution": "OHV",
+      "Refroidissement": "Air",
+      "Puissance (ch)": "50",
+      "Couple (Nm)": "68",
+      "Norme antipollution": "Euro 4"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "5",
+      "Transmission finale": "Courroie"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "170",
+      "Consommation (l/100km)": "5.0"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche téléscopique",
+      "Suspension arrière": "Double amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 292 mm",
+      "Freins arrière": "Disque 260 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Non"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1515",
+      "Garde au sol (mm)": "140",
+      "Angle de chasse (°)": "30",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2185",
+      "Largeur (mm)": "820",
+      "Hauteur (mm)": "1120",
+      "Hauteur de selle (mm)": "760"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "251",
+      "Poids en ordre de marche (kg)": "256",
+      "Réservoir (L)": "12.5",
+      "Autonomie estimée (km)": "250"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "100/90-19",
+      "Pneu arrière": "150/80-16"
+    },
+    "Équipements & Confort": {
+      "Écran": "Analogique",
+      "Quickshifter": "Non",
+      "Éclairage": "Halogène",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Non",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Non",
+      "Échappement sport": "Non",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Harley Fat Boy",
+    "Informations générales": {
+      "Marque": "Harley-Davidson",
+      "Modèle": "Fat Boy 114",
+      "Année": "2024",
+      "Prix (TND)": "190 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Harley Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin Milwaukee-Eight 114",
+      "Cylindrée (cc)": "1868",
+      "Alésage x Course": "102 x 114.3",
+      "Taux de compression": "10.5:1",
+      "Distribution": "OHV",
+      "Refroidissement": "Air",
+      "Puissance (ch)": "95",
+      "Couple (Nm)": "155",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Courroie"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "180",
+      "Consommation (l/100km)": "6.5"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Double amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 300 mm",
+      "Freins arrière": "Disque 290 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1665",
+      "Garde au sol (mm)": "125",
+      "Angle de chasse (°)": "30",
+      "Trail (mm)": "140",
+      "Longueur (mm)": "2370",
+      "Largeur (mm)": "990",
+      "Hauteur (mm)": "1150",
+      "Hauteur de selle (mm)": "675"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "317",
+      "Poids en ordre de marche (kg)": "330",
+      "Réservoir (L)": "18.9",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "160/60R18",
+      "Pneu arrière": "240/40R18"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Cruise/Touring",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Harley Street Glide",
+    "Informations générales": {
+      "Marque": "Harley-Davidson",
+      "Modèle": "Street Glide",
+      "Année": "2024",
+      "Version": "Touring",
+      "Prix (TND)": "180 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Harley Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin Milwaukee-Eight 107",
+      "Cylindrée (cc)": "1746",
+      "Alésage x Course": "100 x 111",
+      "Taux de compression": "10:1",
+      "Distribution": "OHV",
+      "Refroidissement": "Air",
+      "Puissance (ch)": "93",
+      "Couple (Nm)": "158",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Courroie"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "180",
+      "Consommation (l/100km)": "6.5"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Double amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 300 mm",
+      "Freins arrière": "Disque 290 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1625",
+      "Garde au sol (mm)": "135",
+      "Angle de chasse (°)": "26",
+      "Trail (mm)": "170",
+      "Longueur (mm)": "2450",
+      "Largeur (mm)": "960",
+      "Hauteur (mm)": "1410",
+      "Hauteur de selle (mm)": "695"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "376",
+      "Poids en ordre de marche (kg)": "390",
+      "Réservoir (L)": "22.7",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "130/70B18",
+      "Pneu arrière": "180/65B16"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Honda Africa Twin",
+    "Informations générales": {
+      "Marque": "Honda",
+      "Modèle": "Africa Twin",
+      "Année": "2024",
+      "Version": "Adventure Sports",
+      "Prix (TND)": "65 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Honda Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "1084",
+      "Alésage x Course": "92 x 81.5",
+      "Taux de compression": "10.1:1",
+      "Distribution": "SOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "102",
+      "Couple (Nm)": "105",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "220",
+      "0-100 km/h (s)": "4.2",
+      "Consommation (l/100km)": "5.0",
+      "Émissions CO₂ (g/km)": "110"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche Showa",
+      "Suspension arrière": "Mono amortisseur Showa"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 256 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1575",
+      "Garde au sol (mm)": "250",
+      "Angle de chasse (°)": "27.5",
+      "Trail (mm)": "113",
+      "Longueur (mm)": "2330",
+      "Largeur (mm)": "960",
+      "Hauteur (mm)": "1395",
+      "Hauteur de selle (mm)": "850"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "226",
+      "Poids en ordre de marche (kg)": "240",
+      "Réservoir (L)": "24.8",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "90/90-21",
+      "Pneu arrière": "150/70R18"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 6.5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Rain/Gravel",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Honda CB500F",
+    "Informations générales": {
+      "Marque": "Honda",
+      "Modèle": "CB500F",
+      "Année": "2024",
+      "Prix (TND)": "28 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Honda Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "471",
+      "Alésage x Course": "67 x 66.8",
+      "Taux de compression": "10.7:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "47",
+      "Couple (Nm)": "43",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "185",
+      "0-100 km/h (s)": "5.5",
+      "Consommation (l/100km)": "3.6",
+      "Émissions CO₂ (g/km)": "90"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 296 mm",
+      "Freins arrière": "Disque 240 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Non"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1410",
+      "Garde au sol (mm)": "145",
+      "Angle de chasse (°)": "25.5",
+      "Trail (mm)": "102",
+      "Longueur (mm)": "2080",
+      "Largeur (mm)": "800",
+      "Hauteur (mm)": "1060",
+      "Hauteur de selle (mm)": "785"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "189",
+      "Poids en ordre de marche (kg)": "192",
+      "Réservoir (L)": "17.1",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "160/60ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "LCD",
+      "Connectivité": "USB",
+      "Modes de conduite": "Std/Eco",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Non",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Non"
+    }
+  },
+  {
+    "name": "Honda PCX 125",
+    "Informations générales": {
+      "Marque": "Honda",
+      "Modèle": "PCX 125",
+      "Année": "2024",
+      "Version": "ABS",
+      "Prix (TND)": "13 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Honda Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Mono cylindre",
+      "Cylindrée (cc)": "157",
+      "Alésage x Course": "52.4 x 57.9",
+      "Taux de compression": "11.5:1",
+      "Distribution": "SOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "15",
+      "Couple (Nm)": "14",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Automatique (CVT)",
+      "Transmission finale": "Courroie"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "105",
+      "Consommation (l/100km)": "2.1"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Double amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Disque 220 mm",
+      "Freins arrière": "Tambour",
+      "ABS": "Oui",
+      "Contrôle de traction": "Non"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1315",
+      "Garde au sol (mm)": "135",
+      "Angle de chasse (°)": "26.5",
+      "Trail (mm)": "85",
+      "Longueur (mm)": "1935",
+      "Largeur (mm)": "740",
+      "Hauteur (mm)": "1100",
+      "Hauteur de selle (mm)": "764"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "130",
+      "Poids en ordre de marche (kg)": "134",
+      "Réservoir (L)": "8.1",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "100/80-14",
+      "Pneu arrière": "120/70-14"
+    },
+    "Équipements & Confort": {
+      "Écran": "LCD",
+      "Connectivité": "USB",
+      "Modes de conduite": "ECO",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Non",
+      "Échappement sport": "Non",
+      "Valises latérales": "Non",
+      "Top case": "Non"
+    }
+  },
+  {
+    "name": "KTM 1290 Super Duke R",
+    "Informations générales": {
+      "Marque": "KTM",
+      "Modèle": "1290 Super Duke R",
+      "Année": "2024",
+      "Version": "Evo",
+      "Prix (TND)": "110 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "KTM Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin",
+      "Cylindrée (cc)": "1301",
+      "Alésage x Course": "108 x 71",
+      "Taux de compression": "13.6:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "180",
+      "Couple (Nm)": "140",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "280",
+      "0-100 km/h (s)": "3.2",
+      "Consommation (l/100km)": "6.5",
+      "Émissions CO₂ (g/km)": "130"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre treillis acier",
+      "Suspension avant": "Fourche WP Apex",
+      "Suspension arrière": "Mono amortisseur WP"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 240 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1490",
+      "Garde au sol (mm)": "160",
+      "Angle de chasse (°)": "25",
+      "Trail (mm)": "95",
+      "Longueur (mm)": "2120",
+      "Largeur (mm)": "850",
+      "Hauteur (mm)": "1135",
+      "Hauteur de selle (mm)": "835"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "195",
+      "Poids en ordre de marche (kg)": "200",
+      "Réservoir (L)": "16",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Street/Rain/Track",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "KTM Adventure 890",
+    "Informations générales": {
+      "Marque": "KTM",
+      "Modèle": "Adventure 890",
+      "Année": "2024",
+      "Version": "R",
+      "Prix (TND)": "89 000",
+      "Disponibilité": "En stock",
+      "Garantie": "3 ans",
+      "Concessionnaire": "KTM Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "889",
+      "Alésage x Course": "90.7 x 68.8",
+      "Taux de compression": "13.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "105",
+      "Couple (Nm)": "100",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "220",
+      "0-100 km/h (s)": "4.0",
+      "Consommation (l/100km)": "5.0",
+      "Émissions CO₂ (g/km)": "110"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre treillis acier",
+      "Suspension avant": "Fourche WP Apex",
+      "Suspension arrière": "Mono amortisseur WP"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 260 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1520",
+      "Garde au sol (mm)": "200",
+      "Angle de chasse (°)": "26.3",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2200",
+      "Largeur (mm)": "895",
+      "Hauteur (mm)": "1450",
+      "Hauteur de selle (mm)": "850"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "196",
+      "Poids en ordre de marche (kg)": "210",
+      "Réservoir (L)": "20",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "90/90R21",
+      "Pneu arrière": "150/70R18"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Rain/Offroad",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "KTM Duke 390",
+    "Informations générales": {
+      "Marque": "KTM",
+      "Modèle": "Duke 390",
+      "Année": "2024",
+      "Prix (TND)": "28 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "KTM Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Mono cylindre",
+      "Cylindrée (cc)": "399",
+      "Alésage x Course": "89 x 64",
+      "Taux de compression": "12.6:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "44",
+      "Couple (Nm)": "37",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "170",
+      "0-100 km/h (s)": "5.5",
+      "Consommation (l/100km)": "3.0",
+      "Émissions CO₂ (g/km)": "90"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre treillis acier",
+      "Suspension avant": "Fourche inversée WP",
+      "Suspension arrière": "Mono amortisseur WP"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Disque 320 mm",
+      "Freins arrière": "Disque 230 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1365",
+      "Garde au sol (mm)": "150",
+      "Angle de chasse (°)": "25",
+      "Trail (mm)": "98",
+      "Longueur (mm)": "2070",
+      "Largeur (mm)": "770",
+      "Hauteur (mm)": "1100",
+      "Hauteur de selle (mm)": "820"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "150",
+      "Poids en ordre de marche (kg)": "165",
+      "Réservoir (L)": "13.5",
+      "Autonomie estimée (km)": "320"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "110/70ZR17",
+      "Pneu arrière": "150/60ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Street/Rain/Track",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Non",
+      "Top case": "Non"
+    }
+  },
+  {
+    "name": "Kawasaki Ninja 650",
+    "Informations générales": {
+      "Marque": "Kawasaki",
+      "Modèle": "Ninja 650",
+      "Année": "2024",
+      "Prix (TND)": "42 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Kawasaki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre en ligne",
+      "Cylindrée (cc)": "649",
+      "Alésage x Course": "83 x 60",
+      "Taux de compression": "10.8:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "68",
+      "Couple (Nm)": "65",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "210",
+      "0-100 km/h (s)": "4.0",
+      "Consommation (l/100km)": "4.5",
+      "Émissions CO₂ (g/km)": "100"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre treillis acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 300 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Non"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1410",
+      "Garde au sol (mm)": "130",
+      "Angle de chasse (°)": "24",
+      "Trail (mm)": "100",
+      "Longueur (mm)": "2055",
+      "Largeur (mm)": "740",
+      "Hauteur (mm)": "1150",
+      "Hauteur de selle (mm)": "790"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "190",
+      "Poids en ordre de marche (kg)": "193",
+      "Réservoir (L)": "15",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "160/60ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT",
+      "Connectivité": "BT",
+      "Modes de conduite": "Sport/Rain",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Non",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Kawasaki Versys 1000",
+    "Informations générales": {
+      "Marque": "Kawasaki",
+      "Modèle": "Versys 1000",
+      "Année": "2024",
+      "Version": "SE",
+      "Prix (TND)": "70 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Kawasaki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "1043",
+      "Alésage x Course": "77 x 56",
+      "Taux de compression": "10.3:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "120",
+      "Couple (Nm)": "102",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.6",
+      "Consommation (l/100km)": "6.2",
+      "Émissions CO₂ (g/km)": "130"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 250 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1520",
+      "Garde au sol (mm)": "155",
+      "Angle de chasse (°)": "27",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2270",
+      "Largeur (mm)": "895",
+      "Hauteur (mm)": "1450",
+      "Hauteur de selle (mm)": "840"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "255",
+      "Poids en ordre de marche (kg)": "262",
+      "Réservoir (L)": "21",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 4.3\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Rain/Road",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Kawasaki Z900",
+    "Informations générales": {
+      "Marque": "Kawasaki",
+      "Modèle": "Z900",
+      "Année": "2024",
+      "Prix (TND)": "46 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Kawasaki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "948",
+      "Alésage x Course": "73.4 x 56",
+      "Taux de compression": "11.8:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "125",
+      "Couple (Nm)": "98",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.3",
+      "Consommation (l/100km)": "6.0",
+      "Émissions CO₂ (g/km)": "120"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre treillis acier",
+      "Suspension avant": "Fourche inversée",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 300 mm",
+      "Freins arrière": "Disque 250 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1455",
+      "Garde au sol (mm)": "145",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2115",
+      "Largeur (mm)": "825",
+      "Hauteur (mm)": "1080",
+      "Hauteur de selle (mm)": "795"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "210",
+      "Poids en ordre de marche (kg)": "215",
+      "Réservoir (L)": "17",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 4.3\"",
+      "Connectivité": "BT",
+      "Modes de conduite": "Sport/Rain/Road",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Suzuki GSX-S750",
+    "Informations générales": {
+      "Marque": "Suzuki",
+      "Modèle": "GSX-S750",
+      "Année": "2024",
+      "Prix (TND)": "45 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Suzuki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "749",
+      "Alésage x Course": "72 x 46",
+      "Taux de compression": "12.3:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "114",
+      "Couple (Nm)": "81",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.8",
+      "Consommation (l/100km)": "5.0",
+      "Émissions CO₂ (g/km)": "120"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche inversée",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 240 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1455",
+      "Garde au sol (mm)": "135",
+      "Angle de chasse (°)": "25",
+      "Trail (mm)": "104",
+      "Longueur (mm)": "2125",
+      "Largeur (mm)": "785",
+      "Hauteur (mm)": "1055",
+      "Hauteur de selle (mm)": "820"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "213",
+      "Poids en ordre de marche (kg)": "220",
+      "Réservoir (L)": "16",
+      "Autonomie estimée (km)": "320"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "LCD",
+      "Connectivité": "BT",
+      "Modes de conduite": "Sport",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Non"
+    }
+  },
+  {
+    "name": "Suzuki Hayabusa",
+    "Informations générales": {
+      "Marque": "Suzuki",
+      "Modèle": "Hayabusa",
+      "Année": "2024",
+      "Version": "Gen3",
+      "Prix (TND)": "120 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Suzuki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "1340",
+      "Alésage x Course": "81 x 65",
+      "Taux de compression": "12.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "190",
+      "Couple (Nm)": "150",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "299",
+      "0-100 km/h (s)": "2.8",
+      "Consommation (l/100km)": "7.5",
+      "Émissions CO₂ (g/km)": "150"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée KYB",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 260 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1480",
+      "Garde au sol (mm)": "125",
+      "Angle de chasse (°)": "23",
+      "Trail (mm)": "90",
+      "Longueur (mm)": "2180",
+      "Largeur (mm)": "735",
+      "Hauteur (mm)": "1165",
+      "Hauteur de selle (mm)": "800"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "264",
+      "Poids en ordre de marche (kg)": "272",
+      "Réservoir (L)": "20",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "190/50ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT/LCD mix",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Race/Sport/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Suzuki V-Strom 650",
+    "Informations générales": {
+      "Marque": "Suzuki",
+      "Modèle": "V-Strom 650",
+      "Année": "2024",
+      "Version": "XT",
+      "Prix (TND)": "38 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Suzuki Tunis"
+    },
+    "Moteur": {
+      "Configuration": "V-Twin",
+      "Cylindrée (cc)": "645",
+      "Alésage x Course": "81 x 62.6",
+      "Taux de compression": "11.2:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "70",
+      "Couple (Nm)": "62",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "190",
+      "0-100 km/h (s)": "4.2",
+      "Consommation (l/100km)": "4.5",
+      "Émissions CO₂ (g/km)": "105"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 260 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1560",
+      "Garde au sol (mm)": "175",
+      "Angle de chasse (°)": "26",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2275",
+      "Largeur (mm)": "835",
+      "Hauteur (mm)": "1400",
+      "Hauteur de selle (mm)": "835"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "213",
+      "Poids en ordre de marche (kg)": "220",
+      "Réservoir (L)": "20",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "110/80R19",
+      "Pneu arrière": "150/70R17"
+    },
+    "Équipements & Confort": {
+      "Écran": "LCD",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Urban",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Triumph Bonneville T120",
+    "Informations générales": {
+      "Marque": "Triumph",
+      "Modèle": "Bonneville T120",
+      "Année": "2024",
+      "Prix (TND)": "55 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Triumph Tunis"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "1200",
+      "Alésage x Course": "97.6 x 80",
+      "Taux de compression": "10:1",
+      "Distribution": "SOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "80",
+      "Couple (Nm)": "105",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "190",
+      "0-100 km/h (s)": "4.5",
+      "Consommation (l/100km)": "4.3",
+      "Émissions CO₂ (g/km)": "100"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Double amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 255 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1450",
+      "Garde au sol (mm)": "140",
+      "Angle de chasse (°)": "25.5",
+      "Trail (mm)": "110",
+      "Longueur (mm)": "2175",
+      "Largeur (mm)": "785",
+      "Hauteur (mm)": "1125",
+      "Hauteur de selle (mm)": "790"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "228",
+      "Poids en ordre de marche (kg)": "236",
+      "Réservoir (L)": "14.5",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "100/90R18",
+      "Pneu arrière": "150/70R17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT/LCD mix",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Rain/Road/Sport",
+      "Quickshifter": "Non",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Triumph Street Triple RS",
+    "Informations générales": {
+      "Marque": "Triumph",
+      "Modèle": "Street Triple RS",
+      "Année": "2024",
+      "Version": "RS",
+      "Prix (TND)": "72 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Triumph Tunis"
+    },
+    "Moteur": {
+      "Configuration": "3 cylindres en ligne",
+      "Cylindrée (cc)": "765",
+      "Alésage x Course": "78 x 53.4",
+      "Taux de compression": "12.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "130",
+      "Couple (Nm)": "80",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "240",
+      "0-100 km/h (s)": "3.5",
+      "Consommation (l/100km)": "5.2",
+      "Émissions CO₂ (g/km)": "115"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée Showa",
+      "Suspension arrière": "Mono amortisseur Öhlins"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 310 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1405",
+      "Garde au sol (mm)": "150",
+      "Angle de chasse (°)": "23.5",
+      "Trail (mm)": "97",
+      "Longueur (mm)": "2070",
+      "Largeur (mm)": "775",
+      "Hauteur (mm)": "1085",
+      "Hauteur de selle (mm)": "825"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "166",
+      "Poids en ordre de marche (kg)": "188",
+      "Réservoir (L)": "15",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Sport/Rain/Track",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Triumph Tiger 900",
+    "Informations générales": {
+      "Marque": "Triumph",
+      "Modèle": "Tiger 900",
+      "Année": "2024",
+      "Version": "GT Pro",
+      "Prix (TND)": "65 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Triumph Tunis"
+    },
+    "Moteur": {
+      "Configuration": "3 cylindres en ligne",
+      "Cylindrée (cc)": "888",
+      "Alésage x Course": "78 x 61.9",
+      "Taux de compression": "11.3:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "94",
+      "Couple (Nm)": "87",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "210",
+      "0-100 km/h (s)": "4.0",
+      "Consommation (l/100km)": "5.2",
+      "Émissions CO₂ (g/km)": "110"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche inversée Marzocchi",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 255 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1550",
+      "Garde au sol (mm)": "180",
+      "Angle de chasse (°)": "24",
+      "Trail (mm)": "100",
+      "Longueur (mm)": "2220",
+      "Largeur (mm)": "930",
+      "Hauteur (mm)": "1410",
+      "Hauteur de selle (mm)": "850"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "201",
+      "Poids en ordre de marche (kg)": "210",
+      "Réservoir (L)": "20",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "100/90R19",
+      "Pneu arrière": "150/70R17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 7\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Touring/Rain/Road",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Yamaha MT-07",
+    "Informations générales": {
+      "Marque": "Yamaha",
+      "Modèle": "MT-07",
+      "Année": "2024",
+      "Prix (TND)": "39 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Yamaha Sousse"
+    },
+    "Moteur": {
+      "Configuration": "Bicylindre parallèle",
+      "Cylindrée (cc)": "689",
+      "Alésage x Course": "80 x 68.6",
+      "Taux de compression": "11.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "73",
+      "Couple (Nm)": "67",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "210",
+      "0-100 km/h (s)": "3.9",
+      "Consommation (l/100km)": "4.3",
+      "Émissions CO₂ (g/km)": "98"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre acier",
+      "Suspension avant": "Fourche télescopique",
+      "Suspension arrière": "Mono amortisseur"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 298 mm",
+      "Freins arrière": "Disque 245 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Non"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1400",
+      "Garde au sol (mm)": "140",
+      "Angle de chasse (°)": "24.5",
+      "Trail (mm)": "90",
+      "Longueur (mm)": "2085",
+      "Largeur (mm)": "780",
+      "Hauteur (mm)": "1105",
+      "Hauteur de selle (mm)": "805"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "179",
+      "Poids en ordre de marche (kg)": "184",
+      "Réservoir (L)": "14",
+      "Autonomie estimée (km)": "350"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT",
+      "Modes de conduite": "Sport/Std/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Non"
+    },
+    "Options": {
+      "Smart Key": "Non",
+      "Prise USB-C": "Non",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Non",
+      "Chauffe-mains": "Non",
+      "Siège chauffant": "Non",
+      "Suspensions pilotées": "Non",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Non",
+      "Top case": "Non"
+    }
+  },
+  {
+    "name": "Yamaha R1",
+    "Informations générales": {
+      "Marque": "Yamaha",
+      "Modèle": "R1",
+      "Année": "2024",
+      "Prix (TND)": "98 000",
+      "Disponibilité": "Sur commande",
+      "Garantie": "3 ans",
+      "Concessionnaire": "Yamaha Tunis"
+    },
+    "Moteur": {
+      "Configuration": "4 cylindres en ligne",
+      "Cylindrée (cc)": "998",
+      "Alésage x Course": "79 x 50.9",
+      "Taux de compression": "13.0:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "200",
+      "Couple (Nm)": "112",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "299",
+      "0-100 km/h (s)": "2.7",
+      "Consommation (l/100km)": "7.0",
+      "Émissions CO₂ (g/km)": "150"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée KYB",
+      "Suspension arrière": "Mono amortisseur KYB"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 320 mm",
+      "Freins arrière": "Disque 220 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1405",
+      "Garde au sol (mm)": "130",
+      "Angle de chasse (°)": "24",
+      "Trail (mm)": "102",
+      "Longueur (mm)": "2055",
+      "Largeur (mm)": "690",
+      "Hauteur (mm)": "1150",
+      "Hauteur de selle (mm)": "855"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "199",
+      "Poids en ordre de marche (kg)": "206",
+      "Réservoir (L)": "17",
+      "Autonomie estimée (km)": "300"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "200/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 5\"",
+      "Connectivité": "BT",
+      "Modes de conduite": "Race/Sport/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  },
+  {
+    "name": "Yamaha Tracer 9",
+    "Informations générales": {
+      "Marque": "Yamaha",
+      "Modèle": "Tracer 9",
+      "Année": "2024",
+      "Version": "GT",
+      "Prix (TND)": "62 000",
+      "Disponibilité": "En stock",
+      "Garantie": "2 ans",
+      "Concessionnaire": "Yamaha Tunis"
+    },
+    "Moteur": {
+      "Configuration": "3 cylindres en ligne",
+      "Cylindrée (cc)": "890",
+      "Alésage x Course": "78 x 62.1",
+      "Taux de compression": "11.5:1",
+      "Distribution": "DOHC",
+      "Refroidissement": "Liquide",
+      "Puissance (ch)": "119",
+      "Couple (Nm)": "93",
+      "Norme antipollution": "Euro 5"
+    },
+    "Transmission": {
+      "Type de boîte": "Manuelle",
+      "Nb rapports": "6",
+      "Transmission finale": "Chaîne"
+    },
+    "Performances": {
+      "Vitesse max (km/h)": "220",
+      "0-100 km/h (s)": "3.9",
+      "Consommation (l/100km)": "5.0",
+      "Émissions CO₂ (g/km)": "115"
+    },
+    "Châssis & Suspensions": {
+      "Cadre": "Cadre alu",
+      "Suspension avant": "Fourche inversée KYB",
+      "Suspension arrière": "Mono amortisseur KYB"
+    },
+    "Freins & Sécurité": {
+      "Freins avant": "Double disque 298 mm",
+      "Freins arrière": "Disque 245 mm",
+      "ABS": "Oui",
+      "Contrôle de traction": "Oui"
+    },
+    "Géométrie & Dimensions": {
+      "Empattement (mm)": "1500",
+      "Garde au sol (mm)": "135",
+      "Angle de chasse (°)": "25",
+      "Trail (mm)": "108",
+      "Longueur (mm)": "2175",
+      "Largeur (mm)": "885",
+      "Hauteur (mm)": "1430",
+      "Hauteur de selle (mm)": "810"
+    },
+    "Poids & Capacités": {
+      "Poids à sec (kg)": "213",
+      "Poids en ordre de marche (kg)": "220",
+      "Réservoir (L)": "18",
+      "Autonomie estimée (km)": "400"
+    },
+    "Roues & Pneus": {
+      "Jantes": "Alliage",
+      "Pneu avant": "120/70ZR17",
+      "Pneu arrière": "180/55ZR17"
+    },
+    "Équipements & Confort": {
+      "Écran": "TFT 7\"",
+      "Connectivité": "BT/USB",
+      "Modes de conduite": "Sport/Touring/Rain",
+      "Quickshifter": "Oui",
+      "Éclairage": "LED",
+      "Régulateur de vitesse": "Oui"
+    },
+    "Options": {
+      "Smart Key": "Oui",
+      "Prise USB-C": "Oui",
+      "Caméra 360°": "Non",
+      "Radar de recul": "Oui",
+      "Chauffe-mains": "Oui",
+      "Siège chauffant": "Oui",
+      "Suspensions pilotées": "Oui",
+      "Échappement sport": "Oui",
+      "Valises latérales": "Oui",
+      "Top case": "Oui"
+    }
+  }
+]
