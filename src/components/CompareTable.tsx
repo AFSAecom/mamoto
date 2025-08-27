@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 import { Version, FeatureValue, FeatureComparison } from '@/types';
+import { isPresent, tokens } from '@/lib/is-present';
 
 interface CompareTableProps {
   comparisonData: {
@@ -41,19 +42,30 @@ const CompareTable: React.FC<CompareTableProps> = ({ comparisonData, onRemoveVer
     }).format(price).replace('TND', 'TND');
   };
 
-  const renderFeatureValue = (value: FeatureValue) => {
-    if (typeof value === 'boolean') {
-      return value ? (
-        <CheckCircle className="h-5 w-5 text-green-500" />
-      ) : (
-        <XCircle className="h-5 w-5 text-red-500" />
-      );
-    }
-    if (typeof value === 'number') {
-      return <span className="font-medium">{value.toLocaleString()}</span>;
-    }
-    return <span>{value}</span>;
-  };
+    const renderFeatureValue = (value: FeatureValue) => {
+      if (!isPresent(value)) return null;
+      if (typeof value === 'boolean') {
+        return value ? (
+          <CheckCircle className="h-5 w-5 text-green-500" />
+        ) : (
+          <XCircle className="h-5 w-5 text-red-500" />
+        );
+      }
+      if (typeof value === 'number') {
+        return <span className="font-medium">{value.toLocaleString()}</span>;
+      }
+      const parts = tokens(value);
+      if (parts.length > 1) {
+        return (
+          <ul className="space-y-1">
+            {parts.map((token, idx) => (
+              <li key={idx}>{token}</li>
+            ))}
+          </ul>
+        );
+      }
+      return <span>{parts[0]}</span>;
+    };
 
   const SimilaritiesTab = () => (
     <div className="space-y-6">
@@ -71,17 +83,20 @@ const CompareTable: React.FC<CompareTableProps> = ({ comparisonData, onRemoveVer
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {items.map((item, index) => (
-                  <li key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span className="text-fg">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )
-      ))}
+                  {items
+                    .filter(isPresent)
+                    .flatMap(tokens)
+                    .map((item, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-fg">{item}</span>
+                      </li>
+                    ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )
+        ))}
     </div>
   );
 
@@ -172,8 +187,30 @@ const CompareTable: React.FC<CompareTableProps> = ({ comparisonData, onRemoveVer
                   {formatPrice(version.price)}
                 </div>
                 <div className="space-y-1 text-sm text-muted">
-                  <div>{version.engine.displacement}cc - {version.engine.power}ch</div>
-                  <div>{version.performance.topSpeed} km/h - {version.performance.weight}kg</div>
+                  <div>
+                    {[
+                      isPresent(version.engine.displacement)
+                        ? `${version.engine.displacement}cc`
+                        : null,
+                      isPresent(version.engine.power)
+                        ? `${version.engine.power}ch`
+                        : null,
+                    ]
+                      .filter(isPresent)
+                      .join(' - ')}
+                  </div>
+                  <div>
+                    {[
+                      isPresent(version.performance.topSpeed)
+                        ? `${version.performance.topSpeed} km/h`
+                        : null,
+                      isPresent(version.performance.weight)
+                        ? `${version.performance.weight}kg`
+                        : null,
+                    ]
+                      .filter(isPresent)
+                      .join(' - ')}
+                  </div>
                 </div>
               </div>
             ))}
