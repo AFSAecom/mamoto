@@ -84,7 +84,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default function MotoPage(props: PageProps) {
   return (
     <Suspense fallback={<MotoPageSkeleton />}>
-      {/* @ts-expect-error Async Server Component */}
       <MotoPageContent {...props} />
     </Suspense>
   );
