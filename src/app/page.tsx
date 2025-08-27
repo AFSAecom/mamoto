@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MotoCard from '@/components/MotoCard';
 import { ArrowRight, Search, TrendingUp, Users, Award, MapPin, ChevronRight } from 'lucide-react';
+import { Moto, Version, Model, Brand } from '@/types';
 
 export default function Home() {
-  const [featuredMotos, setFeaturedMotos] = useState<any[]>([]);
+  const [featuredMotos, setFeaturedMotos] = useState<Moto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,14 +26,14 @@ export default function Home() {
         fetch('/api/brands')
       ]);
 
-      const versions = await versionsRes.json();
-      const models = await modelsRes.json();
-      const brands = await brandsRes.json();
+      const versions: Version[] = await versionsRes.json();
+      const models: Model[] = await modelsRes.json();
+      const brands: Brand[] = await brandsRes.json();
 
       // Get 6 featured motos (mix of different categories)
-      const featured = versions.slice(0, 6).map((version: any) => {
-        const model = models.find((m: any) => m.id === version.modelId);
-        const brand = brands.find((b: any) => b.id === model?.brandId);
+      const featured: Moto[] = versions.slice(0, 6).map((version: Version) => {
+        const model = models.find((m: Model) => m.id === version.modelId);
+        const brand = brands.find((b: Brand) => b.id === model?.brandId);
         return { version, model, brand };
       });
 

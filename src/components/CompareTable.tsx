@@ -5,40 +5,12 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, X } from 'lucide-react';
+import { Version, FeatureValue, FeatureComparison } from '@/types';
 
 interface CompareTableProps {
   comparisonData: {
-    versions: Array<{
-      id: string;
-      name: string;
-      price: number;
-      engine: {
-        displacement: number;
-        type: string;
-        power: number;
-        torque: number;
-      };
-      performance: {
-        topSpeed: number;
-        acceleration: number;
-        weight: number;
-      };
-      dimensions: {
-        length: number;
-        width: number;
-        height: number;
-        wheelbase: number;
-      };
-      features: {
-        abs: boolean;
-        tcs: boolean;
-        quickshifter: boolean;
-        cruiseControl: boolean;
-        ledLights: boolean;
-      };
-    }>;
+    versions: Version[];
     similarities: {
       engine: string[];
       performance: string[];
@@ -47,48 +19,12 @@ interface CompareTableProps {
       comfort: string[];
     };
     differences: {
-      engine: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: any;
-        }>;
-      }>;
-      performance: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: any;
-        }>;
-      }>;
-      dimensions: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: any;
-        }>;
-      }>;
-      safety: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: any;
-        }>;
-      }>;
-      comfort: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: any;
-        }>;
-      }>;
-      price: Array<{
-        feature: string;
-        values: Array<{
-          version: string;
-          value: number;
-        }>;
-      }>;
+      engine: FeatureComparison[];
+      performance: FeatureComparison[];
+      dimensions: FeatureComparison[];
+      safety: FeatureComparison[];
+      comfort: FeatureComparison[];
+      price: FeatureComparison[];
     };
   };
   onRemoveVersion?: (versionId: string) => void;
@@ -105,7 +41,7 @@ const CompareTable: React.FC<CompareTableProps> = ({ comparisonData, onRemoveVer
     }).format(price).replace('TND', 'TND');
   };
 
-  const renderFeatureValue = (value: any) => {
+  const renderFeatureValue = (value: FeatureValue) => {
     if (typeof value === 'boolean') {
       return value ? (
         <CheckCircle className="h-5 w-5 text-green-500" />

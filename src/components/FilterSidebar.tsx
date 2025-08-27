@@ -11,20 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Filter, ChevronDown, X } from 'lucide-react';
+import { Filters } from '@/types';
 
 interface FilterSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  filters: {
-    brands: string[];
-    categories: string[];
-    priceRange: [number, number];
-    engineRange: [number, number];
-    powerRange: [number, number];
-    selectedBrands: string[];
-    selectedCategories: string[];
-  };
-  onFiltersChange: (filters: any) => void;
+  filters: Filters;
+  onFiltersChange: (filters: Filters) => void;
 }
 
 const FilterSidebar: React.FC<FilterSidebarProps> = ({

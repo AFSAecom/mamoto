@@ -11,31 +11,12 @@ import { Eye, Heart, TrendingUp } from 'lucide-react';
 import { useFavorites } from '@/hooks/use-favorites';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Version, Model, Brand } from '@/types';
 
 interface MotoCardProps {
-  version: {
-    id: string;
-    modelId: string;
-    name: string;
-    price: number;
-    engine: {
-      displacement: number;
-      power: number;
-    };
-    performance: {
-      topSpeed: number;
-      weight: number;
-    };
-  };
-  model?: {
-    name: string;
-    brandId: string;
-    category: string;
-    image: string;
-  };
-  brand?: {
-    name: string;
-  };
+  version: Version;
+  model?: Model;
+  brand?: Brand;
   showActions?: boolean;
 }
 
