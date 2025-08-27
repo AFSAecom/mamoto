@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import useCompare from '@/hooks/use-compare';
 import { isPresent } from '@/lib/is-present';
 
 interface CompareButtonProps {
@@ -11,27 +11,19 @@ interface CompareButtonProps {
 
 export default function CompareButton({ modelId }: CompareButtonProps) {
   const { toast } = useToast();
-  const [active, setActive] = useState(false);
+  const { compareMotos, addMoto, removeMoto } = useCompare();
 
-  useEffect(() => {
-    if (!isPresent(modelId)) return;
-    const stored = JSON.parse(localStorage.getItem('compare-models') || '[]') as string[];
-    setActive(stored.includes(modelId));
-  }, [modelId]);
+  const active = isPresent(modelId) && compareMotos.includes(modelId);
 
   const toggle = () => {
     if (!isPresent(modelId)) return;
-    const stored = JSON.parse(localStorage.getItem('compare-models') || '[]') as string[];
-    let updated: string[];
-    if (stored.includes(modelId)) {
-      updated = stored.filter((id) => id !== modelId);
+    if (active) {
+      removeMoto(modelId);
       toast({ title: 'Modèle retiré de la comparaison' });
     } else {
-      updated = [...stored, modelId];
+      addMoto(modelId);
       toast({ title: 'Modèle ajouté à la comparaison' });
     }
-    localStorage.setItem('compare-models', JSON.stringify(updated));
-    setActive(updated.includes(modelId));
   };
 
   return (
