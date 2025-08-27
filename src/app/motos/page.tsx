@@ -1,8 +1,10 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { getAllMotos } from "@/src/lib/motos";
+import { getAllMotos } from "../../lib/motos";
 
 export default function MotosPage() {
+  console.log("motos.len =", getAllMotos().length);
   const [q, setQ] = useState("");
   const all = useMemo(() => getAllMotos(), []);
   const list = useMemo(() => {
@@ -30,11 +32,13 @@ export default function MotosPage() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((m) => (
             <li key={m.id} className="rounded-xl border p-4 hover:shadow">
-              <div className="text-sm text-gray-500">{m.brand}</div>
-              <div className="text-lg font-medium">
-                {m.model}{m.year ? ` · ${m.year}` : ""}
-              </div>
-              {m.price != null && <div className="mt-1">Prix: {m.price}</div>}
+              <Link href={`/modeles/${m.id}`} className="block">
+                <div className="text-sm text-gray-500">{m.brand}</div>
+                <div className="text-lg font-medium">
+                  {m.model}{m.year ? ` · ${m.year}` : ""}
+                </div>
+                {m.price != null && <div className="mt-1">Prix: {m.price}</div>}
+              </Link>
             </li>
           ))}
         </ul>
