@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -58,10 +59,13 @@ const MotoCard: React.FC<MotoCardProps> = ({
         {/* Image */}
         <div className="aspect-[4/3] overflow-hidden bg-accent">
           {model?.image && (
-            <img
+            <Image
               src={model.image}
               alt={version.name}
+              width={400}
+              height={300}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
             />
           )}
           <div className="absolute top-3 left-3">
