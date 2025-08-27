@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import PriceBadge from '@/components/moto/PriceBadge';
 import CompareButton from '@/components/moto/CompareButton';
 import SpecsFamilies from '@/components/moto/SpecsFamilies';
@@ -79,7 +81,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function MotoPage({ params }: PageProps) {
+export default function MotoPage(props: PageProps) {
+  return (
+    <Suspense fallback={<MotoPageSkeleton />}>
+      {/* @ts-expect-error Async Server Component */}
+      <MotoPageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function MotoPageContent({ params }: PageProps) {
   const motos = await getMotos();
   const moto = motos.find((m) => {
     const general = m['Informations générales'] || {};
@@ -111,9 +122,7 @@ export default async function MotoPage({ params }: PageProps) {
     .map(([group, specs]) => {
       const items = Object.entries(specs as Record<string, unknown>)
         .filter(([, value]) => isPresent(value))
-        .map(
-          ([label, value]) => ({ label, value: value as SpecValue })
-        );
+        .map(([label, value]) => ({ label, value: value as SpecValue }));
       return { group, items };
     });
 
@@ -174,11 +183,11 @@ export default async function MotoPage({ params }: PageProps) {
           <TabsTrigger value="specs">Fiche technique</TabsTrigger>
           <TabsTrigger value="gallery">Galerie</TabsTrigger>
         </TabsList>
-      <TabsContent value="specs">
-        <section id="fiche-technique">
-          <SpecsFamilies families={families} />
-        </section>
-      </TabsContent>
+        <TabsContent value="specs">
+          <section id="fiche-technique">
+            <SpecsFamilies families={families} />
+          </section>
+        </TabsContent>
         <TabsContent value="gallery">
           <div className="aspect-video w-full bg-muted" />
         </TabsContent>
@@ -196,6 +205,30 @@ export default async function MotoPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
+    </div>
+  );
+}
+
+function MotoPageSkeleton() {
+  return (
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-6 w-32" />
+        <div className="flex gap-4">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Skeleton className="w-full aspect-video" />
+      </section>
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
