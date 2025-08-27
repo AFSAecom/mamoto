@@ -11,6 +11,7 @@ import { Eye, Heart, TrendingUp } from 'lucide-react';
 import { useFavorites } from '@/hooks/use-favorites';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { isPresent } from '@/lib/is-present';
 import { Version, Model, Brand } from '@/types';
 
 interface MotoCardProps {
@@ -81,22 +82,30 @@ const MotoCard: React.FC<MotoCardProps> = ({
             <p className="text-sm text-muted">{version.name}</p>
           </div>
 
-          {/* Specs */}
-          <div className="flex justify-between text-sm text-muted mb-3">
-            <span>{version.engine.displacement}cc</span>
-            <span>{version.engine.power}ch</span>
-            <span>{version.performance.weight}kg</span>
-          </div>
+            {/* Specs */}
+            <div className="flex justify-between text-sm text-muted mb-3">
+              {isPresent(version.engine.displacement) && (
+                <span>{version.engine.displacement}cc</span>
+              )}
+              {isPresent(version.engine.power) && (
+                <span>{version.engine.power}ch</span>
+              )}
+              {isPresent(version.performance.weight) && (
+                <span>{version.performance.weight}kg</span>
+              )}
+            </div>
 
           {/* Price */}
           <div className="flex items-center justify-between">
             <div className="text-xl font-bold text-brand-300">
               {formatPrice(version.price)}
             </div>
-            <div className="text-sm text-muted">
-              {version.performance.topSpeed} km/h
+              {isPresent(version.performance.topSpeed) && (
+                <div className="text-sm text-muted">
+                  {version.performance.topSpeed} km/h
+                </div>
+              )}
             </div>
-          </div>
         </CardContent>
 
         {showActions && (

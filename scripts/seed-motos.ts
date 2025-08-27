@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as XLSX from 'xlsx';
-import { isPresent } from '../src/lib/utils';
+import { isPresent } from '../src/lib/is-present';
 
 interface MotoModel {
   name: string;
