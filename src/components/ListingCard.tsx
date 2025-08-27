@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,10 +47,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, showActions = true }
       <Card className="bg-surface border-accent hover:border-brand-500 transition-all duration-300 overflow-hidden group">
         {/* Image */}
         <div className="aspect-[4/3] overflow-hidden bg-accent relative">
-          <img
+          <Image
             src={listing.image}
             alt={listing.title}
+            width={400}
+            height={300}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
           <div className="absolute top-3 left-3">
             <Badge variant="secondary" className="bg-brand-700 text-fg">
