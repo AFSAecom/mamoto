@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { findById } from "../../../lib/motos";
-import SpecsTable from "../../../../components/SpecsTable";
+import SpecsTable from "../../../components/SpecsTable";
 
 export default function ModelePage({ params }: { params: { id: string } }) {
   const moto = findById(params.id);
