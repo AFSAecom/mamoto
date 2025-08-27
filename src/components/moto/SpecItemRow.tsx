@@ -14,8 +14,8 @@ export default function SpecItemRow({ label, value }: SpecItemRowProps) {
       <span className="text-sm text-muted">{label}</span>
       <div className="flex flex-wrap justify-end gap-1">
         {parts.length > 1 ? (
-          parts.map((p, idx) => (
-            <Badge key={idx} variant="secondary" className="bg-accent text-fg">
+          parts.map((p) => (
+            <Badge key={p} variant="secondary" className="bg-accent text-fg">
               {p}
             </Badge>
           ))

@@ -35,7 +35,12 @@ export default function CompareButton({ modelId }: CompareButtonProps) {
   };
 
   return (
-    <Button variant={active ? 'default' : 'outline'} onClick={toggle} size="sm">
+    <Button
+      variant={active ? 'default' : 'outline'}
+      onClick={toggle}
+      size="sm"
+      aria-pressed={active}
+    >
       {active ? 'Retirer' : 'Comparer'}
     </Button>
   );

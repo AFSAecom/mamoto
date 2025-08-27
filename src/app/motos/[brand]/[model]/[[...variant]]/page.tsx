@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { notFound } from 'next/navigation';
-import { Fragment } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,8 +12,10 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import PriceBadge from '@/components/PriceBadge';
-import SimilarModels from '@/components/SimilarModels';
+import PriceBadge from '@/components/moto/PriceBadge';
+import CompareButton from '@/components/moto/CompareButton';
+import SpecsFamilies from '@/components/moto/SpecsFamilies';
+import SimilarModels from '@/components/moto/SimilarModels';
 
 interface PageProps {
   params: { brand: string; model: string; variant?: string[] };
@@ -110,6 +111,15 @@ export default async function MotoPage({ params }: PageProps) {
       slug: slugify(m['Informations générales']['Modèle']),
     }));
 
+  const families = Object.entries(moto)
+    .filter(([k]) => k !== 'name' && k !== 'Informations générales')
+    .map(([group, specs]) => ({
+      group,
+      items: Object.entries(specs as Record<string, string | number | null>).map(
+        ([label, value]) => ({ label, value })
+      ),
+    }));
+
   const jsonLd =
     priceTND !== undefined
       ? {
@@ -154,7 +164,7 @@ export default async function MotoPage({ params }: PageProps) {
         </h1>
         {priceTND !== undefined && <PriceBadge price={priceTND} />}
         <div className="flex gap-4">
-          <Button>Comparer</Button>
+          <CompareButton modelId={params.model} />
           <Button variant="outline" asChild>
             <a href="#fiche-technique">Fiche technique</a>
           </Button>
@@ -167,25 +177,11 @@ export default async function MotoPage({ params }: PageProps) {
           <TabsTrigger value="specs">Fiche technique</TabsTrigger>
           <TabsTrigger value="gallery">Galerie</TabsTrigger>
         </TabsList>
-        <TabsContent value="specs">
-          <section id="fiche-technique" className="space-y-6">
-            {Object.entries(moto)
-              .filter(([k]) => k !== 'name' && k !== 'Informations générales')
-              .map(([section, specs]) => (
-                <div key={section} className="space-y-2">
-                  <h3 className="text-lg font-semibold">{section}</h3>
-                  <dl className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-                    {Object.entries(specs as Record<string, string>).map(([k, v]) => (
-                      <Fragment key={k}>
-                        <dt className="text-muted-foreground">{k}</dt>
-                        <dd className="font-medium">{v}</dd>
-                      </Fragment>
-                    ))}
-                  </dl>
-                </div>
-              ))}
-          </section>
-        </TabsContent>
+      <TabsContent value="specs">
+        <section id="fiche-technique">
+          <SpecsFamilies families={families} />
+        </section>
+      </TabsContent>
         <TabsContent value="gallery">
           <div className="aspect-video w-full bg-muted" />
         </TabsContent>
