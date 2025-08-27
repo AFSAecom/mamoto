@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "brand": "Yamaha",
+    "brandSlug": "yamaha",
+    "model": "MT-07",
+    "modelSlug": "mt-07",
+    "year": 2023,
+    "price": 7000,
+    "category": "naked",
+    "imageUrl": null,
+    "specs": {
+      "engine": "689cc",
+      "horsepower": "73.4"
+    }
+  },
+  {
+    "id": "2",
+    "brand": "Honda",
+    "brandSlug": "honda",
+    "model": "CBR500R",
+    "modelSlug": "cbr500r",
+    "year": 2024,
+    "price": 6800,
+    "category": "sport",
+    "imageUrl": null,
+    "specs": {
+      "engine": "471cc",
+      "horsepower": "47"
+    }
+  }
+]
