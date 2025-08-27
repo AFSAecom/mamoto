@@ -1,4 +1,4 @@
-export type SpecValue = string | number | boolean;
+export type SpecValue = string | number | boolean | null;
 
 export interface SpecItem {
   label: string;
@@ -10,21 +10,20 @@ export interface SpecFamily {
   items: SpecItem[];
 }
 
-export interface MotoVariant {
+export type Specs = Record<string, SpecValue>;
+
+export interface Moto {
   id: string;
-  name: string;
+  brand: string;
+  brandSlug: string;
+  model: string;
+  modelSlug: string;
+  year?: number;
   price?: number;
-  specs: SpecFamily[];
+  category?: string;
+  imageUrl?: string;
+  specs: Specs;
+  sourceFile: string;
+  sheet?: string;
+  createdAt: string;
 }
-
-export interface MotoModel {
-  id: string;
-  name: string;
-  brandId: string;
-  category: string;
-  image: string;
-  description?: string;
-  gallery?: string[];
-  variant?: MotoVariant[];
-}
-
