@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dealer-1",
+    "name": "Moto Plus Tunis",
+    "brands": ["Yamaha", "Suzuki"],
+    "address": "Avenue de la République, Tunis",
+    "phone": "+216 71 123 456",
+    "email": "contact@motoplus.tn",
+    "website": "www.motoplus.tn",
+    "services": ["Vente", "Entretien", "Pièces détachées"]
+  },
+  {
+    "id": "dealer-2",
+    "name": "Honda Center Sfax",
+    "brands": ["Honda"],
+    "address": "Route de l'Aéroport, Sfax",
+    "phone": "+216 74 987 654",
+    "email": "info@hondacenter-sfax.tn",
+    "website": "www.honda-sfax.tn",
+    "services": ["Vente", "SAV", "Financement"]
+  },
+  {
+    "id": "dealer-3",
+    "name": "Kawasaki Sousse",
+    "brands": ["Kawasaki"],
+    "address": "Zone Industrielle, Sousse",
+    "phone": "+216 73 555 789",
+    "email": "kawasaki@sousse-moto.tn",
+    "website": "www.kawasaki-sousse.tn",
+    "services": ["Vente", "Entretien", "Accessoires"]
+  }
+]

@@ -1,0 +1,902 @@
+[
+  {
+    "id": "yzf-r1-base-2025",
+    "modelId": "yzf-r1",
+    "name": "YZF-R1 Base 2025",
+    "price": 65000,
+    "engine": {
+      "displacement": 998,
+      "type": "4 cylindres en ligne",
+      "power": 200,
+      "torque": 112.4
+    },
+    "performance": {
+      "topSpeed": 299,
+      "acceleration": 2.9,
+      "weight": 201
+    },
+    "dimensions": {
+      "length": 2055,
+      "width": 690,
+      "height": 1165,
+      "wheelbase": 1405
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "mt-07-base-2025",
+    "modelId": "mt-07",
+    "name": "MT-07 Base 2025",
+    "price": 28000,
+    "engine": {
+      "displacement": 689,
+      "type": "2 cylindres en ligne",
+      "power": 73,
+      "torque": 67
+    },
+    "performance": {
+      "topSpeed": 230,
+      "acceleration": 3.8,
+      "weight": 184
+    },
+    "dimensions": {
+      "length": 2085,
+      "width": 745,
+      "height": 1090,
+      "wheelbase": 1400
+    },
+    "features": {
+      "abs": true,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "tenere-700-base-2025",
+    "modelId": "tenere-700",
+    "name": "Ténéré 700 Base 2025",
+    "price": 35000,
+    "engine": {
+      "displacement": 689,
+      "type": "2 cylindres en ligne",
+      "power": 73,
+      "torque": 68
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 4.2,
+      "weight": 204
+    },
+    "dimensions": {
+      "length": 2370,
+      "width": 905,
+      "height": 1455,
+      "wheelbase": 1590
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "cbr1000rr-base-2025",
+    "modelId": "cbr1000rr",
+    "name": "CBR1000RR-R Base 2025",
+    "price": 70000,
+    "engine": {
+      "displacement": 999,
+      "type": "4 cylindres en ligne",
+      "power": 217,
+      "torque": 113
+    },
+    "performance": {
+      "topSpeed": 305,
+      "acceleration": 2.7,
+      "weight": 201
+    },
+    "dimensions": {
+      "length": 2059,
+      "width": 720,
+      "height": 1151,
+      "wheelbase": 1455
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "cb650r-base-2025",
+    "modelId": "cb650r",
+    "name": "CB650R Base 2025",
+    "price": 32000,
+    "engine": {
+      "displacement": 649,
+      "type": "4 cylindres en ligne",
+      "power": 95,
+      "torque": 64
+    },
+    "performance": {
+      "topSpeed": 240,
+      "acceleration": 3.6,
+      "weight": 202
+    },
+    "dimensions": {
+      "length": 2130,
+      "width": 780,
+      "height": 1075,
+      "wheelbase": 1450
+    },
+    "features": {
+      "abs": true,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "africa-twin-base-2025",
+    "modelId": "africa-twin",
+    "name": "Africa Twin Base 2025",
+    "price": 45000,
+    "engine": {
+      "displacement": 1084,
+      "type": "2 cylindres en ligne",
+      "power": 102,
+      "torque": 105
+    },
+    "performance": {
+      "topSpeed": 210,
+      "acceleration": 3.8,
+      "weight": 238
+    },
+    "dimensions": {
+      "length": 2330,
+      "width": 960,
+      "height": 1525,
+      "wheelbase": 1575
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "ninja-zx-10rr-base-2025",
+    "modelId": "ninja-zx-10rr",
+    "name": "Ninja ZX-10RR Base 2025",
+    "price": 72000,
+    "engine": {
+      "displacement": 998,
+      "type": "4 cylindres en ligne",
+      "power": 203,
+      "torque": 114.9
+    },
+    "performance": {
+      "topSpeed": 299,
+      "acceleration": 2.8,
+      "weight": 207
+    },
+    "dimensions": {
+      "length": 2085,
+      "width": 750,
+      "height": 1185,
+      "wheelbase": 1450
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "z900-base-2025",
+    "modelId": "z900",
+    "name": "Z900 Base 2025",
+    "price": 38000,
+    "engine": {
+      "displacement": 948,
+      "type": "4 cylindres en ligne",
+      "power": 125,
+      "torque": 98.6
+    },
+    "performance": {
+      "topSpeed": 250,
+      "acceleration": 3.0,
+      "weight": 212
+    },
+    "dimensions": {
+      "length": 2070,
+      "width": 820,
+      "height": 1065,
+      "wheelbase": 1450
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "versys-650-base-2025",
+    "modelId": "versys-650",
+    "name": "Versys 650 Base 2025",
+    "price": 31000,
+    "engine": {
+      "displacement": 649,
+      "type": "2 cylindres en ligne",
+      "power": 69,
+      "torque": 64
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 4.5,
+      "weight": 216
+    },
+    "dimensions": {
+      "length": 2165,
+      "width": 840,
+      "height": 1400,
+      "wheelbase": 1415
+    },
+    "features": {
+      "abs": true,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "gsx-r1000r-base-2025",
+    "modelId": "gsx-r1000r",
+    "name": "GSX-R1000R Base 2025",
+    "price": 68000,
+    "engine": {
+      "displacement": 999,
+      "type": "4 cylindres en ligne",
+      "power": 199,
+      "torque": 117.6
+    },
+    "performance": {
+      "topSpeed": 295,
+      "acceleration": 2.9,
+      "weight": 203
+    },
+    "dimensions": {
+      "length": 2075,
+      "width": 705,
+      "height": 1145,
+      "wheelbase": 1420
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "sv650-base-2025",
+    "modelId": "sv650",
+    "name": "SV650 Base 2025",
+    "price": 26000,
+    "engine": {
+      "displacement": 645,
+      "type": "2 cylindres en V",
+      "power": 76,
+      "torque": 64
+    },
+    "performance": {
+      "topSpeed": 220,
+      "acceleration": 3.9,
+      "weight": 197
+    },
+    "dimensions": {
+      "length": 2140,
+      "width": 760,
+      "height": 1090,
+      "wheelbase": 1445
+    },
+    "features": {
+      "abs": true,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": false
+    }
+  },
+  {
+    "id": "v-strom-650-base-2025",
+    "modelId": "v-strom-650",
+    "name": "V-Strom 650 Base 2025",
+    "price": 33000,
+    "engine": {
+      "displacement": 645,
+      "type": "2 cylindres en V",
+      "power": 71,
+      "torque": 62
+    },
+    "performance": {
+      "topSpeed": 190,
+      "acceleration": 4.8,
+      "weight": 216
+    },
+    "dimensions": {
+      "length": 2275,
+      "width": 835,
+      "height": 1405,
+      "wheelbase": 1555
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "panigale-v4-base-2025",
+    "modelId": "panigale-v4",
+    "name": "Panigale V4 Base 2025",
+    "price": 85000,
+    "engine": {
+      "displacement": 1103,
+      "type": "4 cylindres en V",
+      "power": 214,
+      "torque": 124
+    },
+    "performance": {
+      "topSpeed": 300,
+      "acceleration": 2.6,
+      "weight": 195
+    },
+    "dimensions": {
+      "length": 2056,
+      "width": 750,
+      "height": 1130,
+      "wheelbase": 1469
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "monster-821-base-2025",
+    "modelId": "monster-821",
+    "name": "Monster 821 Base 2025",
+    "price": 42000,
+    "engine": {
+      "displacement": 821,
+      "type": "2 cylindres en L",
+      "power": 109,
+      "torque": 86
+    },
+    "performance": {
+      "topSpeed": 230,
+      "acceleration": 3.2,
+      "weight": 179
+    },
+    "dimensions": {
+      "length": 2021,
+      "width": 785,
+      "height": 1125,
+      "wheelbase": 1435
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "multistrada-950-base-2025",
+    "modelId": "multistrada-950",
+    "name": "Multistrada 950 Base 2025",
+    "price": 52000,
+    "engine": {
+      "displacement": 937,
+      "type": "2 cylindres en L",
+      "power": 113,
+      "torque": 96.2
+    },
+    "performance": {
+      "topSpeed": 220,
+      "acceleration": 3.2,
+      "weight": 229
+    },
+    "dimensions": {
+      "length": 2190,
+      "width": 905,
+      "height": 1415,
+      "wheelbase": 1594
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "s1000rr-base-2025",
+    "modelId": "s1000rr",
+    "name": "S1000RR Base 2025",
+    "price": 75000,
+    "engine": {
+      "displacement": 999,
+      "type": "4 cylindres en ligne",
+      "power": 207,
+      "torque": 113
+    },
+    "performance": {
+      "topSpeed": 305,
+      "acceleration": 2.7,
+      "weight": 197
+    },
+    "dimensions": {
+      "length": 2073,
+      "width": 848,
+      "height": 1138,
+      "wheelbase": 1441
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "f900r-base-2025",
+    "modelId": "f900r",
+    "name": "F900R Base 2025",
+    "price": 40000,
+    "engine": {
+      "displacement": 895,
+      "type": "2 cylindres en ligne",
+      "power": 105,
+      "torque": 92
+    },
+    "performance": {
+      "topSpeed": 230,
+      "acceleration": 3.0,
+      "weight": 211
+    },
+    "dimensions": {
+      "length": 2136,
+      "width": 821,
+      "height": 1200,
+      "wheelbase": 1518
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "gs850-base-2025",
+    "modelId": "gs850",
+    "name": "F850GS Base 2025",
+    "price": 48000,
+    "engine": {
+      "displacement": 853,
+      "type": "2 cylindres en ligne",
+      "power": 95,
+      "torque": 92
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 3.6,
+      "weight": 229
+    },
+    "dimensions": {
+      "length": 2230,
+      "width": 950,
+      "height": 1520,
+      "wheelbase": 1593
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "rc8r-base-2025",
+    "modelId": "rc8r",
+    "name": "RC8R Base 2025",
+    "price": 55000,
+    "engine": {
+      "displacement": 1301,
+      "type": "2 cylindres en V",
+      "power": 177,
+      "torque": 144
+    },
+    "performance": {
+      "topSpeed": 280,
+      "acceleration": 2.8,
+      "weight": 184
+    },
+    "dimensions": {
+      "length": 2070,
+      "width": 720,
+      "height": 1170,
+      "wheelbase": 1425
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "duke-790-base-2025",
+    "modelId": "duke-790",
+    "name": "790 Duke Base 2025",
+    "price": 36000,
+    "engine": {
+      "displacement": 799,
+      "type": "2 cylindres en ligne",
+      "power": 105,
+      "torque": 87
+    },
+    "performance": {
+      "topSpeed": 245,
+      "acceleration": 3.1,
+      "weight": 189
+    },
+    "dimensions": {
+      "length": 2064,
+      "width": 800,
+      "height": 1118,
+      "wheelbase": 1475
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "adventure-790-base-2025",
+    "modelId": "adventure-790",
+    "name": "790 Adventure Base 2025",
+    "price": 44000,
+    "engine": {
+      "displacement": 799,
+      "type": "2 cylindres en ligne",
+      "power": 95,
+      "torque": 88
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 3.9,
+      "weight": 196
+    },
+    "dimensions": {
+      "length": 2160,
+      "width": 900,
+      "height": 1400,
+      "wheelbase": 1509
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "sportster-s-base-2025",
+    "modelId": "sportster-s",
+    "name": "Sportster S Base 2025",
+    "price": 58000,
+    "engine": {
+      "displacement": 1252,
+      "type": "2 cylindres en V",
+      "power": 121,
+      "torque": 127
+    },
+    "performance": {
+      "topSpeed": 210,
+      "acceleration": 3.2,
+      "weight": 228
+    },
+    "dimensions": {
+      "length": 2265,
+      "width": 843,
+      "height": 1070,
+      "wheelbase": 1520
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "street-glide-base-2025",
+    "modelId": "street-glide",
+    "name": "Street Glide Base 2025",
+    "price": 72000,
+    "engine": {
+      "displacement": 1868,
+      "type": "2 cylindres en V",
+      "power": 87,
+      "torque": 150
+    },
+    "performance": {
+      "topSpeed": 180,
+      "acceleration": 4.8,
+      "weight": 372
+    },
+    "dimensions": {
+      "length": 2440,
+      "width": 985,
+      "height": 1435,
+      "wheelbase": 1625
+    },
+    "features": {
+      "abs": true,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "iron-883-base-2025",
+    "modelId": "iron-883",
+    "name": "Iron 883 Base 2025",
+    "price": 38000,
+    "engine": {
+      "displacement": 883,
+      "type": "2 cylindres en V",
+      "power": 50,
+      "torque": 69
+    },
+    "performance": {
+      "topSpeed": 160,
+      "acceleration": 5.2,
+      "weight": 256
+    },
+    "dimensions": {
+      "length": 2205,
+      "width": 841,
+      "height": 1080,
+      "wheelbase": 1515
+    },
+    "features": {
+      "abs": false,
+      "tcs": false,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": false
+    }
+  },
+  {
+    "id": "rsv4-1100-base-2025",
+    "modelId": "rsv4-1100",
+    "name": "RSV4 1100 Base 2025",
+    "price": 80000,
+    "engine": {
+      "displacement": 1077,
+      "type": "4 cylindres en V",
+      "power": 217,
+      "torque": 125
+    },
+    "performance": {
+      "topSpeed": 300,
+      "acceleration": 2.6,
+      "weight": 199
+    },
+    "dimensions": {
+      "length": 2040,
+      "width": 735,
+      "height": 1135,
+      "wheelbase": 1420
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "tuono-v4-base-2025",
+    "modelId": "tuono-v4",
+    "name": "Tuono V4 Base 2025",
+    "price": 60000,
+    "engine": {
+      "displacement": 1077,
+      "type": "4 cylindres en V",
+      "power": 175,
+      "torque": 121
+    },
+    "performance": {
+      "topSpeed": 270,
+      "acceleration": 2.9,
+      "weight": 209
+    },
+    "dimensions": {
+      "length": 2080,
+      "width": 835,
+      "height": 1165,
+      "wheelbase": 1445
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "caponord-1200-base-2025",
+    "modelId": "caponord-1200",
+    "name": "Caponord 1200 Base 2025",
+    "price": 55000,
+    "engine": {
+      "displacement": 1197,
+      "type": "2 cylindres en V",
+      "power": 125,
+      "torque": 117
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 3.4,
+      "weight": 250
+    },
+    "dimensions": {
+      "length": 2200,
+      "width": 920,
+      "height": 1470,
+      "wheelbase": 1565
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": true,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "speed-triple-base-2025",
+    "modelId": "speed-triple",
+    "name": "Speed Triple Base 2025",
+    "price": 58000,
+    "engine": {
+      "displacement": 1050,
+      "type": "3 cylindres en ligne",
+      "power": 180,
+      "torque": 125
+    },
+    "performance": {
+      "topSpeed": 260,
+      "acceleration": 2.9,
+      "weight": 189
+    },
+    "dimensions": {
+      "length": 2065,
+      "width": 835,
+      "height": 1075,
+      "wheelbase": 1445
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": true,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "street-triple-base-2025",
+    "modelId": "street-triple",
+    "name": "Street Triple Base 2025",
+    "price": 45000,
+    "engine": {
+      "displacement": 765,
+      "type": "3 cylindres en ligne",
+      "power": 118,
+      "torque": 80
+    },
+    "performance": {
+      "topSpeed": 240,
+      "acceleration": 3.1,
+      "weight": 189
+    },
+    "dimensions": {
+      "length": 2055,
+      "width": 765,
+      "height": 1060,
+      "wheelbase": 1405
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  },
+  {
+    "id": "tiger-900-base-2025",
+    "modelId": "tiger-900",
+    "name": "Tiger 900 Base 2025",
+    "price": 48000,
+    "engine": {
+      "displacement": 888,
+      "type": "3 cylindres en ligne",
+      "power": 95,
+      "torque": 87
+    },
+    "performance": {
+      "topSpeed": 200,
+      "acceleration": 3.8,
+      "weight": 201
+    },
+    "dimensions": {
+      "length": 2215,
+      "width": 915,
+      "height": 1390,
+      "wheelbase": 1556
+    },
+    "features": {
+      "abs": true,
+      "tcs": true,
+      "quickshifter": false,
+      "cruiseControl": false,
+      "ledLights": true
+    }
+  }
+]
