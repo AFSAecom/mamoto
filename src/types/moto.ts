@@ -1,30 +1,19 @@
-export type SpecValue = string | number | boolean;
+export type SpecValue = string | number | boolean | null;
 
-export interface SpecItem {
-  label: string;
-  value: SpecValue;
-}
+export type Specs = Record<string, SpecValue>;
 
-export interface SpecFamily {
-  group: string;
-  items: SpecItem[];
-}
-
-export interface MotoVariant {
+export interface Moto {
   id: string;
-  name: string;
+  brand: string;
+  brandSlug: string;
+  model: string;
+  modelSlug: string;
+  year?: number;
   price?: number;
-  specs: SpecFamily[];
+  category?: string;
+  imageUrl?: string;
+  specs: Specs;
+  sourceFile: string;
+  sheet?: string;
+  createdAt: string;
 }
-
-export interface MotoModel {
-  id: string;
-  name: string;
-  brandId: string;
-  category: string;
-  image: string;
-  description?: string;
-  gallery?: string[];
-  variant?: MotoVariant[];
-}
-

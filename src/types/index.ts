@@ -79,10 +79,7 @@ export interface FeatureComparison {
 }
 
 export type {
-  SpecValue,
-  SpecItem,
-  SpecFamily,
-  MotoVariant,
-  MotoModel
-} from './moto';
-
+  SpecValue as MotoSpecValue,
+  Specs as MotoSpecs,
+  Moto as MotoData,
+} from "./moto";
