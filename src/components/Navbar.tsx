@@ -6,9 +6,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Bike, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/search?query=${encodeURIComponent(query.trim())}`);
+      setIsOpen(false);
+    }
+  };
 
   const menuItems = [
     { href: '/motos', label: 'Motos Neuves' },
@@ -43,16 +54,27 @@ const Navbar = () => {
 
           {/* Search and Mobile Menu Button */}
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-2">
+            <form
+              onSubmit={handleSearch}
+              className="hidden md:flex items-center space-x-2"
+            >
               <Input
                 type="search"
                 placeholder="Rechercher..."
+                aria-label="Rechercher"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 className="w-64 bg-surface border-accent text-fg placeholder:text-muted"
               />
-              <Button size="sm" variant="outline" className="border-accent hover:bg-accent">
+              <Button
+                size="sm"
+                variant="outline"
+                type="submit"
+                className="border-accent hover:bg-accent"
+              >
                 <Search className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
 
             {/* Mobile menu button */}
             <Button
@@ -79,16 +101,27 @@ const Navbar = () => {
           >
             <div className="px-4 py-2 space-y-1">
               {/* Mobile Search */}
-              <div className="flex items-center space-x-2 py-2">
+              <form
+                onSubmit={handleSearch}
+                className="flex items-center space-x-2 py-2"
+              >
                 <Input
                   type="search"
                   placeholder="Rechercher..."
+                  aria-label="Rechercher"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                   className="flex-1 bg-bg border-accent text-fg placeholder:text-muted"
                 />
-                <Button size="sm" variant="outline" className="border-accent hover:bg-accent">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  type="submit"
+                  className="border-accent hover:bg-accent"
+                >
                   <Search className="h-4 w-4" />
                 </Button>
-              </div>
+              </form>
 
               {/* Mobile Menu Items */}
               {menuItems.map((item) => (
