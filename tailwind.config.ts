@@ -33,11 +33,12 @@ const config: Config = {
         // Theme colors
         bg: '#0D1F23',
         fg: '#AFB3B7',
-        accent: '#2D4A53',
         surface: '#132E35',
+
         // shadcn/ui compatible colors
         background: '#0D1F23',
         foreground: '#AFB3B7',
+
         card: {
           DEFAULT: '#132E35',
           foreground: '#AFB3B7',
@@ -95,4 +96,5 @@ const config: Config = {
   },
   plugins: [require('tailwindcss-animate')],
 };
+
 export default config;
