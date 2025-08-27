@@ -77,3 +77,12 @@ export interface FeatureComparison {
   feature: string;
   values: Array<{ version: string; value: FeatureValue }>;
 }
+
+export type {
+  SpecValue,
+  SpecItem,
+  SpecFamily,
+  MotoVariant,
+  MotoModel
+} from './moto';
+
