@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,38 +12,42 @@ import { ArrowRight, Search, TrendingUp, Users, Award, MapPin, ChevronRight } fr
 export default function Home() {
   const [featuredMotos, setFeaturedMotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFeaturedMotos = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch some featured versions for the homepage
+      const [versionsRes, modelsRes, brandsRes] = await Promise.all([
+        fetch('/api/versions'),
+        fetch('/api/models'),
+        fetch('/api/brands')
+      ]);
+
+      const versions = await versionsRes.json();
+      const models = await modelsRes.json();
+      const brands = await brandsRes.json();
+
+      // Get 6 featured motos (mix of different categories)
+      const featured = versions.slice(0, 6).map((version: any) => {
+        const model = models.find((m: any) => m.id === version.modelId);
+        const brand = brands.find((b: any) => b.id === model?.brandId);
+        return { version, model, brand };
+      });
+
+      setFeaturedMotos(featured);
+    } catch (error) {
+      console.error('Error fetching featured motos:', error);
+      setError("Erreur lors du chargement des motos en vedette.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchFeaturedMotos = async () => {
-      try {
-        // Fetch some featured versions for the homepage
-        const [versionsRes, modelsRes, brandsRes] = await Promise.all([
-          fetch('/api/versions'),
-          fetch('/api/models'),
-          fetch('/api/brands')
-        ]);
-
-        const versions = await versionsRes.json();
-        const models = await modelsRes.json();
-        const brands = await brandsRes.json();
-
-        // Get 6 featured motos (mix of different categories)
-        const featured = versions.slice(0, 6).map((version: any) => {
-          const model = models.find((m: any) => m.id === version.modelId);
-          const brand = brands.find((b: any) => b.id === model?.brandId);
-          return { version, model, brand };
-        });
-
-        setFeaturedMotos(featured);
-      } catch (error) {
-        console.error('Error fetching featured motos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFeaturedMotos();
-  }, []);
+  }, [fetchFeaturedMotos]);
 
   return (
     <div className="min-h-screen">
@@ -139,7 +143,15 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {loading ? (
+          {error ? (
+            <div
+              role="alert"
+              className="mb-8 rounded border border-red-200 bg-red-50 p-4 text-red-800"
+            >
+              <p className="mb-4">{error}</p>
+              <Button onClick={fetchFeaturedMotos}>Réessayer</Button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-surface border border-accent rounded-lg h-96 animate-pulse"></div>
