@@ -16,6 +16,8 @@ import PriceBadge from '@/components/moto/PriceBadge';
 import CompareButton from '@/components/moto/CompareButton';
 import SpecsFamilies from '@/components/moto/SpecsFamilies';
 import SimilarModels from '@/components/moto/SimilarModels';
+import { isPresent } from '@/lib/is-present';
+import type { SpecFamily, SpecValue } from '@/types/moto';
 
 interface PageProps {
   params: { brand: string; model: string; variant?: string[] };
@@ -111,14 +113,16 @@ export default async function MotoPage({ params }: PageProps) {
       slug: slugify(m['Informations générales']['Modèle']),
     }));
 
-  const families = Object.entries(moto)
+  const families: SpecFamily[] = Object.entries(moto)
     .filter(([k]) => k !== 'name' && k !== 'Informations générales')
-    .map(([group, specs]) => ({
-      group,
-      items: Object.entries(specs as Record<string, string | number | null>).map(
-        ([label, value]) => ({ label, value })
-      ),
-    }));
+    .map(([group, specs]) => {
+      const items = Object.entries(specs as Record<string, unknown>)
+        .filter(([, value]) => isPresent(value))
+        .map(
+          ([label, value]) => ({ label, value: value as SpecValue })
+        );
+      return { group, items };
+    });
 
   const jsonLd =
     priceTND !== undefined
