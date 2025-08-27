@@ -34,7 +34,6 @@ const config: Config = {
         bg: '#0D1F23',
         fg: '#AFB3B7',
         accent: '#2D4A53',
-        muted: '#5A636A',
         surface: '#132E35',
         // shadcn/ui compatible colors
         background: '#0D1F23',
@@ -80,20 +79,12 @@ const config: Config = {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
       },
       animation: {
