@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Eye, Heart, MapPin, Calendar, Gauge } from 'lucide-react';
+import { useFavorites } from '@/hooks/use-favorites';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface ListingCardProps {
   listing: {
@@ -27,6 +30,9 @@ interface ListingCardProps {
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({ listing, showActions = true }) => {
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toast } = useToast();
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-TN', {
       style: 'currency',
@@ -37,6 +43,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, showActions = true }
 
   const formatMileage = (mileage: number) => {
     return new Intl.NumberFormat('fr-TN').format(mileage) + ' km';
+  };
+
+  const handleFavorite = () => {
+    const fav = isFavorite(listing.id);
+    toggleFavorite(listing.id);
+    toast({
+      title: fav ? 'Retiré des favoris' : 'Ajouté aux favoris',
+    });
   };
 
   return (
@@ -122,8 +136,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, showActions = true }
                 size="sm"
                 variant="outline"
                 className="border-accent hover:bg-accent"
+                onClick={handleFavorite}
               >
-                <Heart className="h-4 w-4" />
+                <Heart
+                  className={cn(
+                    'h-4 w-4',
+                    isFavorite(listing.id) && 'fill-brand-700 text-brand-700'
+                  )}
+                />
               </Button>
             </div>
           </CardFooter>

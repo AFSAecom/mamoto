@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Eye, Heart, TrendingUp } from 'lucide-react';
+import { useFavorites } from '@/hooks/use-favorites';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface MotoCardProps {
   version: {
@@ -42,12 +45,23 @@ const MotoCard: React.FC<MotoCardProps> = ({
   brand, 
   showActions = true 
 }) => {
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toast } = useToast();
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-TN', {
       style: 'currency',
       currency: 'TND',
       minimumFractionDigits: 0,
     }).format(price).replace('TND', 'TND');
+  };
+
+  const handleFavorite = () => {
+    const fav = isFavorite(version.id);
+    toggleFavorite(version.id);
+    toast({
+      title: fav ? 'Retiré des favoris' : 'Ajouté aux favoris',
+    });
   };
 
   return (
@@ -121,8 +135,14 @@ const MotoCard: React.FC<MotoCardProps> = ({
                 size="sm"
                 variant="outline"
                 className="border-accent hover:bg-accent"
+                onClick={handleFavorite}
               >
-                <Heart className="h-4 w-4" />
+                <Heart
+                  className={cn(
+                    'h-4 w-4',
+                    isFavorite(version.id) && 'fill-brand-700 text-brand-700'
+                  )}
+                />
               </Button>
               <Button
                 size="sm"
