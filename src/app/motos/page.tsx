@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { getAllMotos } from "@/lib/motos";
+import { getAllMotos } from "@/src/lib/motos";
 
 export default function MotosPage() {
   const [q, setQ] = useState("");
@@ -8,9 +8,9 @@ export default function MotosPage() {
   const list = useMemo(() => {
     const s = q.toLowerCase().trim();
     if (!s) return all;
-    return all.filter(
-      (m) =>
-        m.brand.toLowerCase().includes(s) || m.model.toLowerCase().includes(s),
+    return all.filter(m =>
+      m.brand.toLowerCase().includes(s) ||
+      m.model.toLowerCase().includes(s)
     );
   }, [q, all]);
 
@@ -32,8 +32,7 @@ export default function MotosPage() {
             <li key={m.id} className="rounded-xl border p-4 hover:shadow">
               <div className="text-sm text-gray-500">{m.brand}</div>
               <div className="text-lg font-medium">
-                {m.model}
-                {m.year ? ` · ${m.year}` : ""}
+                {m.model}{m.year ? ` · ${m.year}` : ""}
               </div>
               {m.price != null && <div className="mt-1">Prix: {m.price}</div>}
             </li>
