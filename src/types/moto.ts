@@ -1,5 +1,15 @@
 export type SpecValue = string | number | boolean | null;
 export type Specs = Record<string, SpecValue>;
+
+export interface SpecItem {
+  label: string;
+  value: SpecValue;
+}
+
+export interface SpecFamily {
+  group: string;
+  items: SpecItem[];
+}
 export interface Moto {
   id: string;
   brand: string;
