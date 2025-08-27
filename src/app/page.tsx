@@ -15,7 +15,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFeaturedMotos = useCallback(async () => {
+  const fetchFeaturedMotos = useCallback(async (): Promise<string | void> => {
     setLoading(true);
     setError(null);
     try {
@@ -25,6 +25,16 @@ export default function Home() {
         fetch('/api/models'),
         fetch('/api/brands')
       ]);
+
+      if (!versionsRes.ok) {
+        throw new Error('Erreur lors de la récupération des versions.');
+      }
+      if (!modelsRes.ok) {
+        throw new Error('Erreur lors de la récupération des modèles.');
+      }
+      if (!brandsRes.ok) {
+        throw new Error('Erreur lors de la récupération des marques.');
+      }
 
       const versions: Version[] = await versionsRes.json();
       const models: Model[] = await modelsRes.json();
@@ -40,7 +50,12 @@ export default function Home() {
       setFeaturedMotos(featured);
     } catch (error) {
       console.error('Error fetching featured motos:', error);
-      setError("Erreur lors du chargement des motos en vedette.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors du chargement des motos en vedette.';
+      setError(message);
+      return message;
     } finally {
       setLoading(false);
     }
