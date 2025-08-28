@@ -17,7 +17,7 @@ export default function SpecItemRow({ label, value }: SpecItemRowProps) {
         : [String(value)];
   return (
     <li className="flex items-center justify-between py-1">
-      <span className="text-sm text-gray-900">{label}</span>
+      <span className="text-sm text-fg">{label}</span>
       <div className="flex flex-wrap justify-end gap-1">
         {parts.length > 1 ? (
           parts.map((p) => (
@@ -26,7 +26,7 @@ export default function SpecItemRow({ label, value }: SpecItemRowProps) {
             </Badge>
           ))
         ) : (
-          <span className="text-sm text-gray-900">{parts[0]}</span>
+          <span className="text-sm text-fg">{parts[0]}</span>
         )}
       </div>
     </li>
