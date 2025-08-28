@@ -1,0 +1,3 @@
+{
+  "buildCommand": "npm run ingest:motos && npm run build"
+}
