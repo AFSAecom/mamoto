@@ -2,7 +2,7 @@
 // Lit les fichiers Excel de data/excel/ et génère des JSON "dé-pivotés"
 // dans data/generated/.
 
-import fs from "fs-extra";
+import * as fs from "node:fs/promises";
 import path from "node:path";
 import { globby } from "globby";
 import * as XLSX from "xlsx";
@@ -70,7 +70,7 @@ function parseValue(v: unknown): SpecValue {
 async function ingest(): Promise<void> {
   const inDir = path.resolve("data/excel");
   const outDir = path.resolve("data/generated");
-  await fs.ensureDir(outDir);
+  await fs.mkdir(outDir, { recursive: true });
 
   const files = await globby(["*.xlsx", "*.xls"], {
     cwd: inDir,
@@ -160,7 +160,10 @@ async function ingest(): Promise<void> {
     return (b.year ?? 0) - (a.year ?? 0);
   });
 
-  await fs.writeJSON(path.join(outDir, "motos.json"), all, { spaces: 2 });
+  await fs.writeFile(
+    path.join(outDir, "motos.json"),
+    JSON.stringify(all, null, 2),
+  );
 
   const perBrand: Record<string, Moto[]> = {};
   for (const m of all) {
@@ -168,9 +171,10 @@ async function ingest(): Promise<void> {
     perBrand[m.brandSlug].push(m);
   }
   for (const [slug, list] of Object.entries(perBrand)) {
-    await fs.writeJSON(path.join(outDir, `motos_${slug}.json`), list, {
-      spaces: 2,
-    });
+    await fs.writeFile(
+      path.join(outDir, `motos_${slug}.json`),
+      JSON.stringify(list, null, 2),
+    );
   }
 
   console.log(`✅ Ingestion: ${all.length} modèles`);
