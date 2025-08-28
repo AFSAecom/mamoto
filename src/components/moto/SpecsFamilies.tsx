@@ -14,7 +14,7 @@ export default function SpecsFamilies({ families }: SpecsFamiliesProps) {
         if (!items.length) return null;
         return (
           <section key={family.group}>
-            <h3 className="mb-2 text-lg font-semibold text-fg">{family.group}</h3>
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">{family.group}</h3>
             <ul className="space-y-1">
               {items.map((it) => (
                 <SpecItemRow key={it.label} label={it.label} value={it.value} />
