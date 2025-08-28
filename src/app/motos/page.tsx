@@ -17,7 +17,8 @@ export default function MotosPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-3xl font-semibold mb-4">Motos neuves</h1>
+      <h1 className="text-3xl font-semibold mb-2">Motos neuves</h1>
+      <p className="text-sm text-gray-500 mb-4">({all.length} modèles chargés)</p>
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
@@ -45,3 +46,4 @@ export default function MotosPage() {
     </main>
   );
 }
+
