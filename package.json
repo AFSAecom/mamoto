@@ -73,7 +73,9 @@
     "vaul": "^0.9.9",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8",
-    "globby": "^14.0.1"
+    "globby": "^14.0.1",
+    "gray-matter": "^4.0.3",
+    "marked": "^12.0.2"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
