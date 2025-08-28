@@ -80,7 +80,8 @@ async function ingest(): Promise<void> {
   const motos = new Map<string, Moto>();
 
   for (const file of files) {
-    const wb = XLSX.readFile(file);
+    const buf = await fs.readFile(file);
+    const wb = XLSX.read(buf, { type: "buffer" });
     for (const sheetName of wb.SheetNames) {
       const ws = wb.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(ws, {
