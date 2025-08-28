@@ -21,7 +21,11 @@ export default function SpecItemRow({ label, value }: SpecItemRowProps) {
       <div className="flex flex-wrap justify-end gap-1">
         {parts.length > 1 ? (
           parts.map((p) => (
-            <Badge key={p} variant="secondary" className="bg-accent text-fg">
+            <Badge
+              key={p}
+              variant="outline"
+              className="border-none bg-[#132E35] text-fg"
+            >
               {p}
             </Badge>
           ))
