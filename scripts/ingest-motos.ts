@@ -197,7 +197,7 @@ async function main() {
     return (b.year ?? 0) - (a.year ?? 0);
   });
 
-  await fs.writeJson(path.join(outDir, "motos.json"), all, { spaces: 2 });
+  await fs.writeJSON(path.join(outDir, "motos.json"), all, { spaces: 2 });
 
   // par marque
   const per = new Map<string, Moto[]>();
@@ -206,7 +206,7 @@ async function main() {
     per.get(m.brandSlug)!.push(m);
   }
   for (const [slug, list] of per) {
-    await fs.writeJson(path.join(outDir, `motos_${slug}.json`), list, { spaces: 2 });
+    await fs.writeJSON(path.join(outDir, `motos_${slug}.json`), list, { spaces: 2 });
   }
 
   console.log(`✅ Ingestion v2: ${all.length} modèles, specs fusionnées (LARGE+LONG) → data/generated/`);
