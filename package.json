@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed:motos": "ts-node scripts/seed-motos.ts",
-    "ingest:motos": "tsx scripts/ingest-motos.ts",
+    "ingest:motos": "ts-node scripts/ingest-motos.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier -w ."
   },
@@ -73,12 +73,10 @@
     "vaul": "^0.9.9",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8",
-    "fs-extra": "^11.2.0",
     "globby": "^14.0.1"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
-    "tsx": "^4.7.1",
     "typescript": "5.2.2"
   }
 }
