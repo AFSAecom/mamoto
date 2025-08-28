@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getAllMotos } from '@/lib/motos';
+import { getAllMotos } from '../../lib/motos';
 import BrandsClient from './BrandsClient';
 
 export const metadata: Metadata = {
