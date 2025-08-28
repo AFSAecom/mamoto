@@ -19,6 +19,20 @@ export type Moto = {
 
 const ROOT = process.cwd();
 
+function toImageUrl(raw: unknown): string | null {
+  const s = String(raw ?? "").trim();
+  if (!s) return null;
+  // enlever "public/" si présent
+  let v = s.replace(/^public\//i, "");
+  // URL absolue → garder
+  if (/^https?:\/\//i.test(v)) return v;
+  // déjà un chemin absolu → garder
+  if (v.startsWith("/")) return v;
+  // sinon, supposé être un nom de fichier sous /motos/
+  if (!v.startsWith("motos/")) v = "motos/" + v;
+  return "/" + v;
+}
+
 function slugify(s: string) {
   return s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -78,17 +92,22 @@ function ingestPivotInto(all: Moto[], arr: any[][], fileName: string, sheetName:
     const colName = header[col]; if (!colName) continue;
     let brand = "", model = "", category: string|null = null;
     let year: number|null = null, price: number|null = null;
+    let imageUrl: string | null = null;
 
     for (let r = 1; r < arr.length; r++) {
       const cat = String(arr[r][idxCat] ?? "").trim();
       const sub = String(arr[r][idxSub] ?? "").trim();
       const val = arr[r][col];
       if (cat === "Informations générales") {
+        const key = sub.toLowerCase();
         if (sub === "Marque") brand = String(val ?? "").trim();
         else if (sub === "Modèle") model = String(val ?? "").trim();
         else if (sub === "Année") { const n = num(val); if (n != null) year = n; }
         else if (sub === "Prix (TND)") { const n = num(val); if (n != null) price = n; }
         else if (sub === "Segment" || sub === "Catégorie") category = String(val ?? "").trim() || null;
+        if (key === "image" || key === "images" || key === "photo" || key === "photos") {
+          imageUrl = toImageUrl(val);
+        }
       }
     }
     if (!brand || !model) continue;
@@ -105,6 +124,7 @@ function ingestPivotInto(all: Moto[], arr: any[][], fileName: string, sheetName:
       };
       all.push(moto);
     }
+    if (imageUrl) moto.imageUrl = imageUrl;
     for (let r = 1; r < arr.length; r++) {
       const cat = String(arr[r][idxCat] ?? "").trim();
       const sub = String(arr[r][idxSub] ?? "").trim();
@@ -112,6 +132,9 @@ function ingestPivotInto(all: Moto[], arr: any[][], fileName: string, sheetName:
       if (cat === "Informations générales" && ["Marque","Modèle","Année","Prix (TND)","Segment","Catégorie"].includes(sub)) continue;
       const key = toKey(cat, sub);
       moto.specs[key] = coerce(key, val);
+      if (!moto.imageUrl && typeof val === "string" && /\.(png|jpe?g|webp|gif|svg)$/i.test(val.trim())) {
+        moto.imageUrl = toImageUrl(val);
+      }
     }
   }
 }
@@ -127,7 +150,7 @@ function ingestLargeInto(all: Moto[], rows: Record<string, unknown>[], fileName:
     year: get("year","année","annee"),
     price: get("price","prix"),
     category: get("category","catégorie","categorie"),
-    image: get("image","imageurl","photo","img"),
+    image: get("image","images","photo","photos"),
   };
   for (const row of rows) {
     const brand = String(row[m.brand ?? ""] ?? "").trim();
@@ -136,7 +159,7 @@ function ingestLargeInto(all: Moto[], rows: Record<string, unknown>[], fileName:
     const year = m.year ? num(row[m.year as string]) : null;
     const price = m.price ? num(row[m.price as string]) : null;
     const category = m.category ? (String(row[m.category as string] ?? "").trim() || null) : null;
-    const imageUrl = m.image ? (String(row[m.image as string] ?? "").trim() || null) : null;
+    const imageUrl = m.image ? toImageUrl(row[m.image as string]) : null;
 
     const id = makeId(brand, model, year);
     let moto = all.find(m => m.id === id);

@@ -16,6 +16,13 @@ export default function ModelePage({ params }: { params: { id: string } }) {
         <a href="/motos" className="underline">← Retour aux motos</a>
       </nav>
       <header className="mb-6">
+        <div className="aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden mb-4">
+          {imageUrl ? (
+            <img src={imageUrl} alt={`${brand} ${model}`} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full grid place-items-center text-gray-400">Image à venir</div>
+          )}
+        </div>
         <h1 className="text-3xl font-semibold">
           {brand} {model}{year ? ` · ${year}` : ""}
         </h1>
@@ -23,7 +30,6 @@ export default function ModelePage({ params }: { params: { id: string } }) {
           {price != null && <p><span className="text-gray-500">Prix:</span> {price}</p>}
           {category && <p><span className="text-gray-500">Catégorie:</span> {category}</p>}
         </div>
-        {imageUrl ? <img src={imageUrl} alt={`${brand} ${model}`} className="mt-4 max-h-72 rounded-lg object-cover" /> : null}
         <p className="text-sm text-gray-500 mt-2">{specCount} caractéristiques techniques</p>
       </header>
       <section className="space-y-3">
