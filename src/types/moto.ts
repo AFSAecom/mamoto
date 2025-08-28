@@ -10,12 +10,11 @@ export interface SpecFamily {
   group: string;
   items: SpecItem[];
 }
+
 export interface Moto {
   id: string;
-  brand: string;
-  brandSlug: string;
-  model: string;
-  modelSlug: string;
+  brand: string; brandSlug: string;
+  model: string; modelSlug: string;
   year?: number | null;
   price?: number | null;
   category?: string | null;

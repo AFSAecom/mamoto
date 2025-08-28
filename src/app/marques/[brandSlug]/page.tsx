@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { findByBrand } from '@/lib/motos';
+import { findByBrand } from '../../../lib/motos';
 
 interface PageProps {
   params: { brandSlug: string };

@@ -3,7 +3,7 @@
 import React from 'react';
 import CompareTable from '@/components/CompareTable';
 import { Button } from '@/components/ui/button';
-import { getAllMotos } from '@/lib/motos';
+import { getAllMotos } from '../../lib/motos';
 import useCompare from '@/hooks/use-compare';
 
 export default function CompareClient() {
