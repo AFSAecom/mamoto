@@ -9,6 +9,21 @@
   body {
     @apply bg-bg text-fg;
   }
+  a {
+    color: var(--primary-color);
+  }
+  a:hover,
+  a:focus {
+    color: var(--primary-color);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--primary-color);
+  }
 }
 
 @layer base {
@@ -19,8 +34,10 @@
     --card-foreground: 175 179 183; /* #AFB3B7 */
     --popover: 19 46 53; /* #132E35 */
     --popover-foreground: 175 179 183; /* #AFB3B7 */
-    --primary: 45 74 83; /* #2D4A53 */
-    --primary-foreground: 175 179 183; /* #AFB3B7 */
+    --primary-color: 175 179 183; /* #AFB3B7 */
+    --characteristics-bg: 19 46 53; /* #132E35 */
+    --primary: var(--primary-color);
+    --primary-foreground: var(--characteristics-bg);
     --secondary: 90 99 106; /* #5A636A */
     --secondary-foreground: 175 179 183; /* #AFB3B7 */
     --muted: 90 99 106; /* #5A636A */

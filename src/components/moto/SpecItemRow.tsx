@@ -16,17 +16,13 @@ export default function SpecItemRow({ label, value }: SpecItemRowProps) {
         ? [value ? 'Oui' : 'Non']
         : [String(value)];
   return (
-    <li className="flex items-center justify-between py-1">
-      <span className="text-sm text-fg">{label}</span>
+    <li className="flex items-center justify-between py-1 px-2 bg-[var(--characteristics-bg)] text-white">
+      <span className="text-sm">{label}</span>
       <div className="flex flex-wrap justify-end gap-1">
         {parts.length > 1 ? (
-          parts.map((p) => (
-            <Badge key={p} variant="secondary" className="bg-accent text-fg">
-              {p}
-            </Badge>
-          ))
+          parts.map((p) => <Badge key={p}>{p}</Badge>)
         ) : (
-          <span className="text-sm text-fg">{parts[0]}</span>
+          <span className="text-sm">{parts[0]}</span>
         )}
       </div>
     </li>
