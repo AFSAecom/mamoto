@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { getAllMotos } from "../../lib/motos";
 
 export default function MotosPage() {
-  console.log("motos.len =", getAllMotos().length);
   const [q, setQ] = useState("");
   const all = useMemo(() => getAllMotos(), []);
   const list = useMemo(() => {

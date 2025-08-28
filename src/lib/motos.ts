@@ -1,12 +1,11 @@
 import type { Moto } from "../types/moto";
-import motos from "../../data/generated/motos.json" assert { type: "json" };
+import data from "../../data/generated/motos.json" assert { type: "json" };
+
+const ALL: Moto[] = (data as unknown as Moto[]) ?? [];
 
 export function getAllMotos(): Moto[] {
-  return (motos as unknown as Moto[]) ?? [];
+  return ALL;
 }
 export function findById(id: string): Moto | undefined {
-  return getAllMotos().find(m => m.id === id);
-}
-export function findByBrand(brandSlug: string): Moto[] {
-  return getAllMotos().filter(m => m.brandSlug === brandSlug);
+  return ALL.find((m) => m.id === id);
 }
