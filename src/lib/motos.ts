@@ -16,3 +16,7 @@ export function findById(id: string): Moto | undefined {
   return ALL.find((m) => m.id === id);
 }
 
+export function findByBrand(brandSlug: string): Moto[] {
+  return ALL.filter((m) => m.brandSlug === brandSlug);
+}
+
