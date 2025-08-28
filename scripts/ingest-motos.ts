@@ -239,7 +239,7 @@ async function main() {
     return (b.year ?? 0) - (a.year ?? 0);
   });
 
-  await fs.writeJson(path.join(outDir, "motos.json"), all, { spaces: 2 });
+  await fs.writeJSON(path.join(outDir, "motos.json"), all, { spaces: 2 });
 
   const perBrand = new Map<string, Moto[]>();
   for (const m of all) {
@@ -248,7 +248,7 @@ async function main() {
     perBrand.get(k)!.push(m);
   }
   for (const [slug, list] of perBrand) {
-    await fs.writeJson(path.join(outDir, `motos_${slug}.json`), list, {
+    await fs.writeJSON(path.join(outDir, `motos_${slug}.json`), list, {
       spaces: 2,
     });
   }
