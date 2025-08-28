@@ -2,11 +2,9 @@ import { notFound } from "next/navigation";
 import { findById } from "../../../lib/motos";
 import SpecsTable from "../../../components/SpecsTable";
 
-function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
+function Row({ label, value }: { label: string; value?: string | number | null }) {
   if (value == null || value === "") return null;
-  return (
-    <p><span className="text-gray-500">{label}:</span> {value}</p>
-  );
+  return <p><span className="text-gray-500">{label}:</span> {value}</p>;
 }
 
 export default function ModelePage({ params }: { params: { id: string } }) {
@@ -14,6 +12,7 @@ export default function ModelePage({ params }: { params: { id: string } }) {
   if (!moto) return notFound();
 
   const { brand, model, year, price, category, imageUrl, specs } = moto;
+  const specCount = specs ? Object.keys(specs).length : 0;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -26,12 +25,13 @@ export default function ModelePage({ params }: { params: { id: string } }) {
           {brand} {model}{year ? ` · ${year}` : ""}
         </h1>
         <div className="mt-2 space-y-1">
-          <InfoRow label="Prix" value={price ?? null} />
-          <InfoRow label="Catégorie" value={category ?? null} />
+          <Row label="Prix" value={price ?? null} />
+          <Row label="Catégorie" value={category ?? null} />
         </div>
         {imageUrl ? (
           <img src={imageUrl} alt={`${brand} ${model}`} className="mt-4 max-h-72 rounded-lg object-cover" />
         ) : null}
+        <p className="text-sm text-gray-500 mt-2">{specCount} caractéristiques techniques</p>
       </header>
 
       <section className="space-y-3">
@@ -39,7 +39,7 @@ export default function ModelePage({ params }: { params: { id: string } }) {
         <SpecsTable specs={specs || {}} />
       </section>
 
-      {/* DEBUG DEVELOPPER-FRIENDLY (retirer plus tard) */}
+      {/* Debug dev : retire après validation */}
       <details className="mt-6">
         <summary className="cursor-pointer text-sm text-gray-500">Voir JSON brut (debug)</summary>
         <pre className="mt-2 overflow-auto rounded bg-black/80 p-3 text-xs text-white">
