@@ -32,12 +32,12 @@ const config: Config = {
         },
         // Theme colors
         bg: '#0D1F23',
-        fg: '#AFB3B7',
+        fg: 'rgb(var(--primary-color) / <alpha-value>)',
         surface: '#132E35',
 
         // shadcn/ui compatible colors
         background: '#0D1F23',
-        foreground: '#AFB3B7',
+        foreground: 'rgb(var(--primary-color) / <alpha-value>)',
 
         card: {
           DEFAULT: '#132E35',
@@ -48,8 +48,8 @@ const config: Config = {
           foreground: '#AFB3B7',
         },
         primary: {
-          DEFAULT: '#2D4A53',
-          foreground: '#AFB3B7',
+          DEFAULT: 'rgb(var(--primary-color) / <alpha-value>)',
+          foreground: 'rgb(var(--characteristics-bg) / <alpha-value>)',
         },
         secondary: {
           DEFAULT: '#5A636A',
