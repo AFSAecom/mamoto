@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
+
+export const dynamic = 'force-dynamic';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const supabase = getSupabaseClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<string | null>(null);
@@ -15,7 +18,7 @@ export default function AdminLoginPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) router.replace('/admin');
     });
-  }, [router]);
+  }, [router, supabase]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

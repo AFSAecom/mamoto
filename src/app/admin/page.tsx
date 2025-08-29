@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
+
+export const dynamic = 'force-dynamic';
 
 type Moto = {
   id: string;
@@ -18,6 +20,7 @@ type Moto = {
 
 export default function AdminPage() {
   const router = useRouter();
+  const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
   const [motos, setMotos] = useState<Moto[]>([]);
@@ -34,7 +37,7 @@ export default function AdminPage() {
       setGuarded(true);
       setLoading(false);
     })();
-  }, [router]);
+  }, [router, supabase]);
 
   useEffect(() => {
     if (guarded) loadMotos();
