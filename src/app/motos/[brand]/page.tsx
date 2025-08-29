@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { loadMotos } from "@/lib/motos";
 
 interface PageProps {
-  params: { slug: string };
+  params: { brand: string };
 }
 
 export default async function MotoPage({ params }: PageProps) {
   const motos = await loadMotos();
-  const moto = motos.find((m) => m.slug === params.slug);
+  const moto = motos.find((m) => m.slug === params.brand);
   if (!moto) return notFound();
 
   return (
