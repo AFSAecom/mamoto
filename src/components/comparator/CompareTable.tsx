@@ -1,59 +1,62 @@
-'use client';
+"use client";
 
-import { useCompare } from '@/store/useCompare';
-import { byId } from '@/lib/moto-data';
-import { SPEC_ORDER, SPEC_LABELS } from '@/lib/specs';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table';
+import { byId } from "@/lib/catalog-helpers";
+import { SPEC_LABELS } from "@/lib/specs";
+import { useCompare } from "@/store/useCompare";
 
-function formatValue(key: string, value: any) {
-  if (value === undefined || value === null || value === '') return '—';
-  if (key === 'price_tnd' && typeof value === 'number') {
-    return value.toLocaleString('fr-TN') + ' TND';
+const fmtPrice = (v: any) => {
+  const n = Number(v);
+  if (Number.isFinite(n)) {
+    return n.toLocaleString("fr-TN") + " TND";
   }
-  if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
-  return String(value);
-}
+  return "—";
+};
+
+const cellValue = (val: any, key: string) => {
+  if (val === undefined || val === null || val === "") return "—";
+  if (key === "price_tnd") return fmtPrice(val);
+  if (typeof val === "boolean") return val ? "Oui" : "Non";
+  return String(val);
+};
 
 export default function CompareTable() {
-  const { selected, checkedSpecs } = useCompare();
-  const motos = selected.map((id) => byId(id)).filter(Boolean);
-  const specs = SPEC_ORDER.filter((s) => checkedSpecs.has(s));
+  const selected = useCompare((s) => s.selected);
+  const checked = useCompare((s) => s.checkedSpecs);
 
-  if (motos.length === 0) return null;
+  const keys = Array.from(checked);
+
+  if (selected.length === 0 || keys.length === 0) return null;
+
+  const motos = selected.map((id) => byId(id)).filter(Boolean);
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-40">Caractéristique</TableHead>
-          {motos.map((m) => (
-            <TableHead key={m!.id}>
-              {m!.brand} {m!.model}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {specs.map((spec) => (
-          <TableRow key={spec}>
-            <TableCell className="font-medium">
-              {SPEC_LABELS[spec]}
-            </TableCell>
+    <div className="overflow-auto">
+      <table className="min-w-full border border-gray-200 text-sm">
+        <thead className="bg-gray-50 sticky top-0">
+          <tr>
+            <th className="text-left p-2 border-b w-56">Caractéristique</th>
             {motos.map((m) => (
-              <TableCell key={m!.id}>
-                {formatValue(spec, m!.specs[spec])}
-              </TableCell>
+              <th key={m!.id} className="text-left p-2 border-b min-w-[180px]">
+                {m!.brand} {m!.model}
+                {m!.year ? ` ${m!.year}` : ""}
+              </th>
             ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+          </tr>
+        </thead>
+        <tbody>
+          {keys.map((k) => (
+            <tr key={k} className="border-b">
+              <td className="p-2 font-medium w-56">{SPEC_LABELS[k] ?? k}</td>
+              {motos.map((m) => (
+                <td key={m!.id + "_" + k} className="p-2">
+                  {cellValue(m!.specs?.[k], k)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
+
