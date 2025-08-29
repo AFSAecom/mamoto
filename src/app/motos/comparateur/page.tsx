@@ -1,35 +1,21 @@
 'use client';
 
-import modelsData from '@/data/models.json';
-import { Button } from '@/components/ui/button';
-import useCompare from '@/hooks/use-compare';
-import type { Model } from '@/types';
+import CompareFilters from '@/components/comparator/CompareFilters';
+import CompareSlots from '@/components/comparator/CompareSlots';
+import SpecCheckboxes from '@/components/comparator/SpecCheckboxes';
+import CompareTable from '@/components/comparator/CompareTable';
 
-const models = modelsData as Model[];
-
-export default function ComparateurPage() {
-  const { compareMotos, removeMoto } = useCompare();
-  const selectedModels = models.filter((m) => compareMotos.includes(m.id));
-
+export default function Page() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-fg">Comparateur</h1>
-      {selectedModels.length === 0 ? (
-        <p className="mt-4 text-muted">
-          Aucun modèle sélectionné pour comparaison.
-        </p>
-      ) : (
-        <ul className="mt-4 space-y-2">
-          {selectedModels.map((model) => (
-            <li key={model.id} className="flex items-center gap-2">
-              <span className="text-fg">{model.name}</span>
-              <Button size="sm" variant="ghost" onClick={() => removeMoto(model.id)}>
-                Retirer
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="flex flex-col md:flex-row gap-6 p-4">
+      <aside className="md:w-1/3 border-r pr-4">
+        <SpecCheckboxes />
+      </aside>
+      <main className="md:w-2/3 flex flex-col gap-4">
+        <CompareFilters />
+        <CompareSlots />
+        <CompareTable />
+      </main>
     </div>
   );
 }
