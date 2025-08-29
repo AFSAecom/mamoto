@@ -172,9 +172,10 @@ export default function AdminPage() {
                 <td className="p-2">{m.year ?? '-'}</td>
                 <td className="p-2">{m.price ?? '-'}</td>
                 <td className="p-2">{m.is_published ? 'Oui' : 'Non'}</td>
-                <td className="p-2 flex gap-2">
+                <td className="p-2 flex flex-wrap gap-2">
                   <button className="border rounded px-2 py-1" onClick={()=>setForm(m)}>Éditer</button>
                   <button className="border rounded px-2 py-1" onClick={()=>onDelete(m.id)}>Supprimer</button>
+                  <a href={`/admin/specs/${m.id}`} className="border rounded px-2 py-1">Caractéristiques</a>
                 </td>
               </tr>
             ))}
