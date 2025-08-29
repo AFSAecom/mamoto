@@ -1,95 +1,84 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { brands, modelsByBrand } from '@/lib/moto-data';
-import { useCompare } from '@/store/useCompare';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useEffect, useMemo, useState } from "react";
+import { brands, modelsByBrand } from "@/lib/moto-data";
+import { useCompare } from "@/store/useCompare";
 
 export default function CompareFilters() {
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
+  const addMoto = useCompare((s) => s.addMoto);
+  const hydrateQS = useCompare((s) => s.hydrateQS);
+  const selected = useCompare((s) => s.selected);
 
-  const { selected, addMoto, hydrateQS } = useCompare();
+  const [brand, setBrand] = useState<string>("");
+  const [modelId, setModelId] = useState<string>("");
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  // Hydrate from query string
   useEffect(() => {
-    const qs = searchParams.get('m');
-    if (qs) {
-      hydrateQS(qs.split(','));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search).get("m");
+    if (!p) return;
+    const ids = p.split(",").map((s) => s.trim());
+    hydrateQS(ids);
+  }, [hydrateQS]);
 
-  // Update query string when selection changes
   useEffect(() => {
-    const qs = selected.join(',');
-    const url = qs ? `${pathname}?m=${qs}` : pathname;
-    router.replace(url, { scroll: false });
-  }, [selected, pathname, router]);
+    if (typeof window === "undefined") return;
+    const qs = selected.join(",");
+    const url = qs ? `?m=${qs}` : window.location.pathname;
+    window.history.replaceState(null, "", url);
+  }, [selected]);
 
-  const modelOptions = brand ? modelsByBrand(brand) : [];
+  const models = useMemo(() => (brand ? modelsByBrand(brand) : []), [brand]);
 
   const handleAdd = () => {
-    if (model) {
-      addMoto(model);
-      setModel('');
-    }
+    if (!modelId) return;
+    addMoto(modelId);
+    // garder la même marque, mais vider le modèle pour pouvoir en choisir un autre
+    setModelId("");
   };
 
-  const disabled =
-    !model || selected.length >= 4 || selected.includes(model);
+  const disabledAdd = !modelId; // le store bloquera aussi si 4 déjà choisis ou doublon
 
   return (
-    <div className="flex flex-col sm:flex-row items-end gap-2">
-      <Select
+    <div className="flex flex-col md:flex-row items-stretch gap-3">
+      <select
+        className="border rounded p-2"
         value={brand}
-        onValueChange={(v) => {
-          setBrand(v);
-          setModel('');
+        onChange={(e) => {
+          setBrand(e.target.value);
+          setModelId("");
         }}
       >
-        <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="Marque" />
-        </SelectTrigger>
-        <SelectContent>
-          {brands.map((b) => (
-            <SelectItem key={b} value={b}>
-              {b}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={model}
-        onValueChange={setModel}
+        <option value="">Choisir une marque</option>
+        {brands.map((b) => (
+          <option key={b} value={b}>
+            {b}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="border rounded p-2"
+        value={modelId}
+        onChange={(e) => setModelId(e.target.value)}
         disabled={!brand}
       >
-        <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="Modèle" />
-        </SelectTrigger>
-        <SelectContent>
-          {modelOptions.map((m) => (
-            <SelectItem key={m.id} value={m.id}>
-              {m.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button onClick={handleAdd} disabled={disabled}>
+        <option value="">
+          {brand ? "Choisir un modèle" : "Sélectionnez une marque d’abord"}
+        </option>
+        {models.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.label}
+          </option>
+        ))}
+      </select>
+
+      <button
+        className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
+        onClick={handleAdd}
+        disabled={disabledAdd}
+      >
         Ajouter
-      </Button>
+      </button>
     </div>
   );
 }
