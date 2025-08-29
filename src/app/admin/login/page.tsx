@@ -8,23 +8,23 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const supabase = getSupabaseClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const supabase = getSupabaseClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) router.replace("/admin");
     });
-  }, [router, supabase]);
+  }, [router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await getSupabaseClient().auth.signInWithPassword({
       email,
       password,
     });

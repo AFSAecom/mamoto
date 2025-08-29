@@ -20,7 +20,6 @@ type Moto = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
   const [motos, setMotos] = useState<Moto[]>([]);
@@ -30,6 +29,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     (async () => {
+      const supabase = getSupabaseClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -45,7 +45,7 @@ export default function AdminPage() {
       setGuarded(true);
       setLoading(false);
     })();
-  }, [router, supabase]);
+  }, [router]);
 
   useEffect(() => {
     if (guarded) loadMotos();
@@ -53,6 +53,7 @@ export default function AdminPage() {
   }, [guarded]);
 
   const loadMotos = async () => {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("motos")
       .select("*")
@@ -72,6 +73,8 @@ export default function AdminPage() {
       setError("Brand et Model sont obligatoires");
       return;
     }
+
+    const supabase = getSupabaseClient();
 
     // 1) Upload image si fichier choisi
     let main_image_url = form.main_image_url ?? null;
@@ -120,6 +123,7 @@ export default function AdminPage() {
 
   const onDelete = async (id: string) => {
     if (!confirm("Supprimer cette moto ?")) return;
+    const supabase = getSupabaseClient();
     const { error } = await supabase.from("motos").delete().eq("id", id);
     if (error) {
       alert(error.message);
@@ -129,7 +133,7 @@ export default function AdminPage() {
   };
 
   const onLogout = async () => {
-    await supabase.auth.signOut();
+    await getSupabaseClient().auth.signOut();
     router.replace("/admin/login");
   };
 

@@ -28,8 +28,6 @@ export default function MotoSpecsPage() {
   const params = useParams();
   const router = useRouter();
   const motoId = String(params.motoId);
-
-  const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
 
@@ -53,6 +51,7 @@ export default function MotoSpecsPage() {
   // Guard admin
   useEffect(() => {
     (async () => {
+      const supabase = getSupabaseClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -68,7 +67,7 @@ export default function MotoSpecsPage() {
       setGuarded(true);
       setLoading(false);
     })();
-  }, [router, supabase]);
+  }, [router]);
 
   // Charger moto + specs
   useEffect(() => {
@@ -81,6 +80,7 @@ export default function MotoSpecsPage() {
   }, [guarded]);
 
   const loadMoto = async () => {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("motos")
       .select("id, brand, model")
@@ -90,6 +90,7 @@ export default function MotoSpecsPage() {
   };
 
   const loadSpecs = async () => {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("moto_specs")
       .select("*")
@@ -131,6 +132,7 @@ export default function MotoSpecsPage() {
       setError('Le champ "key_name" est obligatoire.');
       return;
     }
+    const supabase = getSupabaseClient();
     const payload = {
       moto_id: motoId,
       category: (form.category ?? "") || null,
@@ -160,6 +162,7 @@ export default function MotoSpecsPage() {
     setError(null);
     const patch = editing[row.id] ?? {};
     if (!patch || Object.keys(patch).length === 0) return;
+    const supabase = getSupabaseClient();
     const payload = {
       category: (patch.category ?? row.category) || null,
       subcategory: (patch.subcategory ?? row.subcategory) || null,
@@ -185,6 +188,7 @@ export default function MotoSpecsPage() {
 
   const onDeleteRow = async (row: Spec) => {
     if (!confirm("Supprimer cette caractéristique ?")) return;
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from("moto_specs")
       .delete()
