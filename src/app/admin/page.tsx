@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-
-export const dynamic = 'force-dynamic';
+import { supabase } from '@/lib/supabaseClient';
 
 type Moto = {
   id: string;
@@ -21,7 +18,6 @@ type Moto = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
   const [motos, setMotos] = useState<Moto[]>([]);
@@ -30,17 +26,6 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const client = getSupabaseClient();
-    if (!client) {
-      setError('Supabase non configuré');
-      setLoading(false);
-      return;
-    }
-    setSupabase(client);
-  }, []);
-
-  useEffect(() => {
-    if (!supabase) return;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace('/admin/login'); return; }
@@ -49,15 +34,14 @@ export default function AdminPage() {
       setGuarded(true);
       setLoading(false);
     })();
-  }, [router, supabase]);
+  }, [router]);
 
   useEffect(() => {
     if (guarded) loadMotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guarded, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guarded]);
 
   const loadMotos = async () => {
-    if (!supabase) return;
     const { data, error } = await supabase.from('motos').select('*').order('updated_at', { ascending: false });
     if (!error && data) setMotos(data as Moto[]);
   };
@@ -65,11 +49,10 @@ export default function AdminPage() {
   const resetForm = () => { setForm({}); setFile(null); setError(null); };
 
   const onSave = async () => {
-    if (!supabase) return;
     setError(null);
     if (!form.brand || !form.model) { setError('Brand et Model sont obligatoires'); return; }
 
-    // 1) Upload image si fichier choisi
+    // Upload image si fichier choisi
     let main_image_url = form.main_image_url ?? null;
     if (file) {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
@@ -101,7 +84,6 @@ export default function AdminPage() {
   };
 
   const onDelete = async (id: string) => {
-    if (!supabase) return;
     if (!confirm('Supprimer cette moto ?')) return;
     const { error } = await supabase.from('motos').delete().eq('id', id);
     if (error) { alert(error.message); return; }
@@ -109,7 +91,6 @@ export default function AdminPage() {
   };
 
   const onLogout = async () => {
-    if (!supabase) return;
     await supabase.auth.signOut();
     router.replace('/admin/login');
   };

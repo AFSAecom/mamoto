@@ -2,34 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-
-export const dynamic = 'force-dynamic';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const client = getSupabaseClient();
-    if (!client) {
-      setErr('Supabase non configuré');
-      return;
-    }
-    setSupabase(client);
-    client.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) router.replace('/admin');
     });
   }, [router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
     setErr(null);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -37,14 +26,6 @@ export default function AdminLoginPage() {
     if (error) { setErr(error.message); return; }
     router.replace('/admin');
   };
-
-  if (!supabase) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4">
-        {err ? <p className="text-red-600">{err}</p> : 'Chargement…'}
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
