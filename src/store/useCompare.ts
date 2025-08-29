@@ -12,26 +12,18 @@ export type State = {
   hydrateQS: (ids: string[]) => void;
 };
 
-const DEFAULT_SPECS = [
-  'price_tnd',
-  'engine_cc',
-  'power_hp',
-  'torque_nm',
-  'weight_kg',
-  'abs',
-];
-
 export const useCompare = create<State>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       selected: [],
-      checkedSpecs: new Set<string>(DEFAULT_SPECS),
+      checkedSpecs: new Set<string>(),
       addMoto: (id) =>
-        set((s) =>
-          s.selected.length >= 4 || s.selected.includes(id)
-            ? s
-            : { selected: [...s.selected, id] }
-        ),
+        set((s) => {
+          if (!id) return s;
+          if (s.selected.includes(id)) return s;
+          if (s.selected.length >= 4) return s;
+          return { selected: [...s.selected, id] };
+        }),
       removeMoto: (id) =>
         set((s) => ({ selected: s.selected.filter((x) => x !== id) })),
       toggleSpec: (key) =>
@@ -40,7 +32,8 @@ export const useCompare = create<State>()(
           n.has(key) ? n.delete(key) : n.add(key);
           return { checkedSpecs: n };
         }),
-      hydrateQS: (ids) => set({ selected: ids.slice(0, 4) }),
+      hydrateQS: (ids) =>
+        set({ selected: ids.filter(Boolean).slice(0, 4) }),
     }),
     {
       name: 'compare-motos',
@@ -54,7 +47,7 @@ export const useCompare = create<State>()(
         return {
           ...current,
           ...p,
-          checkedSpecs: new Set(p.checkedSpecs || DEFAULT_SPECS),
+          checkedSpecs: new Set(p.checkedSpecs || []),
         } as State;
       },
     }
