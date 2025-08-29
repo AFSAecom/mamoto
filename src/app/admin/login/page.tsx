@@ -7,8 +7,6 @@ import { useRouter } from 'next/navigation';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 
-export const dynamic = 'force-dynamic';
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
