@@ -13,11 +13,11 @@ interface CompareClientProps {
 export default function CompareClient({ motos }: CompareClientProps) {
   const { compareMotos, clear } = useCompare();
   const [selected, setSelected] = React.useState(() =>
-    motos.filter((m) => compareMotos.includes(m.id))
+    motos.filter((m) => compareMotos.includes(m.slug))
   );
 
   React.useEffect(() => {
-    setSelected(motos.filter((m) => compareMotos.includes(m.id)));
+    setSelected(motos.filter((m) => compareMotos.includes(m.slug)));
   }, [compareMotos, motos]);
 
   return (
