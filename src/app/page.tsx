@@ -1,69 +1,17 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MotoCard from '@/components/MotoCard';
 import { ArrowRight, Search, TrendingUp, Users, Award, MapPin, ChevronRight } from 'lucide-react';
-import { Moto, Version, Model, Brand } from '@/types';
+import { getAllMotos } from '@/lib/motos';
 
 export default function Home() {
-  const [featuredMotos, setFeaturedMotos] = useState<Moto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchFeaturedMotos = useCallback(async (): Promise<string | void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Fetch some featured versions for the homepage
-      const [versionsRes, modelsRes, brandsRes] = await Promise.all([
-        fetch('/api/versions'),
-        fetch('/api/models'),
-        fetch('/api/brands')
-      ]);
-
-      if (!versionsRes.ok) {
-        throw new Error('Erreur lors de la récupération des versions.');
-      }
-      if (!modelsRes.ok) {
-        throw new Error('Erreur lors de la récupération des modèles.');
-      }
-      if (!brandsRes.ok) {
-        throw new Error('Erreur lors de la récupération des marques.');
-      }
-
-      const versions: Version[] = await versionsRes.json();
-      const models: Model[] = await modelsRes.json();
-      const brands: Brand[] = await brandsRes.json();
-
-      // Get 6 featured motos (mix of different categories)
-      const featured: Moto[] = versions.slice(0, 6).map((version: Version) => {
-        const model = models.find((m: Model) => m.id === version.modelId);
-        const brand = brands.find((b: Brand) => b.id === model?.brandId);
-        return { version, model, brand };
-      });
-
-      setFeaturedMotos(featured);
-    } catch (error) {
-      console.error('Error fetching featured motos:', error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Erreur lors du chargement des motos en vedette.';
-      setError(message);
-      return message;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFeaturedMotos();
-  }, [fetchFeaturedMotos]);
+  const motos = getAllMotos();
+  const featured = motos.slice(0, 6);
 
   return (
     <div className="min-h-screen">
@@ -159,43 +107,23 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {error ? (
-            <div
-              role="alert"
-              className="mb-8 rounded border border-red-200 bg-red-50 p-4 text-red-800"
-            >
-              <p className="mb-4">{error}</p>
-              <Button onClick={fetchFeaturedMotos}>Réessayer</Button>
-            </div>
-          ) : loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-surface border border-accent rounded-lg h-96 animate-pulse"></div>
-              ))}
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {featuredMotos.map((item, index) => (
-                <motion.div
-                  key={item.version.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <MotoCard
-                    version={item.version}
-                    model={item.model}
-                    brand={item.brand}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {featured.map((m, index) => (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <MotoCard moto={m} />
+              </motion.div>
+            ))}
+          </motion.div>
 
           <div className="text-center mt-12">
             <Button size="lg" variant="outline" className="border-accent hover:bg-accent" asChild>
