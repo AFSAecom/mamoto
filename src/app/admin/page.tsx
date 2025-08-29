@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 
-export const dynamic = 'force-dynamic';
 
 type Moto = {
   id: string;
