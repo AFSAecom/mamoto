@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +12,10 @@ import { getAllMotos } from '@/lib/motos';
 
 export default function Home() {
   const motos = getAllMotos();
-  const featured = motos.slice(0, 6);
+  const featured = useMemo(() => {
+    const shuffled = [...motos].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 6);
+  }, [motos]);
 
   return (
     <div className="min-h-screen">
