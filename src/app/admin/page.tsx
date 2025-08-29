@@ -1,12 +1,10 @@
-'use client';
-export const dynamic = 'force-dynamic';
+"use client";
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 type Moto = {
   id: string;
@@ -22,7 +20,7 @@ type Moto = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const supabase = supabaseClient;
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
   const [motos, setMotos] = useState<Moto[]>([]);
@@ -31,22 +29,19 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const client = getSupabaseClient();
-    if (!client) {
-      setError('Supabase non configuré');
-      setLoading(false);
-      return;
-    }
-    setSupabase(client);
-  }, []);
-
-  useEffect(() => {
-    if (!supabase) return;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.replace('/admin/login'); return; }
-      const { data: allowed } = await supabase.rpc('is_admin');
-      if (!allowed) { setError('Accès refusé (non-admin)'); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
+      const { data: allowed } = await supabase.rpc("is_admin");
+      if (!allowed) {
+        setError("Accès refusé (non-admin)");
+        return;
+      }
       setGuarded(true);
       setLoading(false);
     })();
@@ -55,35 +50,48 @@ export default function AdminPage() {
   useEffect(() => {
     if (guarded) loadMotos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guarded, supabase]);
+  }, [guarded]);
 
   const loadMotos = async () => {
-    if (!supabase) return;
-    const { data, error } = await supabase.from('motos').select('*').order('updated_at', { ascending: false });
+    const { data, error } = await supabase
+      .from("motos")
+      .select("*")
+      .order("updated_at", { ascending: false });
     if (!error && data) setMotos(data as Moto[]);
   };
 
-  const resetForm = () => { setForm({}); setFile(null); setError(null); };
+  const resetForm = () => {
+    setForm({});
+    setFile(null);
+    setError(null);
+  };
 
   const onSave = async () => {
-    if (!supabase) return;
     setError(null);
-    if (!form.brand || !form.model) { setError('Brand et Model sont obligatoires'); return; }
+    if (!form.brand || !form.model) {
+      setError("Brand et Model sont obligatoires");
+      return;
+    }
 
     // 1) Upload image si fichier choisi
     let main_image_url = form.main_image_url ?? null;
     if (file) {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const path = `admin/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('motos').upload(path, file);
-      if (upErr) { setError('Upload image: ' + upErr.message); return; }
-      const { data: pub } = supabase.storage.from('motos').getPublicUrl(path);
+      const { error: upErr } = await supabase.storage
+        .from("motos")
+        .upload(path, file);
+      if (upErr) {
+        setError("Upload image: " + upErr.message);
+        return;
+      }
+      const { data: pub } = supabase.storage.from("motos").getPublicUrl(path);
       main_image_url = pub.publicUrl;
     }
 
     const payload = {
-      brand: form.brand ?? '',
-      model: form.model ?? '',
+      brand: form.brand ?? "",
+      model: form.model ?? "",
       year: form.year ?? null,
       price: form.price ?? null,
       is_published: form.is_published ?? true,
@@ -91,28 +99,38 @@ export default function AdminPage() {
     };
 
     if (form.id) {
-      const { error } = await supabase.from('motos').update(payload).eq('id', form.id);
-      if (error) { setError(error.message); return; }
+      const { error } = await supabase
+        .from("motos")
+        .update(payload)
+        .eq("id", form.id);
+      if (error) {
+        setError(error.message);
+        return;
+      }
     } else {
-      const { error } = await supabase.from('motos').insert(payload);
-      if (error) { setError(error.message); return; }
+      const { error } = await supabase.from("motos").insert(payload);
+      if (error) {
+        setError(error.message);
+        return;
+      }
     }
     resetForm();
     await loadMotos();
   };
 
   const onDelete = async (id: string) => {
-    if (!supabase) return;
-    if (!confirm('Supprimer cette moto ?')) return;
-    const { error } = await supabase.from('motos').delete().eq('id', id);
-    if (error) { alert(error.message); return; }
+    if (!confirm("Supprimer cette moto ?")) return;
+    const { error } = await supabase.from("motos").delete().eq("id", id);
+    if (error) {
+      alert(error.message);
+      return;
+    }
     await loadMotos();
   };
 
   const onLogout = async () => {
-    if (!supabase) return;
     await supabase.auth.signOut();
-    router.replace('/admin/login');
+    router.replace("/admin/login");
   };
 
   if (loading) return <main className="p-6">Chargement…</main>;
@@ -123,30 +141,92 @@ export default function AdminPage() {
     <main className="p-6 space-y-8">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Admin — Motos</h1>
-        <button onClick={onLogout} className="rounded-2xl border px-4 py-2">Se déconnecter</button>
+        <button onClick={onLogout} className="rounded-2xl border px-4 py-2">
+          Se déconnecter
+        </button>
       </header>
 
       {/* Formulaire création/édition */}
       <section className="rounded-2xl border p-4 space-y-3 bg-white">
-        <h2 className="font-medium">{form.id ? 'Modifier la moto' : 'Ajouter une moto'}</h2>
+        <h2 className="font-medium">
+          {form.id ? "Modifier la moto" : "Ajouter une moto"}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input className="border rounded px-3 py-2" placeholder="Brand" value={form.brand ?? ''} onChange={e=>setForm(f=>({...f, brand:e.target.value}))}/>
-          <input className="border rounded px-3 py-2" placeholder="Model" value={form.model ?? ''} onChange={e=>setForm(f=>({...f, model:e.target.value}))}/>
-          <input className="border rounded px-3 py-2" placeholder="Year" type="number" value={form.year ?? ''} onChange={e=>setForm(f=>({...f, year:e.target.value ? Number(e.target.value): null}))}/>
-          <input className="border rounded px-3 py-2" placeholder="Price" type="number" value={form.price ?? ''} onChange={e=>setForm(f=>({...f, price:e.target.value ? Number(e.target.value): null}))}/>
-          <input className="border rounded px-3 py-2" placeholder="Image URL (optionnel si upload)" value={form.main_image_url ?? ''} onChange={e=>setForm(f=>({...f, main_image_url:e.target.value}))}/>
+          <input
+            className="border rounded px-3 py-2"
+            placeholder="Brand"
+            value={form.brand ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
+          />
+          <input
+            className="border rounded px-3 py-2"
+            placeholder="Model"
+            value={form.model ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+          />
+          <input
+            className="border rounded px-3 py-2"
+            placeholder="Year"
+            type="number"
+            value={form.year ?? ""}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                year: e.target.value ? Number(e.target.value) : null,
+              }))
+            }
+          />
+          <input
+            className="border rounded px-3 py-2"
+            placeholder="Price"
+            type="number"
+            value={form.price ?? ""}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                price: e.target.value ? Number(e.target.value) : null,
+              }))
+            }
+          />
+          <input
+            className="border rounded px-3 py-2"
+            placeholder="Image URL (optionnel si upload)"
+            value={form.main_image_url ?? ""}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, main_image_url: e.target.value }))
+            }
+          />
           <label className="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.is_published ?? true} onChange={e=>setForm(f=>({...f, is_published:e.target.checked}))}/>
+            <input
+              type="checkbox"
+              checked={form.is_published ?? true}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, is_published: e.target.checked }))
+              }
+            />
             Publié
           </label>
           <div className="md:col-span-3">
-            <input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0] ?? null)}/>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
           </div>
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex gap-2">
-          <button onClick={onSave} className="rounded-2xl border px-4 py-2">Enregistrer</button>
-          {form.id && <button onClick={()=>setForm({})} className="rounded-2xl border px-4 py-2">Annuler</button>}
+          <button onClick={onSave} className="rounded-2xl border px-4 py-2">
+            Enregistrer
+          </button>
+          {form.id && (
+            <button
+              onClick={() => setForm({})}
+              className="rounded-2xl border px-4 py-2"
+            >
+              Annuler
+            </button>
+          )}
         </div>
       </section>
 
@@ -165,18 +245,43 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {motos.map(m => (
+            {motos.map((m) => (
               <tr key={m.id} className="border-b">
-                <td className="p-2">{m.main_image_url ? <img src={m.main_image_url} alt="" className="h-12 w-16 object-cover rounded" /> : '-'}</td>
+                <td className="p-2">
+                  {m.main_image_url ? (
+                    <img
+                      src={m.main_image_url}
+                      alt=""
+                      className="h-12 w-16 object-cover rounded"
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 <td className="p-2">{m.brand}</td>
                 <td className="p-2">{m.model}</td>
-                <td className="p-2">{m.year ?? '-'}</td>
-                <td className="p-2">{m.price ?? '-'}</td>
-                <td className="p-2">{m.is_published ? 'Oui' : 'Non'}</td>
+                <td className="p-2">{m.year ?? "-"}</td>
+                <td className="p-2">{m.price ?? "-"}</td>
+                <td className="p-2">{m.is_published ? "Oui" : "Non"}</td>
                 <td className="p-2 flex flex-wrap gap-2">
-                  <button className="border rounded px-2 py-1" onClick={()=>setForm(m)}>Éditer</button>
-                  <button className="border rounded px-2 py-1" onClick={()=>onDelete(m.id)}>Supprimer</button>
-                  <a href={`/admin/specs/${m.id}`} className="border rounded px-2 py-1">Caractéristiques</a>
+                  <button
+                    className="border rounded px-2 py-1"
+                    onClick={() => setForm(m)}
+                  >
+                    Éditer
+                  </button>
+                  <button
+                    className="border rounded px-2 py-1"
+                    onClick={() => onDelete(m.id)}
+                  >
+                    Supprimer
+                  </button>
+                  <a
+                    href={`/admin/specs/${m.id}`}
+                    className="border rounded px-2 py-1"
+                  >
+                    Caractéristiques
+                  </a>
                 </td>
               </tr>
             ))}

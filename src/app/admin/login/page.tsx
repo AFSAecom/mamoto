@@ -1,66 +1,74 @@
-'use client';
-export const dynamic = 'force-dynamic';
+"use client";
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const supabase = supabaseClient;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const client = getSupabaseClient();
-    if (!client) {
-      setErr('Supabase non configuré');
-      return;
-    }
-    setSupabase(client);
-    client.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/admin');
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.replace("/admin");
     });
-  }, [router]);
+  }, [router, supabase]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
     setErr(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setLoading(false);
-    if (error) { setErr(error.message); return; }
-    router.replace('/admin');
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    router.replace("/admin");
   };
-
-  if (!supabase) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4">
-        {err ? <p className="text-red-600">{err}</p> : 'Chargement…'}
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={onSubmit} className="w-full max-w-sm rounded-2xl shadow p-6 space-y-4 border bg-white">
+      <form
+        onSubmit={onSubmit}
+        className="w-full max-w-sm rounded-2xl shadow p-6 space-y-4 border bg-white"
+      >
         <h1 className="text-2xl font-semibold">Connexion admin</h1>
         <div>
           <label className="block text-sm mb-1">Email</label>
-          <input className="w-full border rounded px-3 py-2" type="email" value={email} onChange={e=>setEmail(e.target.value)} required />
+          <input
+            className="w-full border rounded px-3 py-2"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
         <div>
           <label className="block text-sm mb-1">Mot de passe</label>
-          <input className="w-full border rounded px-3 py-2" type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
+          <input
+            className="w-full border rounded px-3 py-2"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button disabled={loading} className="w-full rounded-2xl px-4 py-2 border font-medium">
-          {loading ? 'Connexion…' : 'Se connecter'}
+        <button
+          disabled={loading}
+          className="w-full rounded-2xl px-4 py-2 border font-medium"
+        >
+          {loading ? "Connexion…" : "Se connecter"}
         </button>
       </form>
     </main>
