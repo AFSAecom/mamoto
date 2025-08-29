@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { getAllMotos } from '../../lib/motos';
 import BrandsClient from './BrandsClient';
+import { loadMotos } from '@/lib/motos';
 
 export const metadata: Metadata = {
   title: 'Marques',
@@ -13,21 +13,9 @@ interface BrandInfo {
   count: number;
 }
 
-export default function MarquesPage() {
-  const allMotos = getAllMotos();
-  const map = new Map<string, BrandInfo>();
-
-  allMotos.forEach((m) => {
-    if (!map.has(m.brandSlug)) {
-      map.set(m.brandSlug, { name: m.brand, slug: m.brandSlug, count: 0 });
-    }
-    map.get(m.brandSlug)!.count += 1;
-  });
-
-  const brands = Array.from(map.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
-
+export default async function MarquesPage() {
+  await loadMotos();
+  const brands: BrandInfo[] = [];
   return <BrandsClient brands={brands} />;
 }
 

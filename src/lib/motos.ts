@@ -1,3 +1,4 @@
+import "server-only";
 import fs from "fs";
 import path from "path";
 import * as XLSX from "xlsx";
@@ -64,9 +65,5 @@ export async function loadMotos(): Promise<Moto[]> {
 
   cache = motos;
   return motos;
-}
-
-export function getAllMotos(): Moto[] {
-  return cache ?? [];
 }
 
