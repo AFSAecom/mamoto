@@ -1,17 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Bike, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
+import { isAdmin as checkIsAdmin } from '@/lib/auth';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      try {
+        const result = await checkIsAdmin();
+        setIsAdminUser(result);
+      } catch (error) {
+        setIsAdminUser(false);
+      }
+    };
+    verifyAdmin();
+  }, []);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,13 +35,17 @@ const Navbar = () => {
     }
   };
 
-  const menuItems = [
+  const baseMenuItems = [
     { href: '/motos', label: 'Motos Neuves' },
     { href: '/occasion', label: 'Occasion' },
     { href: '/mag', label: 'Magazine' },
     { href: '/guide', label: 'Guide' },
     { href: '/concessionnaires', label: 'Concessionnaires' },
   ];
+
+  const menuItems = isAdminUser
+    ? [...baseMenuItems, { href: '/admin', label: 'Admin' }]
+    : baseMenuItems;
 
   return (
     <nav className="bg-bg border-b border-accent sticky top-0 z-50">
