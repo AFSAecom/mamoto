@@ -4,7 +4,7 @@ export const revalidate = 0;
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type Spec = {
   id: string;
@@ -29,7 +29,7 @@ export default function MotoSpecsPage() {
   const router = useRouter();
   const motoId = String(params.motoId);
 
-  const supabase = supabaseClient;
+  const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
 

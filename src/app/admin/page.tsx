@@ -4,7 +4,7 @@ export const revalidate = 0;
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type Moto = {
   id: string;
@@ -20,7 +20,7 @@ type Moto = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const supabase = supabaseClient;
+  const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
   const [motos, setMotos] = useState<Moto[]>([]);
