@@ -1,16 +1,16 @@
-import { getSupabaseClient } from './supabaseClient';
+import { getSupabaseClient } from "./supabaseClient";
 
 export async function getCurrentUser() {
-  const client = getSupabaseClient();
-  if (!client) return null;
-  const { data: { user } } = await client.auth.getUser();
+  const supabase = getSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user ?? null;
 }
 
 export async function isAdmin(): Promise<boolean> {
-  const client = getSupabaseClient();
-  if (!client) return false;
-  const { data, error } = await client.rpc('is_admin');
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.rpc("is_admin");
   if (error) return false;
   return !!data;
 }
