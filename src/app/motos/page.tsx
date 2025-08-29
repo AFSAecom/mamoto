@@ -1,10 +1,10 @@
 import MotoCard from "@/components/MotoCard";
-import { loadAllMotos } from "@/lib/motos.server";
+import { getAllMotos } from "@/lib/motos";
 
 export const dynamic = "force-static";
 
 export default function MotosPage() {
-  const all = loadAllMotos();
+  const all = getAllMotos();
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-3xl font-semibold mb-1">Motos neuves</h1>

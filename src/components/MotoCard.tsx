@@ -9,7 +9,10 @@ export default function MotoCard({ moto }: MotoCardProps) {
   const imgSrc = moto.imageUrl ?? "/images/placeholder.jpg";
   return (
     <div className="rounded-xl border overflow-hidden hover:shadow">
-      <Link href={`/modeles/${moto.id}`} className="block">
+      <Link
+        href={`/motos/${moto.brandSlug}/${moto.modelSlug}`}
+        className="block"
+      >
         <div className="aspect-[16/9] bg-gray-100">
           <img
             src={imgSrc}
@@ -24,7 +27,9 @@ export default function MotoCard({ moto }: MotoCardProps) {
             {moto.model}
             {moto.year ? ` · ${moto.year}` : ""}
           </div>
-          {moto.price != null && <div className="mt-1">Prix: {moto.price}</div>}
+          {moto.price != null && (
+            <div className="mt-1">Prix: {moto.price}</div>
+          )}
         </div>
       </Link>
     </div>
