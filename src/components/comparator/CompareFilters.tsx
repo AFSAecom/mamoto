@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { allBrands, modelsByBrand } from "@/lib/catalog-helpers";
+import { allBrandsNeuves, modelsByBrandNeuves } from "@/lib/catalog-helpers";
 import { useCompare } from "@/store/useCompare";
 
 export default function CompareFilters() {
@@ -27,8 +27,8 @@ export default function CompareFilters() {
     window.history.replaceState(null, "", url);
   }, [selected]);
 
-  const brands = useMemo(() => allBrands(), []);
-  const models = useMemo(() => (brand ? modelsByBrand(brand) : []), [brand]);
+  const brands = useMemo(() => allBrandsNeuves(), []);
+  const models = useMemo(() => (brand ? modelsByBrandNeuves(brand) : []), [brand]);
 
   const handleAdd = () => {
     if (!modelId) return;

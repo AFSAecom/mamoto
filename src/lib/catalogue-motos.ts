@@ -8,9 +8,12 @@ export const motos: Moto[] = (rawMotos as any[]).map((m) => {
   return {
     id: m.id,
     brand: m.brand,
+    brand_slug: m.brandSlug,
     model: m.model,
+    model_slug: m.modelSlug,
     year: m.year ?? undefined,
     image: m.imageUrl ?? undefined,
+    listing: (m.listing as 'neuve' | 'occasion') ?? 'neuve', // TODO: vérifier la valeur dans la source officielle
     specs,
   } as Moto;
 });

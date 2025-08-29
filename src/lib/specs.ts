@@ -2,7 +2,7 @@ import { getAllSpecKeys } from './catalog-helpers';
 
 export const SPEC_KEYS = getAllSpecKeys();
 
-const LABEL_OVERRIDES: Record<string, string> = {
+const LABELS_FR: Record<string, string> = {
   price_tnd: 'Prix (TND)',
   engine_cc: 'Cylindrée (cc)',
   power_hp: 'Puissance (ch)',
@@ -17,7 +17,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
 };
 
 const prettify = (k: string) =>
-  LABEL_OVERRIDES[k] ??
+  LABELS_FR[k] ??
   k
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
