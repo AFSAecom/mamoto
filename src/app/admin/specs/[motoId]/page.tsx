@@ -49,6 +49,7 @@ export default function MotoSpecsPage() {
   // Édition inline (par id)
   const [editing, setEditing] = useState<Record<string, Partial<Spec>>>({});
 
+  // Initialize Supabase client once on mount
   useEffect(() => {
     const client = getSupabaseClient();
     if (!client) {
