@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 
 type Spec = {
   id: string;
@@ -27,6 +28,7 @@ export default function MotoSpecsPage() {
   const router = useRouter();
   const motoId = String(params.motoId);
 
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [loading, setLoading] = useState(true);
   const [guarded, setGuarded] = useState(false);
 
@@ -47,8 +49,19 @@ export default function MotoSpecsPage() {
   // Édition inline (par id)
   const [editing, setEditing] = useState<Record<string, Partial<Spec>>>({});
 
+  useEffect(() => {
+    const client = getSupabaseClient();
+    if (!client) {
+      setError('Supabase non configuré');
+      setLoading(false);
+      return;
+    }
+    setSupabase(client);
+  }, []);
+
   // Guard admin
   useEffect(() => {
+    if (!supabase) return;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace('/admin/login'); return; }
@@ -57,19 +70,20 @@ export default function MotoSpecsPage() {
       setGuarded(true);
       setLoading(false);
     })();
-  }, [router]);
+  }, [router, supabase]);
 
   // Charger moto + specs
   useEffect(() => {
-    if (!guarded) return;
+    if (!guarded || !supabase) return;
     (async () => {
       await loadMoto();
       await loadSpecs();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guarded]);
+  }, [guarded, supabase]);
 
   const loadMoto = async () => {
+    if (!supabase) return;
     const { data, error } = await supabase
       .from('motos')
       .select('id, brand, model')
@@ -79,6 +93,7 @@ export default function MotoSpecsPage() {
   };
 
   const loadSpecs = async () => {
+    if (!supabase) return;
     const { data, error } = await supabase
       .from('moto_specs')
       .select('*')
@@ -108,6 +123,7 @@ export default function MotoSpecsPage() {
   };
 
   const onCreate = async () => {
+    if (!supabase) return;
     setError(null);
     if (!form.key_name) { setError('Le champ "key_name" est obligatoire.'); return; }
     const payload = {
@@ -126,6 +142,7 @@ export default function MotoSpecsPage() {
   };
 
   const onSaveRow = async (row: Spec) => {
+    if (!supabase) return;
     setError(null);
     const patch = editing[row.id] ?? {};
     if (!patch || Object.keys(patch).length === 0) return;
@@ -147,6 +164,7 @@ export default function MotoSpecsPage() {
   };
 
   const onDeleteRow = async (row: Spec) => {
+    if (!supabase) return;
     if (!confirm('Supprimer cette caractéristique ?')) return;
     const { error } = await supabase.from('moto_specs').delete().eq('id', row.id);
     if (error) { alert(error.message); return; }
