@@ -17,10 +17,41 @@ export type MotoCard = {
 
 export async function getPublishedMotos(): Promise<MotoCard[]> {
   const s = supabaseServer();
-  const { data } = await s.from('motos_public')
+
+  // 1) Vue publique optimisée si dispo
+  const { data: view } = await s
+    .from('motos_public')
     .select('id,brand,model,year,price,slug,display_image')
     .order('id', { ascending: false });
-  return data ?? [];
+
+  if (view?.length) return view;
+
+  // 2) Fallback : jointure manuelle (si la vue n’existe pas)
+  const { data: motos } = await s
+    .from('motos')
+    .select('id,brand,model,year,price,slug,main_image_url')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false });
+
+  if (!motos?.length) return [];
+
+  const ids = motos.map(m => m.id);
+  const { data: imgs } = await s
+    .from('moto_images')
+    .select('moto_id,image_url,is_main,created_at')
+    .in('moto_id', ids)
+    .order('is_main', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  const pick = new Map<string,string>();
+  imgs?.forEach(im => { if (!pick.has(im.moto_id)) pick.set(im.moto_id, im.image_url); });
+
+  return motos.map(m => ({
+    id: m.id,
+    brand: m.brand, model: m.model, year: m.year, price: m.price,
+    slug: m.slug ?? null,
+    display_image: m.main_image_url || pick.get(m.id) || null
+  }));
 }
 
 export type MotoSpec = {
@@ -31,11 +62,12 @@ export type MotoSpec = {
 export async function getMotoFullByIdentifier(identifier: string) {
   const s = supabaseServer();
   const isUuid = /^[0-9a-f-]{36}$/i.test(identifier);
-
   const baseSel = 'id,brand,model,year,price,slug,main_image_url,is_published';
+
   const { data: moto } = isUuid
     ? await s.from('motos').select(baseSel).eq('id', identifier).single()
     : await s.from('motos').select(baseSel).eq('slug', identifier).single();
+
   if (!moto || moto.is_published !== true) return null;
 
   const { data: images } = await s.from('moto_images')
@@ -50,7 +82,7 @@ export async function getMotoFullByIdentifier(identifier: string) {
     .order('sort_order', { ascending: true })
     .order('key_name', { ascending: true });
 
-  // Filtrer les lignes vides (value_text TRIM = '')
+  // Filtrer toute ligne vide (évite champs doublons "vides")
   const specs = (specsRaw ?? []).filter(sp => (sp.value_text ?? '').trim().length > 0);
 
   return { moto, images: images ?? [], specs };
