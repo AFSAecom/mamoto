@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
-import listingsData from '@/data/listings.json';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    return NextResponse.json(listingsData);
+    const cookieStore = cookies();
+    const s = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+    );
+
+    const { data, error } = await s.from('listings').select('*');
+    if (error) throw error;
+
+    return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch listings' },
