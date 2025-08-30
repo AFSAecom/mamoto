@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { fetchMotoFull } from '@/services/motos';
+import { fetchMotoFullBySlugOrId } from '@/services/motos';
 import { publicImageUrl } from '@/lib/storage';
 
 export const revalidate = 0;
@@ -20,7 +20,7 @@ function moneyTND(n?: number | null) {
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const data = await fetchMotoFull(params.id).catch(() => null);
+  const data = await fetchMotoFullBySlugOrId(params.id).catch(() => null);
   const title = data ? `${data.brand} ${data.model} | moto.tn` : 'Fiche moto | moto.tn';
   return { title };
 }
@@ -28,10 +28,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function MotoPage({ params }: Params) {
   let data: any = null;
   try {
-    data = await fetchMotoFull(params.id);
+    data = await fetchMotoFullBySlugOrId(params.id);
   } catch (error) {
     console.error('Erreur fn_get_moto_full:', error);
   }
+  console.debug('[moto] detail', !!data);
 
   if (!data) {
     return (
@@ -42,8 +43,10 @@ export default async function MotoPage({ params }: Params) {
     );
   }
 
-  const images = (data.images ?? []).sort((a: any, b: any) =>
-    (Number(b.is_primary) - Number(a.is_primary)) || ((a.sort_order ?? 0) - (b.sort_order ?? 0))
+  const images = (data?.images ?? []).sort(
+    (a: any, b: any) =>
+      (Number(b.is_primary) - Number(a.is_primary)) ||
+      ((a.sort_order ?? 0) - (b.sort_order ?? 0))
   );
   const groups = data.groups ?? [];
 
