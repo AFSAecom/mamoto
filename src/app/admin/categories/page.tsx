@@ -1,9 +1,9 @@
-export default function AdminCategoriesPage() {
+import AdminNav from '@/components/admin/AdminNav';
+export default function CategoriesPlaceholder() {
   return (
     <div>
-      <nav className="mb-2 text-sm text-muted-foreground">Admin / Catégories</nav>
-      <h1 className="text-2xl font-semibold mb-4">Catégories</h1>
-      <p>Gestion catégories — à implémenter étape 3</p>
+      <AdminNav />
+      <div className="p-6">Gestion des catégories — à faire Étape 3</div>
     </div>
   );
 }
