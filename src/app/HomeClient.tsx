@@ -7,10 +7,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MotoCard from '@/components/MotoCard';
 import { ArrowRight, Search, TrendingUp, Users, Award, MapPin, ChevronRight } from 'lucide-react';
-import type { Moto } from '@/lib/motos';
+import type { MotoCard as Moto } from '@/lib/public/motos';
 
 interface HomeClientProps {
-  featured: Moto[];
+  featured: (Moto & { display_image: string | null })[];
 }
 
 export default function HomeClient({ featured }: HomeClientProps) {
@@ -117,7 +117,7 @@ export default function HomeClient({ featured }: HomeClientProps) {
           >
             {featured.map((m, index) => (
               <motion.div
-                key={m.slug}
+                key={m.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
