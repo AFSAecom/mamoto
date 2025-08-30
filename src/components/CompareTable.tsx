@@ -1,7 +1,7 @@
-import type { Moto } from '@/lib/motos';
+import type { MotoCard } from '@/lib/public/motos';
 
 interface CompareTableProps {
-  motos: Moto[];
+  motos: MotoCard[];
 }
 
 export default function CompareTable({ motos }: CompareTableProps) {
@@ -11,9 +11,8 @@ export default function CompareTable({ motos }: CompareTableProps) {
     );
   }
 
-  const labels = Array.from(
-    new Set(motos.flatMap((m) => m.specs.map((s) => s.label)))
-  );
+  const fmtPrice = (v: number | null) =>
+    v != null ? v.toLocaleString('fr-TN') + ' TND' : '—';
 
   return (
     <div className="overflow-x-auto">
@@ -22,26 +21,29 @@ export default function CompareTable({ motos }: CompareTableProps) {
           <tr>
             <th className="p-2 text-left">Spécifications</th>
             {motos.map((m) => (
-              <th key={m.slug} className="p-2 text-left">
+              <th key={m.slug ?? m.id} className="p-2 text-left">
                 {m.model}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {labels.map((label) => (
-            <tr key={label} className="border-t border-accent">
-              <th className="p-2 text-left font-medium">{label}</th>
-              {motos.map((m) => {
-                const spec = m.specs.find((s) => s.label === label);
-                return (
-                  <td key={m.slug} className="p-2">
-                    {spec ? spec.value : '—'}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+          <tr className="border-t border-accent">
+            <th className="p-2 text-left font-medium">Année</th>
+            {motos.map((m) => (
+              <td key={(m.slug ?? m.id) + '_year'} className="p-2">
+                {m.year ?? '—'}
+              </td>
+            ))}
+          </tr>
+          <tr className="border-t border-accent">
+            <th className="p-2 text-left font-medium">Prix (TND)</th>
+            {motos.map((m) => (
+              <td key={(m.slug ?? m.id) + '_price'} className="p-2">
+                {fmtPrice(m.price)}
+              </td>
+            ))}
+          </tr>
         </tbody>
       </table>
     </div>

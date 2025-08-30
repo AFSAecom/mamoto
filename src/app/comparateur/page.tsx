@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import CompareClient from './CompareClient';
-import { loadMotos } from '@/lib/motos';
+import { getPublishedMotos } from '@/lib/public/motos';
 
 export const metadata: Metadata = {
   title: 'Comparateur',
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ComparateurPage() {
-  const motos = await loadMotos();
+  const motos = await getPublishedMotos();
   return <CompareClient motos={motos} />;
 }
 

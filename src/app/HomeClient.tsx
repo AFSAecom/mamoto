@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MotoCard from '@/components/MotoCard';
 import { ArrowRight, Search, TrendingUp, Users, Award, MapPin, ChevronRight } from 'lucide-react';
-import type { Moto } from '@/lib/motos';
+import type { MotoCard as Moto } from '@/lib/public/motos';
 
 interface HomeClientProps {
   featured: Moto[];
@@ -51,7 +51,7 @@ export default function HomeClient({ featured }: HomeClientProps) {
                 </Button>
                 
                 <Button size="lg" variant="outline" className="border-brand-500 text-brand-300 hover:bg-brand-700 px-8 py-4 text-lg" asChild>
-                  <Link href="/motos/comparateur">
+                  <Link href="/comparateur">
                     <TrendingUp className="mr-2 h-5 w-5" />
                     Comparateur
                   </Link>
@@ -117,7 +117,7 @@ export default function HomeClient({ featured }: HomeClientProps) {
           >
             {featured.map((m, index) => (
               <motion.div
-                key={m.slug}
+                key={m.slug ?? m.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
