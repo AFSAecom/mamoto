@@ -1,29 +1,32 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { loadMotos } from "@/lib/motos";
+import { getMotoFullByIdentifier } from "@/lib/public/motos";
 
 interface PageProps {
   params: { brand: string };
 }
 
 export default async function MotoPage({ params }: PageProps) {
-  const motos = await loadMotos();
-  const moto = motos.find((m) => m.slug === params.brand);
-  if (!moto) return notFound();
+  const data = await getMotoFullByIdentifier(params.brand);
+  if (!data) return notFound();
+  const { moto, images, specs } = data;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <h1 className="text-3xl font-semibold">{moto.model}</h1>
-      {moto.imageUrl && (
+      {images.length > 0 && (
         <div className="relative w-full h-64">
-          <Image src={moto.imageUrl} alt={moto.model} fill className="object-cover" />
+          <Image src={images[0].image_url} alt={images[0].alt ?? moto.model ?? ''} fill className="object-cover" />
         </div>
       )}
       <ul className="bg-[#132E35] text-white divide-y divide-[#AFB3B7]">
-        {moto.specs.map((s, i) => (
-          <li key={i} className="flex justify-between px-4 py-2">
-            <span>{s.label}</span>
-            <span className="font-medium">{s.value}</span>
+        {specs.map((s) => (
+          <li key={s.id} className="flex justify-between px-4 py-2">
+            <span>{s.key_name}</span>
+            <span className="font-medium">
+              {s.value_text}
+              {s.unit ? ` ${s.unit}` : ""}
+            </span>
           </li>
         ))}
       </ul>

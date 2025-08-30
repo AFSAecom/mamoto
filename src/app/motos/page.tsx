@@ -1,10 +1,10 @@
 import MotoCard from "@/components/MotoCard";
-import { loadMotos } from "@/lib/motos";
+import { getPublishedMotos } from "@/lib/public/motos";
 
 export const dynamic = "force-static";
 
 export default async function MotosPage() {
-  const motos = await loadMotos();
+  const motos = await getPublishedMotos();
 
   if (motos.length === 0) {
     return (

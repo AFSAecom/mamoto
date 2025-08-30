@@ -4,20 +4,20 @@ import React from 'react';
 import CompareTable from '@/components/CompareTable';
 import { Button } from '@/components/ui/button';
 import useCompare from '@/hooks/use-compare';
-import type { Moto } from '@/lib/motos';
+import type { MotoCard } from '@/lib/public/motos';
 
 interface CompareClientProps {
-  motos: Moto[];
+  motos: MotoCard[];
 }
 
 export default function CompareClient({ motos }: CompareClientProps) {
   const { compareMotos, clear } = useCompare();
   const [selected, setSelected] = React.useState(() =>
-    motos.filter((m) => compareMotos.includes(m.slug))
+    motos.filter((m) => m.slug && compareMotos.includes(m.slug))
   );
 
   React.useEffect(() => {
-    setSelected(motos.filter((m) => compareMotos.includes(m.slug)));
+    setSelected(motos.filter((m) => m.slug && compareMotos.includes(m.slug)));
   }, [compareMotos, motos]);
 
   return (
