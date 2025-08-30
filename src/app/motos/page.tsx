@@ -1,45 +1,59 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { getPublishedMotos } from '@/lib/public/motos';
+import { supabaseServer } from '@/lib/supabase/server';
 
+export const revalidate = 0;
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
-export default async function MotosPublicList() {
-  const rows = await getPublishedMotos();
+type MotoPub = {
+  id: string;
+  brand: string;
+  model: string;
+  year: number | null;
+  price: number | null;            // numeric
+  slug: string | null;
+  display_image: string | null;    // image URL à afficher
+};
+
+function moneyTND(n?: number | null) {
+  if (n == null) return '';
+  try {
+    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(n);
+  } catch { return `${n} TND`; }
+}
+
+export default async function MotosPage() {
+  const supabase = supabaseServer();
+  const { data: motos, error } = await supabase
+    .from('motos_public')
+    .select('id, brand, model, year, price, slug, display_image')
+    .order('brand', { ascending: true })
+    .order('model', { ascending: true });
+
+  if (error) console.error('Erreur lecture motos_public:', error);
+
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">Motos neuves</h1>
-      {!rows.length && <p>Aucune moto publiée pour le moment.</p>}
-      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {rows.map(m => (
-          <Link
-            key={m.id}
-            href={`/motos/${m.slug || m.id}`}
-            className="border rounded overflow-hidden hover:shadow"
-          >
-            <div className="aspect-[4/3] bg-black/10 relative">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Motos neuves</h1>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {(motos ?? []).map(m => (
+          <Link key={m.id} href={`/motos/${m.id}`} className="rounded-xl border p-3 hover:shadow">
+            <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-2">
               {m.display_image ? (
-                <Image
-                  src={m.display_image}
-                  alt={`${m.brand || ''} ${m.model || ''}`}
-                  fill
-                  sizes="(max-width:768px) 100vw, 33vw"
-                  className="object-cover"
-                />
+                <Image src={m.display_image} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-sm text-white/60">
-                  Pas d’image
-                </div>
+                <div className="w-full h-full grid place-items-center text-xs text-gray-500">Pas d’image</div>
               )}
             </div>
-            <div className="p-3 text-sm">
-              <div className="font-medium">{m.brand} {m.model}</div>
-              <div className="opacity-70">{m.year ?? ''} {m.price ? `• ${m.price} TND` : ''}</div>
+            <div className="text-sm font-semibold">{m.brand} {m.model}</div>
+            <div className="text-xs text-gray-600">
+              {m.year ? `${m.year} • ` : ''}{m.price ? moneyTND(Number(m.price)) : ''}
             </div>
           </Link>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
 
