@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { fetchMotoFullBySlugOrId } from '@/services/motos';
+import { fetchMotoFullBySlugOrId, type MotoFull } from '@/services/motos';
 import { publicImageUrl } from '@/lib/storage';
 
 export const revalidate = 0;
@@ -10,10 +10,10 @@ export const dynamicParams = true;
 
 type Params = { params: { id: string } };
 
-function moneyTND(n?: number | null) {
+function formatPrice(n?: number | null) {
   if (n == null) return '';
   try {
-    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat('fr-TN').format(n) + ' TND';
   } catch {
     return `${n} TND`;
   }
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function MotoPage({ params }: Params) {
-  let data: any = null;
+  let data: MotoFull | null = null;
   try {
     data = await fetchMotoFullBySlugOrId(params.id);
   } catch (error) {
@@ -54,9 +54,10 @@ export default async function MotoPage({ params }: Params) {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{data.brand} {data.model}</h1>
-        <p className="text-sm text-muted-foreground">
-          {data.year ? `Année ${data.year} · ` : ''}{data.price ? moneyTND(Number(data.price)) : ''}
-        </p>
+        {data.year && <p className="text-sm text-muted-foreground">{data.year}</p>}
+        {data.price != null && (
+          <p className="text-sm font-medium">{formatPrice(Number(data.price))}</p>
+        )}
       </div>
 
       {publicImageUrl(images[0]?.path) && (
@@ -87,21 +88,28 @@ export default async function MotoPage({ params }: Params) {
         </div>
       )}
 
-      {groups.map((g: any) => (
-        <div key={g.group} className="mb-6">
-          <h2 className="text-xl font-semibold mb-3">{g.group}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {(g.items ?? []).filter((it: any) => it.value).map((it: any, idx: number) => (
-              <div key={idx} className="rounded-lg border p-3">
-                <div className="text-sm font-medium">{it.key}</div>
-                <div className="text-sm text-muted-foreground">
-                  {it.value}{it.unit ? ` ${it.unit}` : ''}
-                </div>
-              </div>
-            ))}
+      {groups.length > 0 ? (
+        groups.map((g: any) => (
+          <div key={g.group} className="mb-6">
+            <h2 className="text-xl font-semibold mb-3">{g.group}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {(g.items ?? [])
+                .filter((it: any) => it.value)
+                .map((it: any, idx: number) => (
+                  <div key={idx} className="rounded-lg border p-3">
+                    <div className="text-sm font-medium">{it.key}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {it.value}
+                      {it.unit ? ` ${it.unit}` : ''}
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <div className="text-sm text-muted-foreground">Aucune spécification</div>
+      )}
     </div>
   );
 }
