@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchMotoCards } from '@/services/motos';
+import { fetchMotoCards, type MotoCard } from '@/services/motos';
 import { publicImageUrl } from '@/lib/storage';
-import type { MotoCard } from '@/types/supabase';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -17,16 +16,23 @@ function moneyTND(n?: number | null) {
 
 export default async function MotosPage() {
   let motos: MotoCard[] = [];
+  let errored = false;
   try {
     motos = await fetchMotoCards();
   } catch (error) {
     console.error('Erreur lecture v_moto_cards:', error);
+    errored = true;
   }
+  console.debug('[moto] rows', motos.length);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Motos neuves</h1>
+      {errored && <p className="mb-4 text-sm text-red-500">Erreur de chargement.</p>}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {motos.length === 0 && !errored && (
+          <div className="col-span-full text-center text-sm text-muted-foreground">Aucune moto trouvée</div>
+        )}
         {motos.map(m => (
           <Link key={m.id} href={`/motos/${m.id}`} className="rounded-xl border p-3 hover:shadow">
             <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-2">
