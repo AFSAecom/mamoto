@@ -1,39 +1,42 @@
-import { cookies } from "next/headers";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
-function createServerClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    throw new Error("Missing Supabase server env vars");
-  }
+export function getSupabaseServer() {
   const cookieStore = cookies();
-  const access = cookieStore.get("sb-access-token")?.value;
-  return createClient(url, serviceKey, {
-    global: { headers: access ? { Authorization: `Bearer ${access}` } : {} },
-  });
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // ignore if set from server component
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            // ignore if remove from server component
+          }
+        },
+      },
+    }
+  );
 }
 
-export async function getSession() {
-  const supabase = createServerClient();
-  const { data } = await supabase.auth.getUser();
-  return data.user;
-}
+export async function requireAdmin() {
+  const supabase = getSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false as const, redirectTo: '/login' as const };
 
-export async function isAdmin() {
-  const supabase = createServerClient();
-  const { data: allowed } = await supabase.rpc("is_admin");
-  if (allowed) return true;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data } = await supabase
-    .from("admins")
-    .select("id")
-    .eq("id", user.id)
-    .single();
-  return !!data;
-}
+  const { data: isAdmin, error } = await supabase.rpc('is_admin');
+  if (error || !isAdmin) return { ok: false as const, redirectTo: '/' as const };
 
-export { createServerClient };
+  return { ok: true as const, user, supabase };
+}
