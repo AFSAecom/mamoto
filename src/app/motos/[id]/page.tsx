@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { fetchMotoFullBySlugOrId } from '@/services/motos';
+import { fetchMotoFullBySlugOrId, type MotoFull } from '@/services/motos';
 import { publicImageUrl } from '@/lib/storage';
 
 export const revalidate = 0;
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function MotoPage({ params }: Params) {
   const identifier = params.id;
   console.debug('[detail] id/slug:', identifier);
-  let data = null;
+  let data: MotoFull | null = null;
   let errored = false;
   try {
     data = await fetchMotoFullBySlugOrId(identifier);
