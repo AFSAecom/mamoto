@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import versionsData from '@/data/versions.json';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +15,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get versions to compare
-    const versions = versionsData.filter(v => version_ids.includes(v.id));
+    const cookieStore = cookies();
+    const s = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+    );
 
-    if (versions.length < 2) {
+    // Get versions to compare
+    const { data: versions, error: versionsError } = await s
+      .from('versions')
+      .select('*')
+      .in('id', version_ids);
+    if (versionsError) throw versionsError;
+
+    if (!versions || versions.length < 2) {
       return NextResponse.json(
         { error: 'At least 2 versions required for comparison' },
         { status: 400 }
