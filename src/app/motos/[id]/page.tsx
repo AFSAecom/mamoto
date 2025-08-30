@@ -43,20 +43,21 @@ export default async function MotoPage({ params }: Params) {
     );
   }
 
-  const images = (data?.images ?? []).sort(
+  const moto = data as MotoFull;
+  const images = (moto.images ?? []).sort(
     (a: any, b: any) =>
       (Number(b.is_primary) - Number(a.is_primary)) ||
       ((a.sort_order ?? 0) - (b.sort_order ?? 0))
   );
-  const groups = data.groups ?? [];
+  const groups = moto.groups ?? [];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{data.brand} {data.model}</h1>
-        {data.year && <p className="text-sm text-muted-foreground">{data.year}</p>}
-        {data.price != null && (
-          <p className="text-sm font-medium">{formatPrice(Number(data.price))}</p>
+        <h1 className="text-3xl font-bold">{moto.brand} {moto.model}</h1>
+        {moto.year && <p className="text-sm text-muted-foreground">{moto.year}</p>}
+        {moto.price != null && (
+          <p className="text-sm font-medium">{formatPrice(Number(moto.price))}</p>
         )}
       </div>
 
@@ -64,7 +65,7 @@ export default async function MotoPage({ params }: Params) {
         <div className="relative w-full max-w-3xl aspect-video bg-gray-100 rounded-xl overflow-hidden mb-6">
           <Image
             src={publicImageUrl(images[0].path)!}
-            alt={images[0].alt ?? `${data.brand} ${data.model}`}
+            alt={images[0].alt ?? `${moto.brand} ${moto.model}`}
             fill
             className="object-contain"
           />
@@ -78,7 +79,7 @@ export default async function MotoPage({ params }: Params) {
               {publicImageUrl(img.path) && (
                 <Image
                   src={publicImageUrl(img.path)!}
-                  alt={img.alt ?? `${data.brand} ${data.model}`}
+                  alt={img.alt ?? `${moto.brand} ${moto.model}`}
                   fill
                   className="object-cover"
                 />
