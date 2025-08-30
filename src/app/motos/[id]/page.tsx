@@ -136,7 +136,6 @@ export default async function MotoPage({ params }: Params) {
 
       {mainImage && (
         <div className="relative w-full max-w-3xl aspect-video bg-gray-100 rounded-xl overflow-hidden mb-6">
-          {/* @ts-expect-error Next/Image runtime config */}
           <Image src={mainImage} alt={`${moto.brand} ${moto.model}`} fill className="object-contain" />
         </div>
       )}
@@ -145,7 +144,6 @@ export default async function MotoPage({ params }: Params) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           {images!.map(im => (
             <div key={im.id} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
-              {/* @ts-expect-error Next/Image runtime config */}
               <Image src={im.image_url ?? ''} alt={im.alt ?? `${moto.brand} ${moto.model}`} fill className="object-cover" />
             </div>
           ))}

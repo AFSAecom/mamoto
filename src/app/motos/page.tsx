@@ -41,7 +41,6 @@ export default async function MotosPage() {
           <Link key={m.id} href={`/motos/${m.id}`} className="rounded-xl border p-3 hover:shadow">
             <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-2">
               {m.display_image ? (
-                // @ts-expect-error Next/Image runtime
                 <Image src={m.display_image} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
               ) : (
                 <div className="w-full h-full grid place-items-center text-xs text-gray-500">Pas d’image</div>
