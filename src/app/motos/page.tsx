@@ -2,20 +2,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fetchMotoCards } from '@/services/motos';
 import { publicImageUrl } from '@/lib/storage';
+import type { MotoCard } from '@/types/supabase';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-
-type MotoCard = {
-  id: string;
-  brand: string;
-  model: string;
-  year: number | null;
-  price: number | null;
-  slug: string | null;
-  image_path: string | null;
-};
 
 function moneyTND(n?: number | null) {
   if (n == null) return '';
