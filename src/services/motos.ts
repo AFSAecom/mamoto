@@ -48,12 +48,10 @@ export type MotoFull = {
   groups?: MotoGroup[];
 };
 
-function isUuid(x: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
-}
+const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function resolveIdFromSlug(identifier: string): Promise<string | null> {
-  if (isUuid(identifier)) return identifier;
+  if (uuidRe.test(identifier)) return identifier;
   const { data, error } = await supabase
     .from('motos')
     .select('id')
@@ -64,38 +62,29 @@ export async function resolveIdFromSlug(identifier: string): Promise<string | nu
   return data?.id ?? null;
 }
 
-// Normalise le retour RPC (objet direct, string JSON, array[objet])
+// normalise: objet direct | string JSON | array[objet]
 function normalizeRpcResult(raw: any): MotoFull | null {
   if (!raw) return null;
   let obj = raw;
   if (typeof raw === 'string') {
     try { obj = JSON.parse(raw); } catch {}
   }
-  if (Array.isArray(obj)) {
-    obj = obj[0] ?? null;
-  }
+  if (Array.isArray(obj)) obj = obj[0] ?? null;
   return obj as MotoFull | null;
 }
 
-// Tente p_moto_id (uuid), sinon p_moto_id_text (texte)
+// tente successivement p_moto_id → p_moto_id_text → p_moto_id as string
 async function callMotoFullRpc(id: string): Promise<MotoFull | null> {
-  // 1) p_moto_id
-  let { data, error } = await supabase.rpc('fn_get_moto_full', { p_moto_id: id });
-  if (!error && data) {
-    return normalizeRpcResult(data);
-  }
-  // 2) p_moto_id_text
-  ({ data, error } = await supabase.rpc('fn_get_moto_full', { p_moto_id_text: id }));
-  if (!error && data) {
-    return normalizeRpcResult(data);
-  }
-  // 3) certains environnements renvoient null sans error → dernier essai: p_moto_id en texte
-  ({ data, error } = await supabase.rpc('fn_get_moto_full', { p_moto_id: String(id) }));
-  if (!error && data) {
-    return normalizeRpcResult(data);
-  }
-  // remonter la dernière erreur si dispo
-  if (error) throw error;
+  let r = await supabase.rpc('fn_get_moto_full', { p_moto_id: id });
+  if (!r.error && r.data) return normalizeRpcResult(r.data);
+
+  r = await supabase.rpc('fn_get_moto_full', { p_moto_id_text: id });
+  if (!r.error && r.data) return normalizeRpcResult(r.data);
+
+  r = await supabase.rpc('fn_get_moto_full', { p_moto_id: String(id) });
+  if (!r.error && r.data) return normalizeRpcResult(r.data);
+
+  if (r.error) throw r.error;
   return null;
 }
 
@@ -104,8 +93,6 @@ export async function fetchMotoFullBySlugOrId(identifier: string): Promise<MotoF
   if (!id) return null;
   const payload = await callMotoFullRpc(id);
   if (!payload) return null;
-
-  // tri images côté client
   const images = (payload.images ?? []).slice().sort(
     (a, b) =>
       (Number(b.is_primary) - Number(a.is_primary)) ||

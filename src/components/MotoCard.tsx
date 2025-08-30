@@ -1,20 +1,35 @@
-import Image from "next/image";
-import Link from "next/link";
-import type { MotoCard as Moto } from "@/lib/public/motos";
-import { publicImageUrl } from "@/lib/storage";
+import Image from 'next/image';
+import Link from 'next/link';
+import { publicImageUrl } from '@/lib/storage';
+
+type Moto = {
+  id: string;
+  brand: string | null;
+  model: string | null;
+  year: number | null;
+  price: number | null;
+  slug: string | null;
+  image_path?: string | null;
+  display_image?: string | null;
+};
 
 interface MotoCardProps {
   moto: Moto;
 }
 
 function formatPrice(price?: number | null) {
-  if (price == null) return "";
-  return new Intl.NumberFormat("fr-TN").format(price) + " TND";
+  if (price == null) return '';
+  return new Intl.NumberFormat('fr-TN').format(price) + ' TND';
 }
 
 export default function MotoCard({ moto }: MotoCardProps) {
-  const src = publicImageUrl(moto.display_image ?? undefined) || "/images/placeholder.jpg";
-  const title = [moto.brand, moto.model, moto.year ?? ""].filter(Boolean).join(" ").trim();
+  const src =
+    publicImageUrl(moto.image_path ?? moto.display_image ?? undefined) ||
+    '/images/placeholder.jpg';
+  const title = [moto.brand, moto.model, moto.year ?? '']
+    .filter(Boolean)
+    .join(' ')
+    .trim();
 
   return (
     <div className="rounded-xl border overflow-hidden hover:shadow">
@@ -22,7 +37,7 @@ export default function MotoCard({ moto }: MotoCardProps) {
         <div className="aspect-[16/9] bg-gray-100 relative">
           <Image
             src={src}
-            alt={title || ""}
+            alt={title || ''}
             fill
             className="object-cover"
           />
