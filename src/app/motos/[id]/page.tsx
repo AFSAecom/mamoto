@@ -47,10 +47,12 @@ export default async function MotoPage({ params }: Params) {
     );
   }
 
+  const { brand, model } = data;
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <header className="mb-4">
-        <h1 className="text-3xl font-bold">{data.brand} {data.model}</h1>
+        <h1 className="text-3xl font-bold">{brand} {model}</h1>
         <div className="text-sm text-muted-foreground">
           {data.year ?? ''} {data.price != null ? ` • ${fmt(data.price)} TND` : ''}
         </div>
@@ -65,7 +67,7 @@ export default async function MotoPage({ params }: Params) {
               <img
                 key={i}
                 src={src}
-                alt={img.alt ?? `${data.brand} ${data.model}`}
+                alt={img.alt ?? `${brand} ${model}`}
                 className="h-48 w-auto object-cover rounded"
               />
             );
