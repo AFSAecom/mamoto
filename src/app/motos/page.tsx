@@ -1,20 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabaseServer } from '@/lib/supabase/server';
+import { fetchMotoCards } from '@/services/motos';
+import { publicImageUrl } from '@/lib/storage';
+import type { MotoCard } from '@/types/supabase';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-
-type MotoPub = {
-  id: string;
-  brand: string;
-  model: string;
-  year: number | null;
-  price: number | null;            // numeric
-  slug: string | null;
-  display_image: string | null;    // image URL à afficher
-};
 
 function moneyTND(n?: number | null) {
   if (n == null) return '';
@@ -24,24 +16,22 @@ function moneyTND(n?: number | null) {
 }
 
 export default async function MotosPage() {
-  const supabase = supabaseServer();
-  const { data: motos, error } = await supabase
-    .from('motos_public')
-    .select('id, brand, model, year, price, slug, display_image')
-    .order('brand', { ascending: true })
-    .order('model', { ascending: true });
-
-  if (error) console.error('Erreur lecture motos_public:', error);
+  let motos: MotoCard[] = [];
+  try {
+    motos = await fetchMotoCards();
+  } catch (error) {
+    console.error('Erreur lecture v_moto_cards:', error);
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Motos neuves</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {(motos ?? []).map(m => (
+        {motos.map(m => (
           <Link key={m.id} href={`/motos/${m.id}`} className="rounded-xl border p-3 hover:shadow">
             <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-2">
-              {m.display_image ? (
-                <Image src={m.display_image} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
+              {publicImageUrl(m.image_path) ? (
+                <Image src={publicImageUrl(m.image_path)!} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
               ) : (
                 <div className="w-full h-full grid place-items-center text-xs text-gray-500">Pas d’image</div>
               )}
