@@ -97,10 +97,23 @@ export async function getMotoFullByIdentifier(identifier: string) {
     .order('sort_order', { ascending: true })
     .order('key_name', { ascending: true });
 
-  // Filtrer toute ligne vide (évite champs doublons "vides")
-  const specs = (specsRaw ?? []).filter(
-    sp => (sp.value_text ?? '').trim().length > 0,
-  );
+  // Nettoyer et dédoublonner les caractéristiques
+  const seen = new Set<string>();
+  const specs = (specsRaw ?? [])
+    .map(sp => ({
+      ...sp,
+      category: sp.category?.trim() || null,
+      subcategory: sp.subcategory?.trim() || null,
+      key_name: sp.key_name.trim(),
+      value_text: (sp.value_text ?? '').trim(),
+    }))
+    .filter(sp => {
+      if (!sp.value_text) return false;
+      const key = `${sp.category || ''}|${sp.subcategory || ''}|${sp.key_name}|${sp.value_text}|${sp.unit || ''}`.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   const motoSanitized = {
     ...moto,
