@@ -1,174 +1,180 @@
+/*** 
+PROMPT CODEX — ÉTAPE 1 (Affichage colonne de gauche : Catégories + Sous-catégories)
+
+Objectif :
+- Créer/ÉCRASER le fichier : app/comparateur/page.tsx (Next.js App Router, TypeScript, Client Component).
+- À l’ouverture de la page, afficher à GAUCHE toute la liste des caractéristiques : 
+  => Catégorie (table: spec_groups) puis, en dessous, ses sous-caractéristiques (table: spec_items).
+- Ordre d’affichage : par `spec_groups.sort_order NULLS LAST, name` puis `spec_items.sort_order NULLS LAST, label`.
+
+Données dans Supabase (adapter uniquement si votre schéma diffère) :
+- Table `spec_groups` : colonnes -> id, name, sort_order
+- Table `spec_items`  : colonnes -> id, group_id, key, label, unit, sort_order
+
+Requis :
+- Variables d’env : NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY
+- Utilise @supabase/supabase-js côté client
+- La droite de la page reste un simple placeholder “(valeurs à venir)”
+
+Collez TOUT ce bloc tel quel.
+***/
+
 'use client';
 
-// Comparateur page using `motos` table instead of non-existing `public.models`
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-type Brand = { id: string; name: string };
-type Moto = {
-  id: string;
-  brand_id: string;
-  model_name: string;
-  year: number | null;
-  price_tnd: string | number | null;
+// ----------------------- CONFIG DES NOMS DE COLONNES (adaptez ici si besoin) -----------------------
+const DB_COLS = {
+  groups: { table: 'spec_groups', id: 'id', name: 'name', sort: 'sort_order' },
+  items:  { table: 'spec_items',  id: 'id', groupId: 'group_id', key: 'key', label: 'label', unit: 'unit', sort: 'sort_order' },
+};
+// ---------------------------------------------------------------------------------------------------
+
+type UUID = string;
+
+type Group = {
+  id: UUID;
+  name: string;
+  sort_order: number | null;
 };
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-);
+type Item = {
+  id: UUID;
+  group_id: UUID;
+  key: string | null;
+  label: string;
+  unit: string | null;
+  sort_order: number | null;
+};
 
-export default function ComparatorPage() {
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [models, setModels] = useState<string[]>([]); // valeurs de model_name
-  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
-  const [selectedModelName, setSelectedModelName] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  const [items, setItems] = useState<Moto[]>([]);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = (supabaseUrl && supabaseAnon) ? createClient(supabaseUrl, supabaseAnon) : null;
 
-  // Charger les marques
+export default function ComparatorLeftOnly() {
+  const [loading, setLoading] = useState(true);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [itemsByGroup, setItemsByGroup] = useState<Record<UUID, Item[]>>({});
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Vérification env
   useEffect(() => {
-    (async () => {
-      setError('');
-      const { data, error } = await supabase
-        .from('brands')
-        .select('id,name')
-        .order('name', { ascending: true });
-      if (error) return setError(error.message);
-      setBrands(data ?? []);
-    })();
+    if (!supabase) {
+      setErrorMsg('Variables d’environnement manquantes : NEXT_PUBLIC_SUPABASE_URL et/ou NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+      setLoading(false);
+    }
   }, []);
 
-  // Charger les modèles (depuis `motos`, distinct par brand_id)
+  // Chargement catégories + sous-catégories
   useEffect(() => {
-    if (!selectedBrandId) {
-      setModels([]);
-      setSelectedModelName('');
-      return;
-    }
+    if (!supabase) return;
+    let mounted = true;
+
     (async () => {
-      setError('');
-      const { data, error } = await supabase
-        .from('motos')
-        .select('model_name')
-        .eq('brand_id', selectedBrandId)
-        .not('model_name', 'is', null)
-        .order('model_name', { ascending: true });
+      try {
+        setLoading(true);
+        setErrorMsg(null);
 
-      if (error) return setError(error.message);
+        // 1) Catégories (spec_groups)
+        const { data: gData, error: gErr } = await supabase
+          .from(DB_COLS.groups.table)
+          .select(`${DB_COLS.groups.id} as id, ${DB_COLS.groups.name} as name, ${DB_COLS.groups.sort} as sort_order`)
+          .order(DB_COLS.groups.sort, { ascending: true, nullsFirst: false })
+          .order(DB_COLS.groups.name, { ascending: true });
+        if (gErr) throw gErr;
 
-      // dédoublonner côté client
-      const unique = Array.from(
-        new Set((data ?? []).map((r: any) => String(r.model_name)))
-      );
-      setModels(unique);
-      setSelectedModelName('');
+        // 2) Sous-caractéristiques (spec_items)
+        const { data: iData, error: iErr } = await supabase
+          .from(DB_COLS.items.table)
+          .select([
+            `${DB_COLS.items.id} as id`,
+            `${DB_COLS.items.groupId} as group_id`,
+            `${DB_COLS.items.key} as key`,
+            `${DB_COLS.items.label} as label`,
+            `${DB_COLS.items.unit} as unit`,
+            `${DB_COLS.items.sort} as sort_order`,
+          ].join(','))
+          .order(DB_COLS.items.sort, { ascending: true, nullsFirst: false })
+          .order(DB_COLS.items.label, { ascending: true });
+        if (iErr) throw iErr;
+
+        if (!mounted) return;
+
+        const groupsArr = (gData ?? []) as Group[];
+        const itemsArr = (iData ?? []) as Item[];
+
+        // Regrouper les items par group_id
+        const byGroup: Record<UUID, Item[]> = {};
+        for (const it of itemsArr) {
+          if (!byGroup[it.group_id]) byGroup[it.group_id] = [];
+          byGroup[it.group_id].push(it);
+        }
+
+        setGroups(groupsArr);
+        setItemsByGroup(byGroup);
+      } catch (e: any) {
+        console.error('Erreur chargement', e);
+        setErrorMsg(e?.message ?? 'Erreur inconnue lors du chargement des caractéristiques.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
     })();
-  }, [selectedBrandId]);
 
-  // Ajouter la moto choisie
-  const onCompare = async () => {
-    setError('');
-    if (!selectedBrandId || !selectedModelName) {
-      setError("Choisis d'abord une marque et un modèle.");
-      return;
-    }
+    return () => { mounted = false; };
+  }, []);
 
-    const { data, error } = await supabase
-      .from('motos')
-      .select('id,brand_id,model_name,year,price_tnd')
-      .eq('brand_id', selectedBrandId)
-      .eq('model_name', selectedModelName)
-      .limit(1)
-      .maybeSingle();
-
-    if (error) return setError(error.message);
-    if (!data) return setError("Aucune moto trouvée pour cette marque et ce modèle.");
-
-    setItems((prev) => (prev.some((x) => x.id === data.id) ? prev : [...prev, data]));
-  };
-
-  const reset = () => {
-    setSelectedBrandId('');
-    setSelectedModelName('');
-    setModels([]);
-    setError('');
-    setItems([]);
-  };
-
-  const ready = useMemo(
-    () => !!selectedBrandId && !!selectedModelName,
-    [selectedBrandId, selectedModelName]
-  );
+  // Liste ordonnée Catégorie -> Items
+  const blocks = useMemo(() => {
+    return groups.map(g => ({
+      group: g,
+      items: (itemsByGroup[g.id] ?? []),
+    }));
+  }, [groups, itemsByGroup]);
 
   return (
-    <div className="mx-auto max-w-4xl p-4">
-      <h1 className="text-2xl font-semibold mb-6">Comparateur de motos</h1>
+    <div className="min-h-screen w-full grid grid-cols-[360px_minmax(0,1fr)]">
+      {/* Colonne GAUCHE : Catégories + Sous-catégories */}
+      <aside className="border-r bg-white sticky top-0 self-start h-screen overflow-y-auto px-4 py-4">
+        <h1 className="text-lg font-semibold mb-3">Caractéristiques techniques</h1>
 
-      <div className="grid md:grid-cols-3 gap-3 items-end">
-        {/* Marque */}
-        <div>
-          <label className="block text-sm mb-1">Marque</label>
-          <select
-            className="w-full rounded-md border px-3 py-2 bg-white text-black"
-            value={selectedBrandId}
-            onChange={(e) => setSelectedBrandId(e.target.value)}
-          >
-            <option value="">Sélectionner…</option>
-            {brands.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
+        {loading ? (
+          <div className="text-sm text-gray-500">Chargement…</div>
+        ) : errorMsg ? (
+          <div className="text-sm text-red-600">{errorMsg}</div>
+        ) : blocks.length === 0 ? (
+          <div className="text-sm text-gray-500">Aucune caractéristique définie.</div>
+        ) : (
+          <div className="space-y-4">
+            {blocks.map(block => (
+              <section key={block.group.id} className="rounded-lg border">
+                <div className="px-3 py-2 bg-gray-50 border-b font-medium">
+                  {block.group.name}
+                </div>
+                <ul className="divide-y">
+                  {block.items.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-gray-500">— Aucune sous-caractéristique —</li>
+                  ) : block.items.map(it => (
+                    <li key={it.id} className="px-3 py-2">
+                      <div className="text-sm font-normal" title={it.label}>{it.label}</div>
+                      {it.unit ? (
+                        <div className="text-[11px] text-gray-500">{it.unit}</div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </select>
-        </div>
-
-        {/* Modèle (depuis motos.model_name) */}
-        <div>
-          <label className="block text-sm mb-1">Modèle</label>
-          <select
-            className="w-full rounded-md border px-3 py-2 bg-white text-black"
-            value={selectedModelName}
-            onChange={(e) => setSelectedModelName(e.target.value)}
-            disabled={!selectedBrandId}
-          >
-            <option value="">
-              {selectedBrandId ? 'Sélectionner…' : 'Choisis une marque d’abord'}
-            </option>
-            {models.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={onCompare}
-            disabled={!ready}
-            className="rounded-md px-4 py-2 bg-emerald-600 text-white disabled:opacity-50"
-          >
-            Comparer
-          </button>
-          <button
-            onClick={reset}
-            className="rounded-md px-4 py-2 bg-gray-700 text-white"
-          >
-            Réinitialiser
-          </button>
-        </div>
-      </div>
-
-      {error && <p className="text-red-500 mt-3">{error}</p>}
-
-      {/* Résultats */}
-      <div className="mt-6 grid md:grid-cols-2 gap-4">
-        {items.map((m) => (
-          <div key={m.id} className="rounded-xl border p-4 bg-white text-black">
-            <div className="font-medium">{m.model_name}</div>
-            <div className="text-sm opacity-80">Année: {m.year ?? '—'}</div>
-            <div className="text-sm opacity-80">Prix: {m.price_tnd ?? '—'} TND</div>
           </div>
-        ))}
-      </div>
+        )}
+      </aside>
+
+      {/* Colonne DROITE : Placeholder (valeurs à venir) */}
+      <main className="px-6 py-6">
+        <div className="text-sm text-gray-500">
+          Zone comparateur (valeurs des motos) — <span className="italic">à venir à l’étape suivante</span>.
+        </div>
+      </main>
     </div>
   );
 }
