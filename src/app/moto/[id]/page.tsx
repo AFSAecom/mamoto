@@ -4,38 +4,42 @@ import { getMotoFull } from '@/lib/getMotoFull';
 export default async function MotoPage({ params }: { params: { id: string } }) {
   const fiche = await getMotoFull(params.id);
 
-  if (!fiche?.moto) {
+  const moto = fiche?.moto;
+  if (!moto) {
     return <div className="p-6">Moto introuvable.</div>;
   }
+
+  const images = fiche.images ?? [];
+  const specs = fiche.specs ?? [];
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <header className="flex items-center gap-4">
-        {fiche.moto.display_image ? (
+        {moto.display_image ? (
           <Image
-            src={fiche.moto.display_image}
-            alt={`${fiche.moto.brand} ${fiche.moto.model}`}
+            src={moto.display_image}
+            alt={`${moto.brand} ${moto.model}`}
             width={220}
             height={140}
           />
         ) : null}
         <div>
           <h1 className="text-2xl font-semibold">
-            {fiche.moto.brand} {fiche.moto.model} {fiche.moto.year}
+            {moto.brand} {moto.model} {moto.year}
           </h1>
-          {typeof fiche.moto.price === 'number' ? (
-            <p className="opacity-70">{fiche.moto.price} TND</p>
+          {typeof moto.price === 'number' ? (
+            <p className="opacity-70">{moto.price} TND</p>
           ) : null}
         </div>
       </header>
 
-      {fiche.images?.length ? (
+      {images.length ? (
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {fiche.images.map((img) => (
+          {images.map((img) => (
             <Image
               key={img.id}
               src={img.url}
-              alt={img.alt ?? `${fiche.moto.brand} ${fiche.moto.model}`}
+              alt={img.alt ?? `${moto.brand} ${moto.model}`}
               width={400}
               height={300}
               className="w-full h-auto object-cover rounded"
@@ -45,7 +49,7 @@ export default async function MotoPage({ params }: { params: { id: string } }) {
       ) : null}
 
       <section className="space-y-6">
-        {fiche.specs?.map((grp) => (
+        {specs.map((grp) => (
           <div key={grp.group} className="rounded-2xl border p-4">
             <h2 className="text-lg font-medium mb-3">{grp.group}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
