@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 interface SpecGroup {
   id: string;
@@ -52,7 +52,7 @@ export default function ComparatorPage() {
   const [loadingValues, setLoadingValues] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
+  const supabaseRef = useRef<SupabaseClient | null>(null);
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
