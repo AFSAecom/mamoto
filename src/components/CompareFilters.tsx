@@ -64,7 +64,9 @@ export default function CompareFilters(props: {
         if (error || !data?.length) {
           const { data: rows, error: err } = await supabase
             .from("motos")
-            .select("model_name", { distinct: true })
+            // Cast options to any to accommodate "distinct", which is supported
+            // by Supabase but missing from the current type definitions.
+            .select("model_name", { distinct: true } as any)
             .eq("brand_id", brandId)
             .order("model_name", { ascending: true });
           if (err) throw err;
