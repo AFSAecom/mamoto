@@ -13,10 +13,10 @@ export default function CompareFilters(props: {
   const [brands, setBrands] = React.useState<Option[]>([]);
   const [models, setModels] = React.useState<Option[]>([]);
   const [brandId, setBrandId] = React.useState<string | null>(
-    props.defaultBrandId ?? null
+    props.defaultBrandId ?? null,
   );
   const [model, setModel] = React.useState<string | null>(
-    props.defaultModel ?? null
+    props.defaultModel ?? null,
   );
   const [loadingBrands, setLoadingBrands] = React.useState(false);
   const [loadingModels, setLoadingModels] = React.useState(false);
@@ -33,7 +33,7 @@ export default function CompareFilters(props: {
           .order("name", { ascending: true });
         if (error) throw error;
         setBrands(
-          (data ?? []).map((b: any) => ({ value: b.id, label: b.name }))
+          (data ?? []).map((b: any) => ({ value: b.id, label: b.name })),
         );
       } catch (e: any) {
         console.error(e);
@@ -61,20 +61,22 @@ export default function CompareFilters(props: {
           .eq("brand_id", brandId)
           .order("name", { ascending: true });
 
-        if (error || !(data?.length)) {
+        if (error || !data?.length) {
           const { data: rows, error: err } = await supabase
             .from("motos")
-            .select("model")
+            .select("model_name", { distinct: true })
             .eq("brand_id", brandId)
-            .order("model", { ascending: true });
+            .order("model_name", { ascending: true });
           if (err) throw err;
-          const uniq = Array.from(
-            new Set((rows ?? []).map((r: any) => r.model).filter(Boolean))
+          setModels(
+            (rows ?? []).map((m: any) => ({
+              value: m.model_name,
+              label: m.model_name,
+            })),
           );
-          setModels(uniq.map((m: string) => ({ value: m, label: m })));
         } else {
           setModels(
-            (data ?? []).map((m: any) => ({ value: m.name, label: m.name }))
+            (data ?? []).map((m: any) => ({ value: m.name, label: m.name })),
           );
         }
         setModel(null);
@@ -129,8 +131,8 @@ export default function CompareFilters(props: {
             {!brandId
               ? "Choisir d’abord une marque"
               : loadingModels
-              ? "Chargement…"
-              : "Choisir un modèle"}
+                ? "Chargement…"
+                : "Choisir un modèle"}
           </option>
           {models.map((m) => (
             <option key={m.value} value={m.value}>

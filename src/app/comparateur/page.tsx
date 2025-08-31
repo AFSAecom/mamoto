@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import Image from 'next/image';
-import CompareFilters from '@/components/CompareFilters';
-import { supabase } from '@/lib/supabaseClient';
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import CompareFilters from "@/components/CompareFilters";
+import { supabase } from "@/lib/supabaseClient";
 
 type MotoRow = {
   id: string;
@@ -42,11 +42,13 @@ export default function ComparateurPage() {
     if (!brandId || !model) return;
     try {
       const { data, error } = await supabase
-        .from('motos')
-        .select('id, brand, model, year, price_tnd, display_image, primary_image_path')
-        .eq('brand_id', brandId)
-        .eq('model', model)
-        .order('year', { ascending: false })
+        .from("motos")
+        .select(
+          "id, brand, model_name, year, price_tnd, display_image, primary_image_path",
+        )
+        .eq("brand_id", brandId)
+        .eq("model_name", model)
+        .order("year", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -54,10 +56,13 @@ export default function ComparateurPage() {
       const moto: MotoRow = {
         id: data.id,
         brand: (data as any).brand ?? null,
-        model: (data as any).model ?? null,
+        model: (data as any).model_name ?? null,
         year: (data as any).year ?? null,
         price: (data as any).price_tnd ?? null,
-        image: (data as any).display_image ?? (data as any).primary_image_path ?? null,
+        image:
+          (data as any).display_image ??
+          (data as any).primary_image_path ??
+          null,
       };
       if (selected.some((s) => s.id === moto.id)) return;
       setSelected((prev) => [...prev, moto]);
@@ -77,21 +82,21 @@ export default function ComparateurPage() {
     setError(null);
     setTable(null);
     if (selected.length < 2) {
-      setError('Choisis au moins 2 motos à comparer.');
+      setError("Choisis au moins 2 motos à comparer.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/moto-comparator', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const res = await fetch("/api/moto-comparator", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ ids: selected.map((s) => s.id) }),
       });
       const json = await res.json();
-      if (!res.ok || !json?.ok) throw new Error(json?.error ?? 'Erreur API');
+      if (!res.ok || !json?.ok) throw new Error(json?.error ?? "Erreur API");
       setTable(json.payload as ComparatorPayload);
     } catch (e: any) {
-      setError(e?.message ?? 'Erreur inattendue');
+      setError(e?.message ?? "Erreur inattendue");
     } finally {
       setLoading(false);
     }
@@ -117,11 +122,14 @@ export default function ComparateurPage() {
             disabled={loading || selected.length < 2}
             className="rounded-xl px-4 py-2 bg-black text-white disabled:opacity-50"
           >
-            {loading ? 'Chargement…' : 'Comparer'}
+            {loading ? "Chargement…" : "Comparer"}
           </button>
           <button
             type="button"
-            onClick={() => { setSelected([]); setTable(null); }}
+            onClick={() => {
+              setSelected([]);
+              setTable(null);
+            }}
             className="rounded-xl px-4 py-2 border"
           >
             Réinitialiser
@@ -131,17 +139,31 @@ export default function ComparateurPage() {
 
       <div className="flex flex-wrap gap-3">
         {selected.map((m) => (
-          <div key={m.id} className="flex items-center gap-3 border rounded-2xl p-3 shadow-sm">
+          <div
+            key={m.id}
+            className="flex items-center gap-3 border rounded-2xl p-3 shadow-sm"
+          >
             <div className="relative h-14 w-20 overflow-hidden rounded-lg bg-gray-50">
               {m.image ? (
-                <Image src={m.image} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
+                <Image
+                  src={m.image}
+                  alt={`${m.brand} ${m.model}`}
+                  fill
+                  className="object-cover"
+                />
               ) : (
-                <div className="h-full w-full grid place-items-center text-xs text-gray-400">No image</div>
+                <div className="h-full w-full grid place-items-center text-xs text-gray-400">
+                  No image
+                </div>
               )}
             </div>
             <div className="text-sm">
-              <div className="font-medium">{m.brand} {m.model}</div>
-              <div className="text-gray-500">{m.year ?? ''} {m.price ? `• ${m.price} TND` : ''}</div>
+              <div className="font-medium">
+                {m.brand} {m.model}
+              </div>
+              <div className="text-gray-500">
+                {m.year ?? ""} {m.price ? `• ${m.price} TND` : ""}
+              </div>
             </div>
             <button
               type="button"
@@ -168,12 +190,19 @@ export default function ComparateurPage() {
                     <div className="flex items-center gap-2">
                       <div className="relative h-10 w-14 overflow-hidden rounded-md bg-gray-50">
                         {m.image ? (
-                          <Image src={m.image} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
+                          <Image
+                            src={m.image}
+                            alt={`${m.brand} ${m.model}`}
+                            fill
+                            className="object-cover"
+                          />
                         ) : null}
                       </div>
                       <div>
-                        <div className="font-medium">{m.brand} {m.model}</div>
-                        <div className="text-gray-500">{m.year ?? ''}</div>
+                        <div className="font-medium">
+                          {m.brand} {m.model}
+                        </div>
+                        <div className="text-gray-500">{m.year ?? ""}</div>
                       </div>
                     </div>
                   </th>
@@ -192,20 +221,32 @@ export default function ComparateurPage() {
   );
 }
 
-function GroupBlock({ group, motos }: { group: ComparatorPayload['specs'][number]; motos: MotoRow[] }) {
+function GroupBlock({
+  group,
+  motos,
+}: {
+  group: ComparatorPayload["specs"][number];
+  motos: MotoRow[];
+}) {
   return (
     <>
       <tr className="bg-blue-50/60">
-        <td className="p-3 font-semibold" colSpan={1 + motos.length}>{group.group}</td>
+        <td className="p-3 font-semibold" colSpan={1 + motos.length}>
+          {group.group}
+        </td>
       </tr>
       {group.items.map((it) => (
         <tr key={it.item_id} className="border-t">
           <td className="p-3">
             <div className="font-medium">{it.label}</div>
-            {it.unit ? <div className="text-xs text-gray-500">{it.unit}</div> : null}
+            {it.unit ? (
+              <div className="text-xs text-gray-500">{it.unit}</div>
+            ) : null}
           </td>
           {motos.map((m) => (
-            <td key={m.id} className="p-3 align-top">{it.values?.[m.id] ?? '—'}</td>
+            <td key={m.id} className="p-3 align-top">
+              {it.values?.[m.id] ?? "—"}
+            </td>
           ))}
         </tr>
       ))}
