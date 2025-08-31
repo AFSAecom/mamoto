@@ -58,8 +58,13 @@ export default function MotoSpecsPage() {
         router.replace("/login");
         return;
       }
-      const { data: allowed } = await supabase.rpc("is_admin");
-      if (!allowed) {
+      const { data: adminRow, error: adminErr } = await supabase
+        .from('admins')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      if (adminErr || !adminRow) {
         setError("Accès refusé (non-admin)");
         return;
       }

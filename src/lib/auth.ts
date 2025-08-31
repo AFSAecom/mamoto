@@ -6,7 +6,18 @@ export async function getCurrentUser() {
 }
 
 export async function isAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_admin');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data, error } = await supabase
+    .from('admins')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .limit(1)
+    .maybeSingle();
+
   if (error) return false;
   return !!data;
 }
