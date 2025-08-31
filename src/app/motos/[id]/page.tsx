@@ -1,104 +1,86 @@
-import type { Metadata } from 'next';
-import { fetchMotoFullBySlugOrId, type MotoFull } from '@/services/motos';
-import { publicImageUrl } from '@/lib/storage';
+import Image from 'next/image'
+import { fetchMotoFull, formatTND } from '@/lib/db/motos'
+import { publicImageUrlFromPath } from '@/lib/storage'
 
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const dynamicParams = true;
-
-type Params = { params: { id: string } };
-
-function fmt(n?: number | null) {
-  if (n == null) return '';
-  try {
-    return new Intl.NumberFormat('fr-TN').format(n);
-  } catch {
-    return String(n);
-  }
-}
-
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const data = await fetchMotoFullBySlugOrId(params.id).catch(() => null);
-  const title = data ? `${data.brand} ${data.model} | moto.tn` : 'Fiche moto | moto.tn';
-  return { title };
-}
-
-export default async function MotoPage({ params }: Params) {
-  const identifier = params.id;
-  console.debug('[detail] id/slug:', identifier);
-  let data: MotoFull | null = null;
-  let errored = false;
-  try {
-    data = await fetchMotoFullBySlugOrId(identifier);
-  } catch (error) {
-    console.error('Erreur fn_get_moto_full:', error);
-    errored = true;
-  }
-  console.debug('[detail] has data:', !!data);
-
-  if (!data) {
+export default async function MotoDetailPage({ params }: { params: { id: string } }) {
+  const moto = await fetchMotoFull(params.id)
+  if (!moto) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <div className="text-sm text-muted-foreground">
-          {errored ? 'Erreur de chargement' : 'Fiche indisponible'}
-        </div>
-      </div>
-    );
+      <main className="max-w-5xl mx-auto p-6">
+        <h1 className="text-xl font-semibold">Moto introuvable</h1>
+        <p className="text-sm text-gray-500 mt-2">Vérifie l’URL ou la disponibilité.</p>
+      </main>
+    )
   }
 
-  const { brand, model } = data;
+  const title = `${moto.brand ?? ''} ${moto.model ?? ''} ${moto.year ?? ''}`.trim()
+
+  // Tri des images (principale d’abord)
+  const images = Array.isArray(moto.images)
+    ? [...moto.images].sort(
+        (a: any, b: any) =>
+          (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      )
+    : []
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <header className="mb-4">
-        <h1 className="text-3xl font-bold">{brand} {model}</h1>
-        <div className="text-sm text-muted-foreground">
-          {data.year ?? ''} {data.price != null ? ` • ${fmt(data.price)} TND` : ''}
-        </div>
+    <main className="max-w-6xl mx-auto p-6 space-y-8">
+      {/* Header */}
+      <header className="space-y-2">
+        <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
+        <p className="text-lg text-gray-700">{formatTND(moto.price_tnd)}</p>
       </header>
 
-      {data.images?.length ? (
-        <div className="flex gap-2 overflow-x-auto mb-6">
-          {data.images.map((img, i) => {
-            const src = publicImageUrl(img.path);
-            if (!src) return null;
+      {/* Galerie */}
+      {images.length > 0 && (
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {images.map((img: any, idx: number) => {
+            const src = publicImageUrlFromPath(img.path)
             return (
-              <img
-                key={i}
-                src={src}
-                alt={img.alt ?? `${brand} ${model}`}
-                className="h-48 w-auto object-cover rounded"
-              />
-            );
+              <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border">
+                {src ? (
+                  <Image
+                    src={src}
+                    alt={img.alt ?? title}
+                    fill
+                    className="object-contain bg-white"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  />
+                ) : (
+                  <div className="w-full h-full grid place-items-center text-gray-400">Image indisponible</div>
+                )}
+              </div>
+            )
           })}
-        </div>
-      ) : null}
+        </section>
+      )}
 
-      <section className="mt-6">
-        {data.groups?.length ? (
-          data.groups.map((g, gi) => (
-            <div key={gi} className="mb-6">
-              <h3 className="text-xl font-semibold mb-3">{g.group}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {g.items
-                  ?.filter(it => it && it.value)
-                  .map((it, ii) => (
-                    <div key={ii} className="rounded-lg border p-3">
-                      <div className="text-sm font-medium">{it.key}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {it.value}{it.unit ? ` ${it.unit}` : ''}
+      {/* Spécifications par groupes */}
+      <section className="space-y-8">
+        {Array.isArray(moto.specs) &&
+          moto.specs.map((group: any, gi: number) => (
+            <div key={gi} className="bg-white rounded-2xl shadow p-5">
+              <h2 className="text-xl font-semibold mb-4">{group.group}</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {Array.isArray(group.items) &&
+                  group.items.map((it: any, ii: number) => {
+                    const value =
+                      it.value_text ??
+                      (it.value_number != null ? `${it.value_number}${it.unit ? ' ' + it.unit : ''}` : null) ??
+                      (typeof it.value_boolean === 'boolean' ? (it.value_boolean ? 'Oui' : 'Non') : null)
+
+                    if (value == null) return null
+                    return (
+                      <div key={ii} className="flex justify-between gap-3 border-b py-2">
+                        <span className="text-gray-600">{it.label}</span>
+                        <span className="font-medium">{value}</span>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-sm text-muted-foreground">Aucune spécification</div>
-        )}
+          ))}
       </section>
-    </div>
-  );
+    </main>
+  )
 }
-

@@ -1,57 +1,53 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { fetchMotoCards, type MotoCard } from '@/services/motos';
-import { publicImageUrl } from '@/lib/storage';
-
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-
-function formatPrice(n?: number | null) {
-  if (n == null) return '';
-  try {
-    return new Intl.NumberFormat('fr-TN').format(n) + ' TND';
-  } catch {
-    return `${n} TND`;
-  }
-}
+import Image from 'next/image'
+import Link from 'next/link'
+import { fetchMotoCards, formatTND } from '@/lib/db/motos'
+import { publicImageUrlFromPath } from '@/lib/storage'
 
 export default async function MotosPage() {
-  let motos: MotoCard[] = [];
-  let errored = false;
-  try {
-    motos = await fetchMotoCards();
-  } catch (error) {
-    console.error('Erreur lecture v_moto_cards:', error);
-    errored = true;
-  }
-  console.debug('[moto] rows', motos.length);
+  const cards = await fetchMotoCards(24)
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Motos neuves</h1>
-      {errored && <p className="mb-4 text-sm text-red-500">Erreur de chargement.</p>}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {motos.length === 0 && !errored && (
-          <div className="col-span-full text-center text-sm text-muted-foreground">Aucune moto trouvée</div>
-        )}
-        {motos.map(m => (
-          <Link key={m.id} href={`/motos/${m.slug ?? m.id}`} className="rounded-xl border p-3 hover:shadow">
-            <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-2">
-              {publicImageUrl(m.image_path) ? (
-                <Image src={publicImageUrl(m.image_path)!} alt={`${m.brand} ${m.model}`} fill className="object-cover" />
-              ) : (
-                <div className="w-full h-full grid place-items-center text-xs text-gray-500">Pas d’image</div>
-              )}
-            </div>
-            <div className="text-sm font-semibold">{m.brand} {m.model} {m.year ?? ''}</div>
-            {m.price != null && (
-              <div className="text-xs text-gray-600">{formatPrice(m.price)}</div>
-            )}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
+    <main className="max-w-6xl mx-auto p-6">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Motos neuves</h1>
 
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {cards.map((c) => {
+          const src = publicImageUrlFromPath(c.primary_image_path)
+          const title = `${c.brand ?? ''} ${c.model ?? ''}`.trim()
+          return (
+            <Link
+              key={c.id}
+              href={`/motos/${c.id}`}
+              className="group bg-white rounded-2xl shadow hover:shadow-md transition p-4 flex flex-col"
+            >
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-white border">
+                {src ? (
+                  <Image
+                    src={src}
+                    alt={title || 'Moto'}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  />
+                ) : (
+                  <div className="w-full h-full grid place-items-center text-gray-400">
+                    Image indisponible
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3">
+                <div className="text-sm text-gray-500">{c.brand}</div>
+                <div className="font-semibold">{c.model}</div>
+                <div className="text-sm text-gray-600">{c.year}</div>
+                <div className="text-amber-700 font-medium mt-1">
+                  {formatTND(c.price_tnd)}
+                </div>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </main>
+  )
+}
