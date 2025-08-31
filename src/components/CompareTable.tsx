@@ -17,7 +17,7 @@ export default function CompareTable({ motos }: CompareTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
-        <thead>
+        <thead className="sticky top-0 bg-background z-10">
           <tr>
             <th className="p-2 text-left">Spécifications</th>
             {motos.map((m) => (
