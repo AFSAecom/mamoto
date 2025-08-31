@@ -1,16 +1,13 @@
-// RPC-based comparator endpoint for motos
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   try {
-    const { ids = [] } = (await req.json().catch(() => ({ ids: [] }))) as {
-      ids?: string[];
-    };
+    const { ids } = (await req.json()) as { ids: string[] };
 
-    if (!Array.isArray(ids)) {
-      return NextResponse.json({ error: 'ids must be an array' }, { status: 400 });
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'ids required' }, { status: 400 });
     }
     if (ids.length > 4) {
       return NextResponse.json({ error: 'Maximum 4 motos' }, { status: 400 });
@@ -35,3 +32,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e?.message ?? 'Unexpected error' }, { status: 500 });
   }
 }
+
