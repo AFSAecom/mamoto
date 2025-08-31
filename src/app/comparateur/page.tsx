@@ -35,20 +35,17 @@ export default function ComparateurPage() {
   const [table, setTable] = useState<ComparatorPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Charger les marques distinctes
+  // Marques
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch('/api/motos/brands', { cache: 'no-store' });
         const json = await res.json();
-        if (res.ok && Array.isArray(json?.brands)) setBrands(json.brands);
-      } catch {
-        // ignore
-      }
+        setBrands(res.ok && Array.isArray(json?.brands) ? json.brands : []);
+      } catch { setBrands([]); }
     })();
   }, []);
-
-  // Charger les modèles d’une marque
+  // Modèles par marque
   useEffect(() => {
     (async () => {
       setMotoOptions([]);
@@ -61,20 +58,17 @@ export default function ComparateurPage() {
         });
         const json = await res.json();
         if (!res.ok) return;
-
         const rows = (json?.motos ?? []) as any[];
         const opts: MotoRow[] = rows.map((m) => ({
           id: m.id,
-          brand: m.brand ?? m.marque ?? m.make ?? null,
-          model: m.model ?? m.modele ?? m.model_name ?? null,
+          brand: m.brand ?? null,
+          model: m.model ?? null,
           year: m.year ?? null,
-          price: m.price_tnd ?? m.price ?? null,
-          image: m.display_image ?? m.image_url ?? m.cover_image ?? m.image ?? null,
+          price: m.price ?? null,
+          image: m.image ?? null,
         }));
         setMotoOptions(opts);
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     })();
   }, [brand]);
 
@@ -119,12 +113,10 @@ export default function ComparateurPage() {
   };
 
   const columns = useMemo(() => table?.motos ?? selected, [table, selected]);
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold">Comparateur de motos</h1>
 
-      {/* Sélecteurs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Marque</label>
@@ -162,6 +154,7 @@ export default function ComparateurPage() {
 
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={compareNow}
             disabled={loading || selected.length < 2}
             className="rounded-xl px-4 py-2 bg-black text-white disabled:opacity-50"
@@ -169,6 +162,7 @@ export default function ComparateurPage() {
             {loading ? 'Chargement…' : 'Comparer'}
           </button>
           <button
+            type="button"
             onClick={() => { setSelected([]); setTable(null); }}
             className="rounded-xl px-4 py-2 border"
           >
@@ -177,7 +171,6 @@ export default function ComparateurPage() {
         </div>
       </div>
 
-      {/* Sélection courante */}
       <div className="flex flex-wrap gap-3">
         {selected.map((m) => (
           <div key={m.id} className="flex items-center gap-3 border rounded-2xl p-3 shadow-sm">
@@ -193,6 +186,7 @@ export default function ComparateurPage() {
               <div className="text-gray-500">{m.year ?? ''} {m.price ? `• ${m.price} TND` : ''}</div>
             </div>
             <button
+              type="button"
               onClick={() => removeMoto(m.id)}
               className="ml-2 text-sm px-2 py-1 rounded-lg border hover:bg-gray-50"
               title="Retirer"
@@ -203,7 +197,6 @@ export default function ComparateurPage() {
         ))}
       </div>
 
-      {/* Tableau comparatif */}
       {error && <div className="text-red-600 text-sm">{error}</div>}
 
       {table && (
@@ -261,4 +254,3 @@ function GroupBlock({ group, motos }: { group: ComparatorPayload['specs'][number
     </>
   );
 }
-
