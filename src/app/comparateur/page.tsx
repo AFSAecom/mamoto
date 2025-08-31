@@ -1,5 +1,6 @@
 'use client';
 
+// Comparateur page using `motos` table instead of non-existing `public.models`
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -171,3 +172,4 @@ export default function ComparatorPage() {
     </div>
   );
 }
+
