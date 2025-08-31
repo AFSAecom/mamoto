@@ -101,8 +101,8 @@ export default function ComparatorLeftOnly() {
 
         if (!mounted) return;
 
-        const groupsArr = (gData ?? []) as Group[];
-        const itemsArr = (iData ?? []) as Item[];
+        const groupsArr = ((gData ?? []) as unknown) as Group[];
+        const itemsArr = ((iData ?? []) as unknown) as Item[];
 
         // Regrouper les items par group_id
         const byGroup: Record<UUID, Item[]> = {};
