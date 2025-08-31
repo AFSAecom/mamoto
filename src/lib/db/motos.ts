@@ -25,6 +25,22 @@ export async function fetchMotoCards(limit = 24): Promise<MotoCard[]> {
 }
 
 export async function fetchMotoFull(motoId: string): Promise<any> {
+  // si ce n'est pas un uuid, tenter de résoudre l'id via le slug
+  const isUuid = (v: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)
+
+  const resolveId = async (identifier: string) => {
+    if (isUuid(identifier)) return identifier
+    const { data, error } = await supabase
+      .from('motos')
+      .select('id')
+      .eq('slug', identifier)
+      .limit(1)
+      .maybeSingle()
+    if (error) return null
+    return data?.id ?? null
+  }
+
   // normalise les différents formats renvoyés par l'RPC
   const normalize = (raw: any) => {
     if (!raw) return null
@@ -49,9 +65,16 @@ export async function fetchMotoFull(motoId: string): Promise<any> {
     return normalize(data)
   }
 
+  const resolvedId = await resolveId(motoId)
+  const idOrSlug = resolvedId ?? motoId
+
   let payload =
-    (await tryCall({ p_moto_id: motoId })) ??
-    (await tryCall({ p_moto_id_text: motoId }))
+    (await tryCall({ p_moto_id: idOrSlug })) ??
+    (await tryCall({ p_moto_id_text: idOrSlug }))
+
+  if (!payload && resolvedId && resolvedId !== motoId) {
+    payload = await tryCall({ p_moto_id_text: motoId })
+  }
 
   if (!payload) return null
 
