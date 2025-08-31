@@ -1,86 +1,54 @@
-import Image from 'next/image'
-import { fetchMotoFull, formatTND } from '@/lib/db/motos'
-import { publicImageUrlFromPath } from '@/lib/storage'
+import Image from 'next/image';
+import { getMotoFull } from '@/lib/getMotoFull';
 
-export default async function MotoDetailPage({ params }: { params: { id: string } }) {
-  const moto = await fetchMotoFull(params.id)
-  if (!moto) {
-    return (
-      <main className="max-w-5xl mx-auto p-6">
-        <h1 className="text-xl font-semibold">Moto introuvable</h1>
-        <p className="text-sm text-gray-500 mt-2">Vérifie l’URL ou la disponibilité.</p>
-      </main>
-    )
+export default async function MotoPage({ params }: { params: { id: string } }) {
+  const fiche = await getMotoFull(params.id);
+
+  if (!fiche?.moto) {
+    return <div className="p-6">Moto introuvable.</div>;
   }
 
-  const title = `${moto.brand ?? ''} ${moto.model ?? ''} ${moto.year ?? ''}`.trim()
-
-  // Tri des images (principale d’abord)
-  const images = Array.isArray(moto.images)
-    ? [...moto.images].sort(
-        (a: any, b: any) =>
-          (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      )
-    : []
-
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* Header */}
-      <header className="space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
-        <p className="text-lg text-gray-700">{formatTND(moto.price_tnd)}</p>
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
+      <header className="flex items-center gap-4">
+        {fiche.moto.display_image ? (
+          <Image
+            src={fiche.moto.display_image}
+            alt={`${fiche.moto.brand} ${fiche.moto.model}`}
+            width={220}
+            height={140}
+            unoptimized
+          />
+        ) : null}
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {fiche.moto.brand} {fiche.moto.model} {fiche.moto.year}
+          </h1>
+          {typeof fiche.moto.price === 'number' ? (
+            <p className="opacity-70">{fiche.moto.price} TND</p>
+          ) : null}
+        </div>
       </header>
 
-      {/* Galerie */}
-      {images.length > 0 && (
-        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {images.map((img: any, idx: number) => {
-            const src = publicImageUrlFromPath(img.path)
-            return (
-              <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border">
-                {src ? (
-                  <Image
-                    src={src}
-                    alt={img.alt ?? title}
-                    fill
-                    className="object-contain bg-white"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-gray-400">Image indisponible</div>
-                )}
+      <section className="space-y-6">
+        {fiche.specs?.map((grp) => (
+          <div key={grp.group} className="rounded-2xl border p-4">
+            <h2 className="text-lg font-medium mb-3">{grp.group}</h2>
+            {(!grp.items || grp.items.length === 0) ? (
+              <div className="opacity-60">Aucune donnée</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {grp.items.map((it, idx) => (
+                  <div key={it.key + idx} className="flex justify-between gap-4 border-b py-2">
+                    <span className="opacity-70">{it.label}</span>
+                    <span className="font-medium">{it.value_pretty ?? ''}</span>
+                  </div>
+                ))}
               </div>
-            )
-          })}
-        </section>
-      )}
-
-      {/* Spécifications par groupes */}
-      <section className="space-y-8">
-        {Array.isArray(moto.specs) &&
-          moto.specs.map((group: any, gi: number) => (
-            <div key={gi} className="bg-white rounded-2xl shadow p-5">
-              <h2 className="text-xl font-semibold mb-4">{group.group}</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {Array.isArray(group.items) &&
-                  group.items.map((it: any, ii: number) => {
-                    const value =
-                      it.value_text ??
-                      (it.value_number != null ? `${it.value_number}${it.unit ? ' ' + it.unit : ''}` : null) ??
-                      (typeof it.value_boolean === 'boolean' ? (it.value_boolean ? 'Oui' : 'Non') : null)
-
-                    if (value == null) return null
-                    return (
-                      <div key={ii} className="flex justify-between gap-3 border-b py-2">
-                        <span className="text-gray-600">{it.label}</span>
-                        <span className="font-medium">{value}</span>
-                      </div>
-                    )
-                  })}
-              </div>
-            </div>
-          ))}
+            )}
+          </div>
+        ))}
       </section>
-    </main>
-  )
+    </div>
+  );
 }
