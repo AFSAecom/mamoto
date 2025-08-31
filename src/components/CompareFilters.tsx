@@ -63,7 +63,7 @@ export default function CompareFilters(props: {
         if (error?.code === "42P01" || error?.message?.includes("relation \"models\"")) {
           const res = await supabase
             .from("motos")
-            .select("model", { distinct: true })
+            .select("model")
             .eq("brand_id", brandId)
             .order("model", { ascending: true });
           if (res.error) throw res.error;
