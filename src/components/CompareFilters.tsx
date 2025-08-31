@@ -57,25 +57,24 @@ export default function CompareFilters(props: {
         setError(null);
         let { data, error } = await supabase
           .from("models")
-          .select("id,name")
+          .select("name")
           .eq("brand_id", brandId)
           .order("name", { ascending: true });
-        if (error?.code === "42P01" || error?.message?.includes("relation \"models\"")) {
-          const res = await supabase
+
+        if (error || !(data?.length)) {
+          const { data: rows, error: err } = await supabase
             .from("motos")
             .select("model")
             .eq("brand_id", brandId)
             .order("model", { ascending: true });
-          if (res.error) throw res.error;
-          const rows = (res.data ?? [])
-            .map((r: any) => r.model)
-            .filter((x: any) => !!x);
-          const uniq = Array.from(new Set(rows));
+          if (err) throw err;
+          const uniq = Array.from(
+            new Set((rows ?? []).map((r: any) => r.model).filter(Boolean))
+          );
           setModels(uniq.map((m: string) => ({ value: m, label: m })));
         } else {
-          if (error) throw error;
           setModels(
-            (data ?? []).map((m: any) => ({ value: m.id, label: m.name }))
+            (data ?? []).map((m: any) => ({ value: m.name, label: m.name }))
           );
         }
         setModel(null);
