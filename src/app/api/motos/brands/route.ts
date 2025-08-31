@@ -1,4 +1,3 @@
-// Returns all unique moto brands
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -30,3 +29,4 @@ export async function GET() {
     return NextResponse.json({ error: e?.message ?? 'Unexpected error' }, { status: 500 });
   }
 }
+
