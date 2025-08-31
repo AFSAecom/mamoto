@@ -10,7 +10,7 @@ type Moto = {
   brand_id: string;
   model_name: string;
   year: number | null;
-  price_tnd: string | number | null;
+  price_tnd: number | null;
 };
 
 const supabase = createClient(
@@ -23,8 +23,8 @@ export default function ComparatorPage() {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedModelId, setSelectedModelId] = useState<string>('');
-  const [error, setError] = useState<string>('');
   const [items, setItems] = useState<Moto[]>([]);
+  const [error, setError] = useState<string>('');
 
   // 1) Charger les marques
   useEffect(() => {
@@ -67,14 +67,12 @@ export default function ComparatorPage() {
       return;
     }
 
-    // récupérer le modèle choisi (pour son nom)
     const model = models.find((m) => m.id === selectedModelId);
     if (!model) {
-      setError("Modèle introuvable.");
+      setError('Modèle introuvable.');
       return;
     }
 
-    // IMPORTANT : filtrer par brand_id ET par model_name (et éventuellement année si tu as un champ year choisi)
     const { data, error } = await supabase
       .from('motos')
       .select('id,brand_id,model_name,year,price_tnd')
@@ -88,11 +86,10 @@ export default function ComparatorPage() {
       return;
     }
     if (!data) {
-      setError("Aucune moto trouvée pour cette marque et ce modèle.");
+      setError('Aucune moto trouvée pour cette marque et ce modèle.');
       return;
     }
 
-    // éviter les doublons dans la liste à comparer
     setItems((prev) =>
       prev.some((x) => x.id === data.id) ? prev : [...prev, data]
     );
@@ -102,11 +99,14 @@ export default function ComparatorPage() {
     setSelectedBrandId('');
     setSelectedModelId('');
     setModels([]);
-    setError('');
     setItems([]);
+    setError('');
   };
 
-  const ready = useMemo(() => !!selectedBrandId && !!selectedModelId, [selectedBrandId, selectedModelId]);
+  const ready = useMemo(
+    () => !!selectedBrandId && !!selectedModelId,
+    [selectedBrandId, selectedModelId]
+  );
 
   return (
     <div className="mx-auto max-w-4xl p-4">
@@ -123,7 +123,9 @@ export default function ComparatorPage() {
           >
             <option value="">Sélectionner…</option>
             {brands.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
             ))}
           </select>
         </div>
@@ -137,9 +139,13 @@ export default function ComparatorPage() {
             onChange={(e) => setSelectedModelId(e.target.value)}
             disabled={!selectedBrandId}
           >
-            <option value="">{selectedBrandId ? 'Sélectionner…' : 'Choisis une marque d’abord'}</option>
+            <option value="">
+              {selectedBrandId ? 'Sélectionner…' : 'Choisis une marque d’abord'}
+            </option>
             {models.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
             ))}
           </select>
         </div>
@@ -177,3 +183,4 @@ export default function ComparatorPage() {
     </div>
   );
 }
+
