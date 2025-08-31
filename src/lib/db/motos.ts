@@ -25,37 +25,47 @@ export async function fetchMotoCards(limit = 24): Promise<MotoCard[]> {
 }
 
 export async function fetchMotoFull(motoId: string): Promise<any> {
-  const { data, error } = await supabase.rpc('fn_get_moto_full', {
-    p_moto_id: motoId,
-  })
-  if (error) throw error
-  if (!data) return null
-
-  // L'RPC peut renvoyer un objet imbriqué { moto: {...}, specs: [...] }
-  // ou un objet plat directement exploitable. On normalise ici pour que la
-  // page détail reçoive toujours {brand, model, year, price_tnd, images, specs}.
-  let payload: any = data
-
-  if (typeof payload === 'string') {
-    try {
-      payload = JSON.parse(payload)
-    } catch {
-      payload = null
+  // normalise les différents formats renvoyés par l'RPC
+  const normalize = (raw: any) => {
+    if (!raw) return null
+    let obj = raw
+    if (typeof obj === 'string') {
+      try {
+        obj = JSON.parse(obj)
+      } catch {
+        return null
+      }
     }
+    if (Array.isArray(obj)) {
+      obj = obj[0] ?? null
+    }
+    return obj
   }
 
-  if (Array.isArray(payload)) {
-    payload = payload[0] ?? null
+  // tente d'appeler l'RPC avec p_moto_id (uuid) puis p_moto_id_text (texte)
+  const tryCall = async (params: Record<string, any>) => {
+    const { data, error } = await supabase.rpc('fn_get_moto_full', params)
+    if (error || !data) return null
+    return normalize(data)
   }
+
+  let payload =
+    (await tryCall({ p_moto_id: motoId })) ??
+    (await tryCall({ p_moto_id_text: motoId }))
 
   if (!payload) return null
 
   const moto = 'moto' in payload ? payload.moto : payload
+  const images = (payload.images ?? moto.images ?? []).slice().sort(
+    (a: any, b: any) =>
+      Number(b.is_primary) - Number(a.is_primary) ||
+      ((a.sort_order ?? 0) - (b.sort_order ?? 0))
+  )
 
   return {
     ...moto,
     price_tnd: moto.price_tnd ?? moto.price ?? null,
-    images: payload.images ?? moto.images ?? [],
+    images,
     specs: payload.specs ?? payload.groups ?? [],
   }
 }
