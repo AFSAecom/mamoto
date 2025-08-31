@@ -75,7 +75,7 @@ export default function CompareFilters(props: {
         } else {
           if (error) throw error;
           setModels(
-            (data ?? []).map((m: any) => ({ value: m.id, label: m.name }))
+            (data ?? []).map((m: any) => ({ value: m.name, label: m.name }))
           );
         }
         setModel(null);
