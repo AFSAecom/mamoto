@@ -38,6 +38,24 @@ export default function ComparatorPage() {
 
   useEffect(() => {
     (async () => {
+      try {
+        const res = await fetch('/api/moto-comparator', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ids: [] }),
+        });
+        const json = await res.json();
+        if (res.ok && json?.ok) {
+          setTable(json.payload as ComparatorPayload);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
       const res = await fetch('/api/motos/brands');
       const json = await res.json();
       if (res.ok && Array.isArray(json?.brands)) setBrands(json.brands);
@@ -77,17 +95,17 @@ export default function ComparatorPage() {
     if (!m) return;
     if (selected.some((s) => s.id === id)) return;
     setSelected((prev) => [...prev, m]);
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
   };
 
   const removeMoto = (id: string) => {
     setSelected((prev) => prev.filter((m) => m.id !== id));
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
   };
 
   const compareNow = async () => {
     setError(null);
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
     if (selected.length < 2) {
       setError('Choisis au moins 2 motos à comparer.');
       return;
@@ -109,7 +127,10 @@ export default function ComparatorPage() {
     }
   };
 
-  const columns = useMemo(() => table?.motos ?? selected, [table, selected]);
+  const columns = useMemo(
+    () => (table?.motos?.length ? table.motos : selected),
+    [table, selected]
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
