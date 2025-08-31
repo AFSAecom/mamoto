@@ -1,12 +1,8 @@
-import HomeClient from "./HomeClient";
-import { getPublishedMotos } from "@/lib/public/motos";
-
-export default async function Home() {
-  const motos = await getPublishedMotos();
-  const featured =
-    motos.length >= 6
-      ? [...motos].sort(() => 0.5 - Math.random()).slice(0, 6)
-      : motos;
-  return <HomeClient featured={featured} />;
+import ThemeToggle from "@/components/ThemeToggle";
+export default function Page() {
+  return (
+    <main className="min-h-screen">
+      <div className="p-4 flex items-center justify-end"><ThemeToggle /></div>
+    </main>
+  );
 }
-
