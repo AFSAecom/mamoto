@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import CompareFilters from '@/components/CompareFilters';
+import { supabase } from '@/lib/supabaseClient';
 
 type MotoRow = {
   id: string;
@@ -27,60 +29,43 @@ type ComparatorPayload = {
 };
 
 export default function ComparateurPage() {
-  const [brands, setBrands] = useState<string[]>([]);
-  const [brand, setBrand] = useState<string>('');
-  const [motoOptions, setMotoOptions] = useState<MotoRow[]>([]);
+  const [brandId, setBrandId] = useState<string | null>(null);
   const [selected, setSelected] = useState<MotoRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [table, setTable] = useState<ComparatorPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Marques
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/motos/brands', { cache: 'no-store' });
-        const json = await res.json();
-        setBrands(res.ok && Array.isArray(json?.brands) ? json.brands : []);
-      } catch { setBrands([]); }
-    })();
-  }, []);
-  // Modèles par marque
-  useEffect(() => {
-    (async () => {
-      setMotoOptions([]);
-      if (!brand) return;
-      try {
-        const res = await fetch('/api/motos/by-brand', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ brand }),
-        });
-        const json = await res.json();
-        if (!res.ok) return;
-        const rows = (json?.motos ?? []) as any[];
-        const opts: MotoRow[] = rows.map((m) => ({
-          id: m.id,
-          brand: m.brand ?? null,
-          model: m.model ?? null,
-          year: m.year ?? null,
-          price: m.price ?? null,
-          image: m.image ?? null,
-        }));
-        setMotoOptions(opts);
-      } catch { /* ignore */ }
-    })();
-  }, [brand]);
-
   const canAddMore = selected.length < 4;
 
-  const addMoto = (id: string) => {
+  const addMotoFromSelection = async (model: string | null) => {
     if (!canAddMore) return;
-    const m = motoOptions.find((o) => o.id === id);
-    if (!m) return;
-    if (selected.some((s) => s.id === id)) return;
-    setSelected((prev) => [...prev, m]);
-    setTable(null);
+    if (!brandId || !model) return;
+    try {
+      const { data, error } = await supabase
+        .from('motos')
+        .select('id, brand, model, year, price_tnd, display_image, primary_image_path')
+        .eq('brand_id', brandId)
+        .eq('model', model)
+        .order('year', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return;
+      const moto: MotoRow = {
+        id: data.id,
+        brand: (data as any).brand ?? null,
+        model: (data as any).model ?? null,
+        year: (data as any).year ?? null,
+        price: (data as any).price_tnd ?? null,
+        image: (data as any).display_image ?? (data as any).primary_image_path ?? null,
+      };
+      if (selected.some((s) => s.id === moto.id)) return;
+      setSelected((prev) => [...prev, moto]);
+      setTable(null);
+    } catch (e) {
+      console.error(e);
+      setError("Impossible d'ajouter la moto.");
+    }
   };
 
   const removeMoto = (id: string) => {
@@ -118,38 +103,11 @@ export default function ComparateurPage() {
       <h1 className="text-2xl font-bold">Comparateur de motos</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Marque</label>
-          <select
-            className="border rounded-xl px-3 py-2"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-          >
-            <option value="">-- Choisir une marque --</option>
-            {brands.map((b) => (
-              <option key={b} value={b}>{b}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Modèle</label>
-          <select
-            className="border rounded-xl px-3 py-2"
-            disabled={!brand || motoOptions.length === 0 || !canAddMore}
-            onChange={(e) => {
-              const id = e.target.value;
-              if (id) addMoto(id);
-              e.currentTarget.selectedIndex = 0;
-            }}
-          >
-            <option value="">{brand ? '— Ajouter un modèle —' : 'Sélectionne une marque'}</option>
-            {motoOptions.map((m) => (
-              <option key={m.id} value={m.id}>
-                {`${m.model ?? 'Modèle'}${m.year ? ` (${m.year})` : ''}`}
-              </option>
-            ))}
-          </select>
+        <div className="md:col-span-2">
+          <CompareFilters
+            onBrandChange={(v) => setBrandId(v)}
+            onModelChange={(m) => addMotoFromSelection(m)}
+          />
         </div>
 
         <div className="flex gap-2">
