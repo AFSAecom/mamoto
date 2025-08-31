@@ -11,18 +11,11 @@ export async function GET() {
       { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
     );
 
-    const { data, error } = await s
-      .from('motos')
-      .select('brand, marque, make');
+    // Use RPC to avoid RLS/column name issues
+    const { data, error } = await s.rpc('fn_public_brands');
     if (error) throw error;
 
-    const set = new Set<string>();
-    (data ?? []).forEach((r: any) => {
-      const b = r?.brand ?? r?.marque ?? r?.make;
-      if (b) set.add(String(b));
-    });
-
-    const brands = Array.from(set).sort((a, b) => a.localeCompare(b));
+    const brands: string[] = Array.isArray(data) ? data.filter(Boolean) : [];
     return NextResponse.json({ brands });
   } catch (e: any) {
     console.error(e);

@@ -16,14 +16,10 @@ export async function POST(req: NextRequest) {
       { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
     );
 
-    const { data, error } = await s
-      .from('motos')
-      .select('id, brand, marque, make, model, modele, model_name, year, price, price_tnd, display_image, image_url, cover_image, image')
-      .or(`brand.eq.${brand},marque.eq.${brand},make.eq.${brand}`)
-      .order('model', { ascending: true })
-      .order('year', { ascending: false });
-
+    // RPC returns normalized columns
+    const { data, error } = await s.rpc('fn_motos_by_brand', { p_brand: brand });
     if (error) throw error;
+
     return NextResponse.json({ motos: data ?? [] });
   } catch (e: any) {
     console.error(e);
