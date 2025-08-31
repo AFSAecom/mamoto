@@ -149,19 +149,29 @@ export default function ComparatorPage() {
     setError(null);
     const { data, error: err } = await supabaseRef.current
       .from('moto_spec_values')
-      .select('spec_item_id,value_text,value_number,value_boolean,value_json')
-      .eq('moto_id', moto.id);
+      .select('*')
+      .or(
+        `moto_id.eq.${moto.id},motoid.eq.${moto.id},moto.eq.${moto.id}`,
+      );
     if (err) {
       setError(err.message);
       setValues({});
     } else {
       const map: Record<string, MotoValue> = {};
-      (data ?? []).forEach((v) => {
-        map[v.spec_item_id] = {
-          value_text: v.value_text,
-          value_number: v.value_number,
-          value_boolean: v.value_boolean,
-          value_json: v.value_json,
+      (data ?? []).forEach((v: any) => {
+        const specId = v.spec_item_id || v.item_id || v.spec_id;
+        if (!specId) return;
+
+        map[specId] = {
+          value_text: v.value_text ?? v.value ?? null,
+          value_number: v.value_number ?? v.number_value ?? null,
+          value_boolean:
+            typeof v.value_boolean === 'boolean'
+              ? v.value_boolean
+              : typeof v.value === 'boolean'
+              ? v.value
+              : null,
+          value_json: v.value_json ?? v.json_value ?? null,
         };
       });
       setValues(map);
