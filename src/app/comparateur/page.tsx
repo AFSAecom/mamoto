@@ -243,7 +243,15 @@ export default function ComparatorPage() {
         if (error) throw error;
 
         const map: Record<UUID, Record<UUID, ValueCell>> = {};
-        for (const row of (data ?? [])) {
+        const rows = (data ?? []) as unknown as {
+          moto_id: UUID;
+          item_id: UUID;
+          value_text: string | null;
+          value_number: number | null;
+          value_boolean: boolean | null;
+          value_json: any | null;
+        }[];
+        for (const row of rows) {
           const mid: UUID = row.moto_id;
           const iid: UUID = row.item_id;
           if (!map[mid]) map[mid] = {};
