@@ -1,13 +1,11 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { GeistSans } from 'geist/font/sans';
 import { Lora, Fira_Code } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FavoritesProvider } from '@/hooks/use-favorites';
 import { Toaster } from '@/components/ui/toaster';
 
-const geistSans = GeistSans({ subsets: ['latin'], variable: '--font-sans' });
 const lora = Lora({ subsets: ['latin'], variable: '--font-serif' });
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-mono' });
 
@@ -23,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${geistSans.variable} ${lora.variable} ${firaCode.variable} font-sans`}>
+      <body className={`${lora.variable} ${firaCode.variable} font-sans`}>
         <FavoritesProvider>
           <Navbar />
           <main className="min-h-screen">
