@@ -1,42 +1,32 @@
-import Image from "next/image";
-import Link from "next/link";
-import type { MotoCard as Moto } from "@/lib/public/motos";
-import { publicImageUrl } from "@/lib/storage";
+'use client';
+import Image from 'next/image';
+import Link from 'next/link';
+import { resolveImageUrl } from '@/lib/imageUrl';
 
-interface MotoCardProps {
-  moto: Moto;
-}
-
-function formatPrice(price?: number | null) {
-  if (price == null) return "";
-  return new Intl.NumberFormat("fr-TN").format(price) + " TND";
-}
-
-export default function MotoCard({ moto }: MotoCardProps) {
-  const src = publicImageUrl(moto.display_image ?? undefined) || "/images/placeholder.jpg";
-  const title = [moto.brand, moto.model, moto.year ?? ""].filter(Boolean).join(" ").trim();
-
+export default function MotoCard({ moto }: { moto: any }) {
+  const img = resolveImageUrl(moto?.display_image || moto?.image_url || moto?.image_path);
   return (
-    <div className="rounded-xl border overflow-hidden hover:shadow">
-      <Link href={`/motos/${moto.slug ?? moto.id}`} className="block">
-        <div className="aspect-[16/9] bg-gray-100 relative">
+    <Link href={`/motos/${moto.id}`} className="block rounded-2xl border overflow-hidden hover:shadow">
+      <div className="aspect-[4/3] bg-neutral-200 relative">
+        {img ? (
           <Image
-            src={src}
-            alt={title || ""}
+            src={img}
+            alt={`${moto.brand} ${moto.model}`}
             fill
+            sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover"
+            unoptimized
           />
-        </div>
-        <div className="p-4">
-          <div className="text-lg font-medium">{title}</div>
-          {moto.price != null && (
-            <div className="text-sm text-muted-foreground">
-              {formatPrice(moto.price)}
-            </div>
-          )}
-        </div>
-      </Link>
-    </div>
+        ) : (
+          <div className="w-full h-full grid place-items-center text-sm opacity-70">Image manquante</div>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="font-semibold">{moto.brand} {moto.model} {moto.year}</div>
+        {typeof moto.price === 'number' ? (
+          <div className="opacity-70">{moto.price} TND</div>
+        ) : null}
+      </div>
+    </Link>
   );
 }
-
