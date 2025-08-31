@@ -29,13 +29,36 @@ export default async function MotoPage({ params }: { params: { id: string } }) {
         </div>
       </header>
 
+      {fiche.images?.length ? (
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {fiche.images.map((img) => (
+            <Image
+              key={img.id}
+              src={img.url}
+              alt={img.alt ?? `${fiche.moto.brand} ${fiche.moto.model}`}
+              width={400}
+              height={300}
+              className="w-full h-auto object-cover rounded"
+            />
+          ))}
+        </section>
+      ) : null}
+
       <section className="space-y-6">
         {fiche.specs?.map((grp) => (
           <div key={grp.group} className="rounded-2xl border p-4">
             <h2 className="text-lg font-medium mb-3">{grp.group}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {grp.items?.map((it, idx) => {
-                const raw = it.value_text ?? it.value_number ?? (typeof it.value_boolean === 'boolean' ? (it.value_boolean ? 'Oui' : 'Non') : null) ?? (it.value_json ? JSON.stringify(it.value_json) : '');
+                const raw =
+                  it.value_text ??
+                  it.value_number ??
+                  (typeof it.value_boolean === 'boolean'
+                    ? it.value_boolean
+                      ? 'Oui'
+                      : 'Non'
+                    : null) ??
+                  (it.value_json ? JSON.stringify(it.value_json) : '');
                 const val = [raw, it.unit].filter(Boolean).join(' ');
                 return (
                   <div key={it.key + idx} className="flex justify-between gap-4 border-b py-2">
