@@ -1,12 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { Lora, Fira_Code } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FavoritesProvider } from '@/hooks/use-favorites';
 import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({ subsets: ['latin'] });
+const geistSans = GeistSans({ subsets: ['latin'], variable: '--font-sans' });
+const lora = Lora({ subsets: ['latin'], variable: '--font-serif' });
+const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: 'moto.tn - Le portail moto en Tunisie',
@@ -20,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
+      <body className={`${geistSans.variable} ${lora.variable} ${firaCode.variable} font-sans`}>
         <FavoritesProvider>
           <Navbar />
           <main className="min-h-screen">

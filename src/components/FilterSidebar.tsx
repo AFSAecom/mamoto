@@ -79,27 +79,27 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-brand-500" />
-          <h3 className="font-semibold text-lg text-fg">Filtres</h3>
+          <Filter className="h-5 w-5 text-[--sidebar-primary]" />
+          <h3 className="font-semibold text-lg text-[--sidebar-foreground]">Filtres</h3>
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={clearAllFilters}
-          className="text-muted hover:text-fg"
+          className="text-[--muted-foreground] hover:text-[--foreground]"
         >
           Effacer tout
         </Button>
       </div>
 
       {/* Brand Filter */}
-      <Card className="bg-bg border-accent">
+      <Card className="bg-[--card] border-[--border]">
         <Collapsible
           open={openSections.brand}
           onOpenChange={() => toggleSection('brand')}
         >
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-surface/50">
+            <CardHeader className="pb-3 cursor-pointer hover:bg-[--muted]">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Marque</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${openSections.brand ? 'rotate-180' : ''}`} />
@@ -115,7 +115,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     checked={filters.selectedBrands.includes(brand)}
                     onCheckedChange={(checked) => handleBrandChange(brand, !!checked)}
                   />
-                  <Label htmlFor={brand} className="text-sm font-medium text-fg cursor-pointer">
+                  <Label htmlFor={brand} className="text-sm font-medium text-[--foreground] cursor-pointer">
                     {brand}
                   </Label>
                 </div>
@@ -126,13 +126,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </Card>
 
       {/* Category Filter */}
-      <Card className="bg-bg border-accent">
+      <Card className="bg-[--card] border-[--border]">
         <Collapsible
           open={openSections.category}
           onOpenChange={() => toggleSection('category')}
         >
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-surface/50">
+            <CardHeader className="pb-3 cursor-pointer hover:bg-[--muted]">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Catégorie</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${openSections.category ? 'rotate-180' : ''}`} />
@@ -148,7 +148,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     checked={filters.selectedCategories.includes(category)}
                     onCheckedChange={(checked) => handleCategoryChange(category, !!checked)}
                   />
-                  <Label htmlFor={category} className="text-sm font-medium text-fg cursor-pointer">
+                  <Label htmlFor={category} className="text-sm font-medium text-[--foreground] cursor-pointer">
                     {category}
                   </Label>
                 </div>
@@ -159,13 +159,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </Card>
 
       {/* Price Range */}
-      <Card className="bg-bg border-accent">
+      <Card className="bg-[--card] border-[--border]">
         <Collapsible
           open={openSections.price}
           onOpenChange={() => toggleSection('price')}
         >
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-surface/50">
+            <CardHeader className="pb-3 cursor-pointer hover:bg-[--muted]">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Prix (TND)</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${openSections.price ? 'rotate-180' : ''}`} />
@@ -182,7 +182,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 step={1000}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-muted">
+              <div className="flex justify-between text-sm text-[--muted-foreground]">
                 <span>{filters.priceRange[0].toLocaleString()} TND</span>
                 <span>{filters.priceRange[1].toLocaleString()} TND</span>
               </div>
@@ -192,13 +192,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </Card>
 
       {/* Engine Displacement */}
-      <Card className="bg-bg border-accent">
+      <Card className="bg-[--card] border-[--border]">
         <Collapsible
           open={openSections.engine}
           onOpenChange={() => toggleSection('engine')}
         >
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-surface/50">
+            <CardHeader className="pb-3 cursor-pointer hover:bg-[--muted]">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Cylindrée (cc)</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${openSections.engine ? 'rotate-180' : ''}`} />
@@ -215,7 +215,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 step={50}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-muted">
+              <div className="flex justify-between text-sm text-[--muted-foreground]">
                 <span>{filters.engineRange[0]} cc</span>
                 <span>{filters.engineRange[1]} cc</span>
               </div>
@@ -225,13 +225,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </Card>
 
       {/* Power Range */}
-      <Card className="bg-bg border-accent">
+      <Card className="bg-[--card] border-[--border]">
         <Collapsible
           open={openSections.power}
           onOpenChange={() => toggleSection('power')}
         >
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-surface/50">
+            <CardHeader className="pb-3 cursor-pointer hover:bg-[--muted]">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Puissance (ch)</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${openSections.power ? 'rotate-180' : ''}`} />
@@ -248,7 +248,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 step={5}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-muted">
+              <div className="flex justify-between text-sm text-[--muted-foreground]">
                 <span>{filters.powerRange[0]} ch</span>
                 <span>{filters.powerRange[1]} ch</span>
               </div>
@@ -264,7 +264,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {/* Mobile Filter Button */}
       <Button
         onClick={onToggle}
-        className="md:hidden fixed bottom-4 right-4 z-40 bg-brand-700 hover:bg-brand-600 shadow-lg"
+        className="md:hidden fixed bottom-4 right-4 z-40 bg-[--sidebar-primary] text-[--sidebar-primary-foreground] hover:opacity-90 shadow-[var(--shadow-lg)]"
         size="lg"
       >
         <Filter className="h-5 w-5 mr-2" />
@@ -286,16 +286,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="absolute right-0 top-0 bottom-0 w-80 bg-bg border-l border-accent overflow-y-auto p-6"
+              className="absolute right-0 top-0 bottom-0 w-80 bg-[--sidebar] text-[--sidebar-foreground] border-l border-[--sidebar-border] overflow-y-auto p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-fg">Filtres</h2>
+                <h2 className="text-xl font-semibold text-[--sidebar-foreground]">Filtres</h2>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onToggle}
-                  className="text-muted hover:text-fg"
+                  className="text-[--muted-foreground] hover:text-[--foreground]"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -307,7 +307,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-80 bg-surface border border-accent rounded-lg p-6 h-fit sticky top-24">
+      <div className="hidden md:block w-80 bg-[--sidebar] text-[--sidebar-foreground] border border-[--sidebar-border] rounded-[var(--radius)] p-6 h-fit sticky top-24">
         <FilterContent />
       </div>
     </>

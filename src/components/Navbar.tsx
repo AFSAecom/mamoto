@@ -48,13 +48,13 @@ const Navbar = () => {
     : baseMenuItems;
 
   return (
-    <nav className="bg-bg border-b border-accent sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 border-b border-[--border] bg-[--card] text-[--card-foreground] shadow-[var(--shadow-xs)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Bike className="h-8 w-8 text-brand-500" />
-            <span className="font-bold text-xl text-fg">moto.tn</span>
+          <Link href="/" className="flex items-center space-x-2 text-[--card-foreground]">
+            <Bike className="h-8 w-8 text-[--primary]" />
+            <span className="font-bold text-xl">moto.tn</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -63,7 +63,7 @@ const Navbar = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-fg hover:text-brand-300 transition-colors duration-200 font-medium"
+                className="text-[--card-foreground] hover:text-[--primary] transition-colors duration-200 font-medium"
               >
                 {item.label}
               </Link>
@@ -82,13 +82,13 @@ const Navbar = () => {
                 aria-label="Rechercher"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-64 bg-surface border-accent text-fg placeholder:text-muted"
+                className="w-64 bg-[--card] border-[--input] text-[--foreground] placeholder:text-[--muted-foreground]"
               />
               <Button
                 size="sm"
                 variant="outline"
                 type="submit"
-                className="border-accent hover:bg-accent"
+                className="border-[--border] hover:bg-[--accent]"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -115,7 +115,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-surface border-t border-accent"
+            className="md:hidden bg-[--card] border-t border-[--border]"
           >
             <div className="px-4 py-2 space-y-1">
               {/* Mobile Search */}
@@ -129,13 +129,13 @@ const Navbar = () => {
                   aria-label="Rechercher"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="flex-1 bg-bg border-accent text-fg placeholder:text-muted"
+                  className="flex-1 bg-[--card] border-[--input] text-[--foreground] placeholder:text-[--muted-foreground]"
                 />
                 <Button
                   size="sm"
                   variant="outline"
                   type="submit"
-                  className="border-accent hover:bg-accent"
+                  className="border-[--border] hover:bg-[--accent]"
                 >
                   <Search className="h-4 w-4" />
                 </Button>
@@ -146,7 +146,7 @@ const Navbar = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-3 py-2 text-fg hover:text-brand-300 hover:bg-accent rounded-md transition-colors duration-200"
+                  className="block px-3 py-2 text-[--card-foreground] hover:text-[--primary] hover:bg-[--accent] rounded-[var(--radius)] transition-colors duration-200"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
