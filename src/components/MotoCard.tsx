@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/imageUrl';
 
 export default function MotoCard({ moto }: { moto: any }) {
-  const img = resolveImageUrl(moto?.display_image || moto?.image_url || moto?.image_path);
+  const img = resolveImageUrl(
+    moto?.display_image ||
+    moto?.image_url ||
+    moto?.image_path ||
+    moto?.primary_image_path
+  );
+  const price = typeof moto.price === 'number' ? moto.price : moto.price_tnd;
   return (
     <Link href={`/motos/${moto.id}`} className="block rounded-2xl border overflow-hidden hover:shadow">
       <div className="aspect-[4/3] bg-neutral-200 relative">
@@ -23,8 +29,8 @@ export default function MotoCard({ moto }: { moto: any }) {
       </div>
       <div className="p-3">
         <div className="font-semibold">{moto.brand} {moto.model} {moto.year}</div>
-        {typeof moto.price === 'number' ? (
-          <div className="opacity-70">{moto.price} TND</div>
+        {typeof price === 'number' ? (
+          <div className="opacity-70">{price} TND</div>
         ) : null}
       </div>
     </Link>

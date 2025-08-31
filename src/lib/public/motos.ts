@@ -17,7 +17,7 @@ export type MotoCard = {
 
 export async function getPublishedMotos(): Promise<MotoCard[]> {
   const s = supabaseServer();
-  const { data } = await s.from('motos')
+  const { data } = await s.from('motos_public')
     .select('id,brand,model,year,price,slug,display_image')
     .order('id', { ascending: false });
   return data ?? [];

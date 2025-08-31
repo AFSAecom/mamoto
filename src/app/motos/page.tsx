@@ -8,8 +8,8 @@ const supabase = createClient(
 
 export default async function MotosPage() {
   const { data, error } = await supabase
-    .from('motos')
-    .select('id, brand, model, year, price, display_image, image_url, image_path')
+    .from('v_moto_cards')
+    .select('id, brand, model, year, price:price_tnd, display_image:primary_image_path')
     .order('brand', { ascending: true })
     .limit(60);
 
