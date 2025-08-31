@@ -1,0 +1,50 @@
+table_name,table_type,ordinal_position,column_name,data_type,udt_name,character_maximum_length,numeric_precision,numeric_scale,is_nullable,column_default,is_pk,is_fk,target_table,target_column,on_update,on_delete,domain_name,identity_generation,identity_start,identity_increment,identity_maximum,identity_minimum
+admins,BASE TABLE,1,user_id,uuid,uuid,null,null,null,NO,null,true,false,null,null,null,null,null,null,null,null,null,null
+admins,BASE TABLE,2,created_at,timestamp with time zone,timestamptz,null,null,null,NO,now(),false,false,null,null,null,null,null,null,null,null,null,null
+admins,BASE TABLE,3,note,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+brands,BASE TABLE,1,id,uuid,uuid,null,null,null,NO,uuid_generate_v4(),true,false,null,null,null,null,null,null,null,null,null,null
+brands,BASE TABLE,2,name,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+brands,BASE TABLE,3,slug,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,1,id,uuid,uuid,null,null,null,NO,uuid_generate_v4(),true,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,2,moto_id,uuid,uuid,null,null,null,NO,null,false,true,motos,id,NO ACTION,CASCADE,null,null,null,null,null,null
+moto_images,BASE TABLE,3,url,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,4,alt,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,5,sort_order,integer,int4,null,32,0,NO,0,false,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,6,is_primary,boolean,bool,null,null,null,NO,false,false,false,null,null,null,null,null,null,null,null,null,null
+moto_images,BASE TABLE,7,path,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,1,moto_id,uuid,uuid,null,null,null,NO,null,true,true,motos,id,NO ACTION,CASCADE,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,2,spec_item_id,uuid,uuid,null,null,null,NO,null,true,true,spec_items,id,NO ACTION,CASCADE,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,3,value_text,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,4,value_number,numeric,numeric,null,18,6,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,5,value_boolean,boolean,bool,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,6,value_json,jsonb,jsonb,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,7,unit_override,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+moto_spec_values,BASE TABLE,8,updated_at,timestamp with time zone,timestamptz,null,null,null,NO,now(),false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,1,id,uuid,uuid,null,null,null,NO,uuid_generate_v4(),true,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,2,brand_id,uuid,uuid,null,null,null,YES,null,false,true,brands,id,NO ACTION,RESTRICT,null,null,null,null,null,null
+motos,BASE TABLE,3,brand_name,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,4,model_name,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,5,year,integer,int4,null,32,0,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,6,price_tnd,numeric,numeric,null,12,2,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,7,featured,boolean,bool,null,null,null,NO,false,false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,8,created_at,timestamp with time zone,timestamptz,null,null,null,NO,now(),false,false,null,null,null,null,null,null,null,null,null,null
+motos,BASE TABLE,9,updated_at,timestamp with time zone,timestamptz,null,null,null,NO,now(),false,false,null,null,null,null,null,null,null,null,null,null
+spec_groups,BASE TABLE,1,id,uuid,uuid,null,null,null,NO,uuid_generate_v4(),true,false,null,null,null,null,null,null,null,null,null,null
+spec_groups,BASE TABLE,2,name,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+spec_groups,BASE TABLE,3,sort_order,integer,int4,null,32,0,NO,0,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,1,id,uuid,uuid,null,null,null,NO,uuid_generate_v4(),true,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,2,group_id,uuid,uuid,null,null,null,NO,null,false,true,spec_groups,id,NO ACTION,CASCADE,null,null,null,null,null,null
+spec_items,BASE TABLE,3,key,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,4,label,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,5,unit,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,6,data_type,text,text,null,null,null,NO,null,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,7,sort_order,integer,int4,null,32,0,NO,0,false,false,null,null,null,null,null,null,null,null,null,null
+spec_items,BASE TABLE,8,is_optional,boolean,bool,null,null,null,NO,true,false,false,null,null,null,null,null,null,null,null,null,null
+v_models,VIEW,1,brand_id,uuid,uuid,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_models,VIEW,2,model_name,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,1,id,uuid,uuid,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,2,brand,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,3,model,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,4,year,integer,int4,null,32,0,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,5,price_tnd,numeric,numeric,null,12,2,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
+v_moto_cards,VIEW,6,primary_image_path,text,text,null,null,null,YES,null,false,false,null,null,null,null,null,null,null,null,null,null
