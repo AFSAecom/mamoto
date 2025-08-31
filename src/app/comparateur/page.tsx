@@ -117,8 +117,8 @@ export default function ComparatorPage() {
 
         if (!active) return;
 
-        const groupsArr = (gData ?? []) as Group[];
-        const itemsArr = (iData ?? []) as Item[];
+        const groupsArr = (gData ?? []) as unknown as Group[];
+        const itemsArr = (iData ?? []) as unknown as Item[];
 
         const byGroup: Record<UUID, Item[]> = {};
         for (const it of itemsArr) {
