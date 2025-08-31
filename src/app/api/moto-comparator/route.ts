@@ -1,3 +1,4 @@
+// RPC-based comparator endpoint for motos
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';

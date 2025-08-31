@@ -1,4 +1,5 @@
 'use client';
+// Moto comparator page
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
