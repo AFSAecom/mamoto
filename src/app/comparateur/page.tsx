@@ -1,255 +1,179 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import Image from "next/image";
-import CompareFilters from "@/components/CompareFilters";
-import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useMemo, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
-type MotoRow = {
+type Brand = { id: string; name: string };
+type Model = { id: string; name: string; brand_id: string };
+type Moto = {
   id: string;
-  brand: string | null;
-  model: string | null;
+  brand_id: string;
+  model_name: string;
   year: number | null;
-  price: number | null;
-  image: string | null;
+  price_tnd: string | number | null;
 };
 
-type ComparatorPayload = {
-  motos: MotoRow[];
-  specs: {
-    group: string;
-    items: {
-      item_id: string;
-      key: string;
-      label: string;
-      unit: string | null;
-      values: Record<string, string | null>;
-    }[];
-  }[];
-};
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+);
 
-export default function ComparateurPage() {
-  const [brandId, setBrandId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<MotoRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [table, setTable] = useState<ComparatorPayload | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export default function ComparatorPage() {
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [items, setItems] = useState<Moto[]>([]);
 
-  const canAddMore = selected.length < 4;
-
-  const addMotoFromSelection = async (model: string | null) => {
-    if (!canAddMore) return;
-    if (!brandId || !model) return;
-    try {
+  // 1) Charger les marques
+  useEffect(() => {
+    (async () => {
+      setError('');
       const { data, error } = await supabase
-        .from("motos")
-        .select(
-          "id, brand, model_name, year, price_tnd, display_image, primary_image_path",
-        )
-        .eq("brand_id", brandId)
-        .eq("model_name", model)
-        .order("year", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return;
-      const moto: MotoRow = {
-        id: data.id,
-        brand: (data as any).brand ?? null,
-        model: (data as any).model_name ?? null,
-        year: (data as any).year ?? null,
-        price: (data as any).price_tnd ?? null,
-        image:
-          (data as any).display_image ??
-          (data as any).primary_image_path ??
-          null,
-      };
-      if (selected.some((s) => s.id === moto.id)) return;
-      setSelected((prev) => [...prev, moto]);
-      setTable(null);
-    } catch (e) {
-      console.error(e);
-      setError("Impossible d'ajouter la moto.");
-    }
-  };
+        .from('brands')
+        .select('id,name')
+        .order('name', { ascending: true });
+      if (error) return setError(error.message);
+      setBrands(data ?? []);
+    })();
+  }, []);
 
-  const removeMoto = (id: string) => {
-    setSelected((prev) => prev.filter((m) => m.id !== id));
-    setTable(null);
-  };
-
-  const compareNow = async () => {
-    setError(null);
-    setTable(null);
-    if (selected.length < 2) {
-      setError("Choisis au moins 2 motos à comparer.");
+  // 2) Charger les modèles filtrés par brand_id
+  useEffect(() => {
+    if (!selectedBrandId) {
+      setModels([]);
+      setSelectedModelId('');
       return;
     }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/moto-comparator", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ids: selected.map((s) => s.id) }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json?.ok) throw new Error(json?.error ?? "Erreur API");
-      setTable(json.payload as ComparatorPayload);
-    } catch (e: any) {
-      setError(e?.message ?? "Erreur inattendue");
-    } finally {
-      setLoading(false);
+    (async () => {
+      setError('');
+      const { data, error } = await supabase
+        .from('models')
+        .select('id,name,brand_id')
+        .eq('brand_id', selectedBrandId)
+        .order('name', { ascending: true });
+      if (error) return setError(error.message);
+      setModels(data ?? []);
+      setSelectedModelId('');
+    })();
+  }, [selectedBrandId]);
+
+  // 3) Ajouter la moto choisie
+  const onCompare = async () => {
+    setError('');
+    if (!selectedBrandId || !selectedModelId) {
+      setError("Choisis d'abord une marque et un modèle.");
+      return;
     }
+
+    // récupérer le modèle choisi (pour son nom)
+    const model = models.find((m) => m.id === selectedModelId);
+    if (!model) {
+      setError("Modèle introuvable.");
+      return;
+    }
+
+    // IMPORTANT : filtrer par brand_id ET par model_name (et éventuellement année si tu as un champ year choisi)
+    const { data, error } = await supabase
+      .from('motos')
+      .select('id,brand_id,model_name,year,price_tnd')
+      .eq('brand_id', selectedBrandId)
+      .eq('model_name', model.name)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (!data) {
+      setError("Aucune moto trouvée pour cette marque et ce modèle.");
+      return;
+    }
+
+    // éviter les doublons dans la liste à comparer
+    setItems((prev) =>
+      prev.some((x) => x.id === data.id) ? prev : [...prev, data]
+    );
   };
 
-  const columns = useMemo(() => table?.motos ?? selected, [table, selected]);
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Comparateur de motos</h1>
+  const reset = () => {
+    setSelectedBrandId('');
+    setSelectedModelId('');
+    setModels([]);
+    setError('');
+    setItems([]);
+  };
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-        <div className="md:col-span-2">
-          <CompareFilters
-            onBrandChange={(v) => setBrandId(v)}
-            onModelChange={(m) => addMotoFromSelection(m)}
-          />
+  const ready = useMemo(() => !!selectedBrandId && !!selectedModelId, [selectedBrandId, selectedModelId]);
+
+  return (
+    <div className="mx-auto max-w-4xl p-4">
+      <h1 className="text-2xl font-semibold mb-6">Comparateur de motos</h1>
+
+      <div className="grid md:grid-cols-3 gap-3 items-end">
+        {/* Marque */}
+        <div>
+          <label className="block text-sm mb-1">Marque</label>
+          <select
+            className="w-full rounded-md border px-3 py-2 bg-white text-black"
+            value={selectedBrandId}
+            onChange={(e) => setSelectedBrandId(e.target.value)}
+          >
+            <option value="">Sélectionner…</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
         </div>
 
+        {/* Modèle */}
+        <div>
+          <label className="block text-sm mb-1">Modèle</label>
+          <select
+            className="w-full rounded-md border px-3 py-2 bg-white text-black"
+            value={selectedModelId}
+            onChange={(e) => setSelectedModelId(e.target.value)}
+            disabled={!selectedBrandId}
+          >
+            <option value="">{selectedBrandId ? 'Sélectionner…' : 'Choisis une marque d’abord'}</option>
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Actions */}
         <div className="flex gap-2">
           <button
-            type="button"
-            onClick={compareNow}
-            disabled={loading || selected.length < 2}
-            className="rounded-xl px-4 py-2 bg-black text-white disabled:opacity-50"
+            onClick={onCompare}
+            disabled={!ready}
+            className="rounded-md px-4 py-2 bg-emerald-600 text-white disabled:opacity-50"
           >
-            {loading ? "Chargement…" : "Comparer"}
+            Comparer
           </button>
           <button
-            type="button"
-            onClick={() => {
-              setSelected([]);
-              setTable(null);
-            }}
-            className="rounded-xl px-4 py-2 border"
+            onClick={reset}
+            className="rounded-md px-4 py-2 bg-gray-700 text-white"
           >
             Réinitialiser
           </button>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        {selected.map((m) => (
-          <div
-            key={m.id}
-            className="flex items-center gap-3 border rounded-2xl p-3 shadow-sm"
-          >
-            <div className="relative h-14 w-20 overflow-hidden rounded-lg bg-gray-50">
-              {m.image ? (
-                <Image
-                  src={m.image}
-                  alt={`${m.brand} ${m.model}`}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="h-full w-full grid place-items-center text-xs text-gray-400">
-                  No image
-                </div>
-              )}
-            </div>
-            <div className="text-sm">
-              <div className="font-medium">
-                {m.brand} {m.model}
-              </div>
-              <div className="text-gray-500">
-                {m.year ?? ""} {m.price ? `• ${m.price} TND` : ""}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => removeMoto(m.id)}
-              className="ml-2 text-sm px-2 py-1 rounded-lg border hover:bg-gray-50"
-              title="Retirer"
-            >
-              ❌
-            </button>
+      {error && <p className="text-red-500 mt-3">{error}</p>}
+
+      {/* Liste des motos ajoutées */}
+      <div className="mt-6 grid md:grid-cols-2 gap-4">
+        {items.map((m) => (
+          <div key={m.id} className="rounded-xl border p-4 bg-white text-black">
+            <div className="font-medium">{m.model_name}</div>
+            <div className="text-sm opacity-80">Année: {m.year ?? '—'}</div>
+            <div className="text-sm opacity-80">Prix: {m.price_tnd ?? '—'} TND</div>
           </div>
         ))}
       </div>
-
-      {error && <div className="text-red-600 text-sm">{error}</div>}
-
-      {table && (
-        <div className="overflow-x-auto border rounded-2xl">
-          <table className="min-w-[800px] w-full text-sm">
-            <thead className="sticky top-0 bg-white z-10">
-              <tr>
-                <th className="w-64 text-left p-3">Caractéristiques</th>
-                {columns.map((m) => (
-                  <th key={m.id} className="p-3 text-left">
-                    <div className="flex items-center gap-2">
-                      <div className="relative h-10 w-14 overflow-hidden rounded-md bg-gray-50">
-                        {m.image ? (
-                          <Image
-                            src={m.image}
-                            alt={`${m.brand} ${m.model}`}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : null}
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {m.brand} {m.model}
-                        </div>
-                        <div className="text-gray-500">{m.year ?? ""}</div>
-                      </div>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {table.specs.map((g, gi) => (
-                <GroupBlock key={gi} group={g} motos={columns} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
-  );
-}
-
-function GroupBlock({
-  group,
-  motos,
-}: {
-  group: ComparatorPayload["specs"][number];
-  motos: MotoRow[];
-}) {
-  return (
-    <>
-      <tr className="bg-blue-50/60">
-        <td className="p-3 font-semibold" colSpan={1 + motos.length}>
-          {group.group}
-        </td>
-      </tr>
-      {group.items.map((it) => (
-        <tr key={it.item_id} className="border-t">
-          <td className="p-3">
-            <div className="font-medium">{it.label}</div>
-            {it.unit ? (
-              <div className="text-xs text-gray-500">{it.unit}</div>
-            ) : null}
-          </td>
-          {motos.map((m) => (
-            <td key={m.id} className="p-3 align-top">
-              {it.values?.[m.id] ?? "—"}
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
   );
 }
