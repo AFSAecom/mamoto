@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { fetchMotoFull, formatTND } from '@/lib/db/motos'
-import { publicImageUrlFromPath } from '@/lib/storage'
+import { resolveImageUrl } from '@/lib/imageUrl'
 
 export default async function MotoDetailPage({ params }: { params: { id: string } }) {
   const moto = await fetchMotoFull(params.id)
@@ -23,10 +23,22 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
       )
     : []
 
+  const img = resolveImageUrl(moto.display_image || (moto as any)?.image_url || (moto as any)?.image_path)
+
   return (
     <main className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Header */}
       <header className="space-y-2">
+        {img ? (
+          <Image
+            src={img}
+            alt={`${moto.brand} ${moto.model}`}
+            width={220}
+            height={140}
+            className="rounded-md object-cover"
+            unoptimized
+          />
+        ) : null}
         <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
         <p className="text-lg text-gray-700">{formatTND(moto.price_tnd)}</p>
       </header>
@@ -35,7 +47,7 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
       {images.length > 0 && (
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {images.map((img: any, idx: number) => {
-            const src = publicImageUrlFromPath(img.path)
+            const src = resolveImageUrl(img.path)
             return (
               <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border">
                 {src ? (
@@ -45,6 +57,7 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
                     fill
                     className="object-contain bg-white"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full grid place-items-center text-gray-400">Image indisponible</div>
