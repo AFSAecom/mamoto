@@ -153,7 +153,7 @@ export default function ComparatorPage() {
           .limit(2000);
         if (mErr) throw mErr;
 
-        const motos = (mData ?? []) as MotoRow[];
+        const motos = (mData ?? []) as unknown as MotoRow[];
         if (!active) return;
 
         setAllMotos(motos);
