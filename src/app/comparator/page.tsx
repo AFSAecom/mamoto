@@ -1,4 +1,5 @@
 'use client';
+// Moto comparator page
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
@@ -34,6 +35,24 @@ export default function ComparatorPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [table, setTable] = useState<ComparatorPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/moto-comparator', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ids: [] }),
+        });
+        const json = await res.json();
+        if (res.ok && json?.ok) {
+          setTable(json.payload as ComparatorPayload);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -76,17 +95,17 @@ export default function ComparatorPage() {
     if (!m) return;
     if (selected.some((s) => s.id === id)) return;
     setSelected((prev) => [...prev, m]);
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
   };
 
   const removeMoto = (id: string) => {
     setSelected((prev) => prev.filter((m) => m.id !== id));
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
   };
 
   const compareNow = async () => {
     setError(null);
-    setTable(null);
+    setTable((prev) => (prev ? { ...prev, motos: [] } : prev));
     if (selected.length < 2) {
       setError('Choisis au moins 2 motos à comparer.');
       return;
@@ -108,7 +127,10 @@ export default function ComparatorPage() {
     }
   };
 
-  const columns = useMemo(() => table?.motos ?? selected, [table, selected]);
+  const columns = useMemo(
+    () => (table?.motos?.length ? table.motos : selected),
+    [table, selected]
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
