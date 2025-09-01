@@ -65,26 +65,30 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   const f = decodeFServer(fRaw);
   const { filters } = f;
 
+  // Marques
   const { data: brandsData } = await supabase.from("brands").select("id, name").order("name", { ascending: true });
   const brands: Brand[] = Array.isArray(brandsData) ? brandsData : [];
 
+  // Taxonomie des specs
   const { data: groupsData } = await supabase.from("spec_groups").select("id, name, sort_order").order("sort_order", { ascending: true });
   const { data: itemsData } = await supabase
     .from("spec_items")
     .select("id, group_id, label, unit, data_type, sort_order")
     .order("sort_order", { ascending: true });
-
   const groups: SpecGroupRow[] = Array.isArray(groupsData) ? groupsData : [];
   const items: SpecItemRow[] = Array.isArray(itemsData) ? itemsData : [];
 
-  const { data: numericRanges } = await supabase.rpc("get_spec_numeric_ranges");
+  // Facettes FILTRÉES selon f
+  const { data: numericRanges } = await supabase.rpc("get_spec_numeric_ranges_filtered", { f });
   const ranges = (Array.isArray(numericRanges) ? numericRanges : []) as NumericRangeRow[];
 
-  const { data: textOptions } = await supabase.rpc("get_spec_text_options", { limit_per_item: 50 });
+  const { data: textOptions } = await supabase.rpc("get_spec_text_options_filtered", { f, limit_per_item: 50 });
   const options = (Array.isArray(textOptions) ? textOptions : []) as TextOptionRow[];
 
+  // Résultats
   const { data: motos } = await supabase.rpc("search_motos", { f });
 
+  // Construire le schema pour la sidebar
   const specSchema = (groups || []).map((g) => ({
     id: g.id,
     name: g.name,
@@ -96,9 +100,7 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         unit: it.unit,
         data_type: it.data_type,
         range: ranges.find((r) => r.spec_item_id === it.id) || null,
-        options: (options || [])
-          .filter((o) => o.spec_item_id === it.id)
-          .map((o) => ({ value: o.value_text, count: o.n })),
+        options: (options || []).filter((o) => o.spec_item_id === it.id).map((o) => ({ value: o.value_text, count: o.n })),
       })),
   }));
 
