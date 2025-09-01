@@ -54,23 +54,58 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-// Sniff any URL-looking string in a record (and nested arrays/objects)
+const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
+const isHttpUrl = (s: any) => typeof s === "string" && /^https?:\/\//i.test(s) && IMG_EXT.test(s);
+const looksLikePath = (s: any) => typeof s === "string" && IMG_EXT.test(s) && !/^https?:\/\//i.test(s);
+
+/** Transforme une valeur en URL d'image :
+ * - Si HTTP(S) -> garde
+ * - Si chemin "bucket/key.jpg" -> construit URL publique Supabase
+ */
+function asImageUrl(val: any): string | null {
+  if (!val) return null;
+  if (isHttpUrl(val)) return val;
+  if (looksLikePath(val)) {
+    const supa = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!supa) return null;
+    const path = String(val).replace(/^\/+/, "");
+    const parts = path.split("/");
+    if (parts.length >= 2) {
+      const bucket = parts.shift();
+      const key = parts.join("/");
+      return `${supa}/storage/v1/object/public/${bucket}/${key}`;
+    }
+    // Si la valeur n'a pas de bucket explicite, on tente tel quel
+    return `${supa}/storage/v1/object/public/${path}`;
+  }
+  return null;
+}
+
 function sniffImageFromRecord(m: any): string | null {
-  const isUrl = (s: any) => typeof s === "string" && /^https?:\/\/.+\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(s);
-  // 1) common keys first
-  const common = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail"];
-  for (const k of common) {
+  const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail"];
+  for (const k of commons) {
     const v = (m as any)?.[k];
-    if (isUrl(v)) return v;
+    const url = asImageUrl(v);
+    if (url) return url;
   }
-  // 2) scan any direct string field
+  const listKeys = ["images","gallery","photos","imgs","pictures"];
+  for (const k of listKeys) {
+    const v = (m as any)?.[k];
+    if (Array.isArray(v)) {
+      for (const x of v) {
+        const url = asImageUrl(x);
+        if (url) return url;
+      }
+    }
+  }
   for (const v of Object.values(m || {})) {
-    if (isUrl(v)) return v as string;
+    const url = asImageUrl(v);
+    if (url) return url;
   }
-  // 3) scan arrays/objects for a url-like field
   const scanDeep = (val: any): string | null => {
     if (!val) return null;
-    if (isUrl(val)) return val;
+    const url = asImageUrl(val);
+    if (url) return url;
     if (Array.isArray(val)) {
       for (const x of val) {
         const r = scanDeep(x);
@@ -109,7 +144,6 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   const groups: SpecGroupRow[] = Array.isArray(groupsData) ? groupsData : [];
   const items: SpecItemRow[] = Array.isArray(itemsData) ? itemsData : [];
 
-  // Facettes dynamiques (filtrées)
   const { data: numericRanges } = await supabase.rpc("get_spec_numeric_ranges_filtered", { f });
   const ranges = (Array.isArray(numericRanges) ? numericRanges : []) as NumericRangeRow[];
 
