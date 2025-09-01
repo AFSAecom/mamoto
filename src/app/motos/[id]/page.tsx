@@ -1,10 +1,12 @@
 import Image from 'next/image'
-import { fetchMotoFull, formatTND } from '@/lib/db/motos'
-import { resolveImageUrl } from '@/lib/imageUrl'
+import { getMotoFull, formatTND } from '@/lib/db/motos'
+import { supabase } from '@/lib/supabaseClient'
 
 export default async function MotoDetailPage({ params }: { params: { id: string } }) {
-  const moto = await fetchMotoFull(params.id)
-  if (!moto) {
+  let moto: any
+  try {
+    moto = await getMotoFull(params.id)
+  } catch {
     return (
       <main className="max-w-5xl mx-auto p-6">
         <h1 className="text-xl font-semibold">Moto introuvable</h1>
@@ -15,39 +17,24 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
 
   const title = `${moto.brand ?? ''} ${moto.model ?? ''} ${moto.year ?? ''}`.trim()
 
-  // Tri des images (principale d’abord)
-  const images = Array.isArray(moto.images)
-    ? [...moto.images].sort(
-        (a: any, b: any) =>
-          (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      )
-    : []
-
-  const img = resolveImageUrl(moto.display_image || (moto as any)?.image_url || (moto as any)?.image_path)
+  const resolveUrl = (url?: string | null) => {
+    if (!url) return ''
+    if (url.startsWith('http')) return url
+    const { data } = supabase.storage.from('motos').getPublicUrl(url)
+    return data.publicUrl || url
+  }
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* Header */}
-      <header className="space-y-2">
-        {img ? (
-          <Image
-            src={img}
-            alt={`${moto.brand} ${moto.model}`}
-            width={220}
-            height={140}
-            className="rounded-md object-cover"
-            unoptimized
-          />
-        ) : null}
-        <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
+    <div className="max-w-6xl mx-auto">
+      <header className="sticky top-0 z-10 bg-white p-6 shadow">
+        <h1 className="text-2xl md:text-3xl font-bold">{`${moto.brand} ${moto.model} ${moto.year ?? ''}`.trim()}</h1>
         <p className="text-lg text-gray-700">{formatTND(moto.price_tnd)}</p>
       </header>
 
-      {/* Galerie */}
-      {images.length > 0 && (
-        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {images.map((img: any, idx: number) => {
-            const src = resolveImageUrl(img.path)
+      {Array.isArray(moto.images) && moto.images.length > 0 && (
+        <section className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {moto.images.map((img: any, idx: number) => {
+            const src = resolveUrl(img.url)
             return (
               <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border">
                 {src ? (
@@ -68,32 +55,25 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
         </section>
       )}
 
-      {/* Spécifications par groupes */}
-      <section className="space-y-8">
+      <section className="p-6 space-y-8">
         {Array.isArray(moto.specs) &&
           moto.specs.map((group: any, gi: number) => (
             <div key={gi} className="bg-white rounded-2xl shadow p-5">
               <h2 className="text-xl font-semibold mb-4">{group.group}</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 {Array.isArray(group.items) &&
-                  group.items.map((it: any, ii: number) => {
-                    const value =
-                      it.value_text ??
-                      (it.value_number != null ? `${it.value_number}${it.unit ? ' ' + it.unit : ''}` : null) ??
-                      (typeof it.value_boolean === 'boolean' ? (it.value_boolean ? 'Oui' : 'Non') : null)
-
-                    if (value == null) return null
-                    return (
-                      <div key={ii} className="flex justify-between gap-3 border-b py-2">
-                        <span className="text-gray-600">{it.label}</span>
-                        <span className="font-medium">{value}</span>
-                      </div>
-                    )
-                  })}
+                  group.items.map((it: any, ii: number) => (
+                    <div key={ii} className="flex justify-between gap-3 border-b py-2">
+                      <span className="text-gray-600">{it.label}</span>
+                      <span className="font-medium">
+                        {it.value ? `${it.value}${it.unit ? ` ${it.unit}` : ''}` : '-'}
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           ))}
       </section>
-    </main>
+    </div>
   )
 }
