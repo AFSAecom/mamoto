@@ -1,344 +1,72 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import Filters from '@/components/motos/Filters'
 import MotoCard from '@/components/MotoCard'
-import FiltersPanel from '@/components/FiltersPanel'
-import { useMotoFacets } from '@/hooks/useMotoFacets'
-import {
-  useMotoSearch,
-  Filters,
-  Range,
-  cleanFilters,
-} from '@/hooks/useMotoSearch'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationLink,
-} from '@/components/ui/pagination'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Skeleton } from '@/components/ui/skeleton'
-import { encode, decode } from '@/utils/base64url'
+import { supabaseServer } from '@/lib/supabase/server'
 
-export default function MotosPage() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const init = (() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const f = params.get('f')
-      if (f) {
-        const decoded = decode<{ filters: Filters; page: number }>(f)
-        return {
-          filters: decoded.filters || {},
-          page: typeof decoded.page === 'number' ? decoded.page : 0,
-        }
-      }
-    }
-    return { filters: {}, page: 0 }
-  })()
-  const [filters, setFilters] = useState<Filters>(init.filters)
-  const [page, setPage] = useState(init.page)
-  const { facets, error: facetsError } = useMotoFacets()
-  const {
-    motos,
-    loading,
-    error,
-    lastRequest,
-    lastResponse,
-  } = useMotoSearch(filters, page)
-  const [diagOpen, setDiagOpen] = useState(false)
-  const [testResult, setTestResult] = useState<any>(null)
-  const blocked =
-    error === '401' ||
-    error === '403' ||
-    facetsError === '401' ||
-    facetsError === '403'
+export const dynamic = 'force-dynamic'
 
-  // update URL when filters or page change
-  useEffect(() => {
-    const encoded = encode({ filters, page })
-    const url = `${window.location.pathname}?f=${encoded}`
-    window.history.replaceState(null, '', url)
-  }, [filters, page])
+function isUUIDv4(x: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x)
+}
 
-  const handleFilterChange = (next: Filters) => {
-    setFilters(next)
-    setPage(0)
+function parseNumber(v: string | string[] | undefined) {
+  if (typeof v !== 'string') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+
+export default async function MotosPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  const brand_id =
+    typeof searchParams.brand_id === 'string' && isUUIDv4(searchParams.brand_id)
+      ? searchParams.brand_id
+      : undefined
+  const year_min = parseNumber(searchParams.year_min)
+  const year_max = parseNumber(searchParams.year_max)
+  const price_min = parseNumber(searchParams.price_min)
+  const price_max = parseNumber(searchParams.price_max)
+  const qRaw = typeof searchParams.q === 'string' ? searchParams.q.trim() : ''
+  const q = qRaw ? qRaw : undefined
+
+  const supabase = supabaseServer()
+
+  let query = supabase
+    .from('motos')
+    .select('id,brand_name,model_name,year,price_tnd,primary_image_path')
+    .order('year', { ascending: false })
+
+  if (brand_id) query = query.eq('brand_id', brand_id)
+  if (year_min != null) query = query.gte('year', year_min)
+  if (year_max != null) query = query.lte('year', year_max)
+  if (price_min != null) query = query.gte('price_tnd', price_min)
+  if (price_max != null) query = query.lte('price_tnd', price_max)
+  if (q) query = query.or(`brand_name.ilike.%${q}%,model_name.ilike.%${q}%`)
+
+  const { data: motos, error } = await query
+  if (error && process.env.NODE_ENV !== 'production') {
+    console.error('motos query error', error)
   }
 
-  function findItem(key: string) {
-    for (const g of facets) {
-      const it = g.items.find(i => i.key === key)
-      if (it) return it
-    }
-    return undefined
-  }
-
-  const badges: {
-    key: string
-    label: string
-    value: string
-    remove: () => void
-  }[] = []
-  const cleaned = cleanFilters(filters)
-  if (cleaned.price) {
-    const item = findItem('price')
-    badges.push({
-      key: 'price',
-      label: item?.label || 'price',
-      value: `${cleaned.price.min ?? ''}-${cleaned.price.max ?? ''}`,
-      remove: () => setFilters(f => ({ ...f, price: undefined })),
-    })
-  }
-  if (cleaned.year) {
-    const item = findItem('year')
-    badges.push({
-      key: 'year',
-      label: item?.label || 'year',
-      value: `${cleaned.year.min ?? ''}-${cleaned.year.max ?? ''}`,
-      remove: () => setFilters(f => ({ ...f, year: undefined })),
-    })
-  }
-  if (cleaned.brand_ids) {
-    const item = findItem('brand_ids')
-    cleaned.brand_ids.forEach(id => {
-      badges.push({
-        key: `brand_ids:${id}`,
-        label: item?.label || 'brand_ids',
-        value: id,
-        remove: () =>
-          setFilters(f => ({
-            ...f,
-            brand_ids: f.brand_ids?.filter(b => b !== id),
-          })),
-      })
-    })
-  }
-  if (cleaned.specs) {
-    for (const [k, v] of Object.entries(cleaned.specs)) {
-      const item = findItem(k)
-      if (typeof v === 'boolean') {
-        badges.push({
-          key: k,
-          label: item?.label || k,
-          value: v ? 'Oui' : 'Non',
-          remove: () =>
-            setFilters(f => {
-              const n = { ...f }
-              if (n.specs) {
-                delete n.specs[k]
-                if (Object.keys(n.specs).length === 0) delete n.specs
-              }
-              return n
-            }),
-        })
-      } else if (Array.isArray(v)) {
-        v.forEach(val =>
-          badges.push({
-            key: `${k}:${val}`,
-            label: item?.label || k,
-            value: val,
-            remove: () =>
-              setFilters(f => {
-                const n = { ...f }
-                const arr = (n.specs?.[k] as string[]).filter(v2 => v2 !== val)
-                if (arr.length > 0) {
-                  n.specs = { ...n.specs, [k]: arr }
-                } else if (n.specs) {
-                  delete n.specs[k]
-                  if (Object.keys(n.specs).length === 0) delete n.specs
-                }
-                return n
-              }),
-          })
-        )
-      } else if (typeof v === 'object' && v) {
-        if ('in' in v) {
-          v.in.forEach(val =>
-            badges.push({
-              key: `${k}:${val}`,
-              label: item?.label || k,
-              value: val,
-              remove: () =>
-                setFilters(f => {
-                  const n = { ...f }
-                  const arr = (n.specs?.[k] as any).in.filter(
-                    (x: string) => x !== val
-                  )
-                  if (arr.length > 0) {
-                    n.specs = { ...n.specs, [k]: { in: arr } }
-                  } else if (n.specs) {
-                    delete n.specs[k]
-                    if (Object.keys(n.specs).length === 0) delete n.specs
-                  }
-                  return n
-                }),
-            })
-          )
-        } else {
-          badges.push({
-            key: k,
-            label: item?.label || k,
-            value: `${(v as Range).min ?? ''}-${(v as Range).max ?? ''}`,
-            remove: () =>
-              setFilters(f => {
-                const n = { ...f }
-                if (n.specs) {
-                  delete n.specs[k]
-                  if (Object.keys(n.specs).length === 0) delete n.specs
-                }
-                return n
-              }),
-          })
-        }
-      }
-    }
-  }
-
-  async function runTest() {
-    if (!supabaseUrl || !supabaseAnon) return
-    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/fn_search_motos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: supabaseAnon,
-        Authorization: `Bearer ${supabaseAnon}`,
-      },
-      body: JSON.stringify({ p_filters: {}, p_limit: 8, p_offset: 0 }),
-    })
-    const data = await res.json().catch(() => null)
-    setTestResult(data)
-  }
+  const { data: brands } = await supabase
+    .from('brands')
+    .select('id,name')
+    .order('name', { ascending: true })
 
   return (
     <div className="p-4 space-y-4">
-      {blocked && (
-        <div className="bg-red-500 text-white p-2 text-center">
-          Accès bloqué : vérifiez les policies RLS et GRANT EXECUTE sur fn_search_motos/fn_get_filter_facets.
+      <Filters brands={brands || []} />
+      {error ? (
+        <div className="text-red-600">Impossible de charger les motos.</div>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {(motos || []).map(m => (
+            <MotoCard key={m.id} moto={m} />
+          ))}
         </div>
       )}
-      {!supabaseUrl || !supabaseAnon ? (
-        <div className="bg-red-500 text-white p-2 text-center">
-          Config manquante : NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — ajoutez-les à .env.local
-        </div>
-      ) : null}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline">Filtres</Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="overflow-y-auto p-4">
-            <FiltersPanel
-              facets={facets}
-              filters={filters}
-              onChange={handleFilterChange}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-      <div className="flex gap-6">
-        <aside className="w-64 hidden md:block">
-          <FiltersPanel
-            facets={facets}
-            filters={filters}
-            onChange={handleFilterChange}
-          />
-        </aside>
-        <div className="flex-1">
-          <div className="mb-4 flex flex-wrap gap-2">
-            {badges.map(b => (
-              <Badge key={b.key} onClick={b.remove} className="cursor-pointer">
-                {b.label}: {b.value}
-              </Badge>
-            ))}
-          </div>
-          {loading ? (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Skeleton key={i} className="h-48" />
-              ))}
-            </div>
-          ) : motos.length === 0 ? (
-            <div>Aucun résultat, élargissez les filtres</div>
-          ) : (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {motos.map(m => (
-                <MotoCard key={m.id} moto={m} />
-              ))}
-            </div>
-          )}
-          <Pagination className="mt-6">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={e => {
-                    e.preventDefault()
-                    if (page > 0) setPage(page - 1)
-                  }}
-                />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#" isActive>
-                  {page + 1}
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={e => {
-                    e.preventDefault()
-                    setPage(page + 1)
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-          <div className="mt-4">
-            <Button variant="ghost" onClick={() => setDiagOpen(o => !o)}>
-              Diagnostic
-            </Button>
-            {diagOpen && (
-              <div className="mt-2 border p-4 space-y-2 text-sm">
-                <div>Environnement</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(
-                    {
-                      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-                      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnon
-                        ? `****${supabaseAnon.slice(-6)}`
-                        : null,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-                <div>lastRequest</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(lastRequest, null, 2)}
-                </pre>
-                <div>lastResponse</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(lastResponse, null, 2)}
-                </pre>
-                <Button size="sm" onClick={runTest}>
-                  Tester sans filtres
-                </Button>
-                {testResult && (
-                  <pre className="overflow-x-auto">
-                    {JSON.stringify(testResult, null, 2)}
-                  </pre>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
+
