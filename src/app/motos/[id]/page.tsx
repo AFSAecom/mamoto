@@ -5,6 +5,10 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type Group = { id: string; name: string; sort_order: number };
+type Item = { id: string; group_id: string; label: string; unit: string | null; data_type: string; sort_order: number };
+type ValueRow = { spec_item_id: string; value_number: number | null; value_text: string | null; value_boolean: boolean | null };
+
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,29 +16,92 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+function sniffImageFromRecord(m: any): string | null {
+  const isUrl = (s: any) => typeof s === "string" && /^https?:\/\/.+\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(s);
+  const common = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail"];
+  for (const k of common) { const v = (m as any)?.[k]; if (isUrl(v)) return v; }
+  for (const v of Object.values(m || {})) { if (isUrl(v)) return v as string; }
+  const scanDeep = (val: any): string | null => {
+    if (!val) return null;
+    if (isUrl(val)) return val;
+    if (Array.isArray(val)) { for (const x of val) { const r = scanDeep(x); if (r) return r; } }
+    else if (typeof val === "object") { for (const vv of Object.values(val)) { const r = scanDeep(vv); if (r) return r; } }
+    return null;
+  };
+  for (const v of Object.values(m || {})) { const r = scanDeep(v); if (r) return r; }
+  return null;
+}
+
+const fmtInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
+
 export default async function MotoDetail({ params }: { params: { id: string } }) {
   const supabase = getSupabase();
+
+  // Moto principale
   const { data: moto } = await supabase
     .from("motos")
     .select("*, brands(name)")
     .eq("id", params.id)
     .single();
 
-  const getImg = (m: any): string | null => {
-    return (
-      m?.image_url ?? m?.display_image ?? m?.cover_url ?? m?.cover ??
-      m?.photo_url ?? m?.photo ?? m?.thumbnail_url ?? m?.thumbnail ?? null
-    );
-  };
-
   if (!moto) {
     return <div className="max-w-4xl mx-auto px-4 py-10">Moto introuvable.</div>;
   }
 
-  const img = getImg(moto);
+  const img = sniffImageFromRecord(moto);
+
+  // Taxonomie
+  const { data: groups } = await supabase
+    .from("spec_groups")
+    .select("id, name, sort_order")
+    .order("sort_order", { ascending: true });
+  const { data: items } = await supabase
+    .from("spec_items")
+    .select("id, group_id, label, unit, data_type, sort_order")
+    .order("sort_order", { ascending: true });
+
+  // Valeurs pour cette moto
+  const { data: rows } = await supabase
+    .from("moto_spec_values")
+    .select("spec_item_id, value_number, value_text, value_boolean")
+    .eq("moto_id", params.id);
+
+  const valMap = new Map<string, ValueRow[]>();
+  (rows || []).forEach((r: any) => {
+    if (!valMap.has(r.spec_item_id)) valMap.set(r.spec_item_id, []);
+    valMap.get(r.spec_item_id)!.push(r);
+  });
+
+  function renderValue(it: Item): string | null {
+    const vs = valMap.get(it.id) || [];
+    if (vs.length === 0) return null;
+    const first = vs[0];
+    if (it.data_type === "number") {
+      const n = first.value_number;
+      if (n == null) return null;
+      return it.unit ? `${fmtInt(n)} ${it.unit}` : fmtInt(n);
+    } else if (it.data_type === "boolean") {
+      if (first.value_boolean === null || first.value_boolean === undefined) return null;
+      return first.value_boolean ? "Oui" : "Non";
+    } else {
+      // texte / enum - concat si plusieurs
+      const vals = vs.map((x) => x.value_text).filter((s) => !!s) as string[];
+      if (vals.length === 0) return null;
+      return vals.join(", ");
+    }
+  }
+
+  // Groupes avec items ayant une valeur
+  const groupsWithData = (groups || []).map((g: Group) => {
+    const its = (items || []).filter((it: Item) => it.group_id === g.id);
+    const rows = its
+      .map((it) => ({ it, val: renderValue(it) }))
+      .filter((x) => x.val !== null);
+    return { group: g, rows };
+  }).filter((g) => g.rows.length > 0);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-white/10 overflow-hidden">
           <div className="aspect-[4/3] bg-black/10">
@@ -48,9 +115,30 @@ export default async function MotoDetail({ params }: { params: { id: string } })
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">{moto.brands?.name ?? "—"} {moto.model_name ?? ""}</h1>
           <p className="opacity-80">{moto.year ?? "—"} · {moto.price_tnd != null ? `${moto.price_tnd} TND` : "—"}</p>
-          {/* Ajoute ici tes sections de caractéristiques techniques */}
         </div>
       </div>
+
+      {/* Fiche technique */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Fiche technique</h2>
+        <div className="space-y-4">
+          {groupsWithData.map(({ group, rows }) => (
+            <div key={group.id} className="rounded-lg border border-white/10">
+              <div className="px-4 py-2 font-semibold">{group.name}</div>
+              <div className="px-4 pb-3">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                  {rows.map(({ it, val }) => (
+                    <div key={it.id} className="py-2 border-b border-white/5 sm:border-b-0">
+                      <dt className="text-sm opacity-75">{it.label}</dt>
+                      <dd className="text-sm">{val}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
