@@ -1,8 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from '@/lib/supabaseClient'
 
 export type MotoCard = {
   id: string
@@ -24,11 +20,21 @@ export async function fetchMotoCards(limit = 24): Promise<MotoCard[]> {
   return data as MotoCard[]
 }
 
-export async function fetchMotoFull(motoId: string): Promise<any> {
-  const { data, error } = await supabase
-    .rpc('fn_get_moto_full', { p_moto_id: motoId })
-  if (error) throw error
-  return data // JSON complet (brand, model, price_tnd, images[], specs[])
+export async function getMotoFull(id: string): Promise<any> {
+  const { data, error } = await supabase.rpc('fn_get_moto_full', {
+    p_moto_id: id,
+  })
+
+  if (error) {
+    console.error('getMotoFull error', error)
+    throw new Error('MOTO_NOT_FOUND')
+  }
+
+  if (!data) {
+    throw new Error('MOTO_NOT_FOUND')
+  }
+
+  return data
 }
 
 export function formatTND(v?: number | null) {
