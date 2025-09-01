@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { FacetGroup, Filters, Range } from '@/types/filters'
+import { FacetGroup } from '@/types/filters'
+import { Filters, Range } from '@/hooks/useMotoSearch'
 import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -12,49 +12,78 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 interface FiltersPanelProps {
   facets: FacetGroup[]
   filters: Filters
-  onChange: (updater: (prev: Filters) => Filters) => void
+  onChange: (next: Filters) => void
 }
 
 export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
   const updateFilter = (key: string, value: any) => {
-    onChange(prev => {
-      if (key === 'price' || key === 'year' || key === 'brand_ids') {
-        return { ...prev, [key]: value }
+    const next: Filters = { ...filters }
+    if (key === 'price' || key === 'year' || key === 'brand_ids') {
+      if (
+        value === undefined ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && 'min' in value && 'max' in value && value.min === undefined && value.max === undefined)
+      ) {
+        delete (next as any)[key]
+      } else {
+        ;(next as any)[key] = value
       }
-      return {
-        ...prev,
-        specs: { ...prev.specs, [key]: value },
+    } else {
+      const specs = { ...(next.specs || {}) }
+      if (
+        value === undefined ||
+        (typeof value === 'string' && value === '') ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && 'in' in value && (value.in?.length ?? 0) === 0) ||
+        (typeof value === 'object' && !('in' in value) && (value as Range).min === undefined && (value as Range).max === undefined)
+      ) {
+        delete specs[key]
+      } else {
+        specs[key] = value
       }
-    })
+      if (Object.keys(specs).length === 0) delete next.specs
+      else next.specs = specs
+    }
+    onChange(next)
   }
 
-  const renderNumber = (itemKey: string, unit?: string | null, min?: number | null, max?: number | null) => {
+  const renderNumber = (itemKey: string, item: any) => {
     const range =
       (itemKey === 'price' || itemKey === 'year'
         ? (filters as any)[itemKey]
         : filters.specs?.[itemKey]) as Range | undefined
-    const value: [number, number] = [
-      range?.min ?? (min ?? 0),
-      range?.max ?? (max ?? 0),
+    const sliderValue: [number, number] = [
+      range?.min ?? (item.min ?? 0),
+      range?.max ?? (item.max ?? 0),
     ]
+    const handleInput = (type: 'min' | 'max', val: string) => {
+      const num = val === '' ? undefined : parseFloat(val)
+      const next: Range = { ...range, [type]: num }
+      updateFilter(itemKey, next)
+    }
     return (
       <div className="space-y-2">
         <Slider
-          min={min ?? 0}
-          max={max ?? 0}
+          min={item.min ?? 0}
+          max={item.max ?? 0}
           step={1}
-          value={value}
-          onValueChange={v =>
-            updateFilter(itemKey, { min: v[0], max: v[1] })
-          }
+          value={sliderValue}
+          aria-label={`${item.label} ${item.unit ?? ''}`}
+          onValueChange={v => updateFilter(itemKey, { min: v[0], max: v[1] })}
         />
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>
-            {value[0]} {unit}
-          </span>
-          <span>
-            {value[1]} {unit}
-          </span>
+        <div className="flex gap-2">
+          <Input
+            type="number"
+            aria-label={`${item.label} min`}
+            value={range?.min ?? ''}
+            onChange={e => handleInput('min', e.target.value)}
+          />
+          <Input
+            type="number"
+            aria-label={`${item.label} max`}
+            value={range?.max ?? ''}
+            onChange={e => handleInput('max', e.target.value)}
+          />
         </div>
       </div>
     )
@@ -65,16 +94,12 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
       (itemKey === 'price' || itemKey === 'year'
         ? undefined
         : (filters.specs?.[itemKey] as boolean | undefined)) ?? undefined
-    const value =
-      current === undefined ? 'all' : current ? 'true' : 'false'
+    const value = current === undefined ? 'all' : current ? 'true' : 'false'
     return (
       <RadioGroup
         value={value}
         onValueChange={v =>
-          updateFilter(
-            itemKey,
-            v === 'all' ? undefined : v === 'true'
-          )
+          updateFilter(itemKey, v === 'all' ? undefined : v === 'true')
         }
         className="flex gap-4"
       >
@@ -99,12 +124,6 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
       (itemKey === 'brand_ids'
         ? filters.brand_ids
         : (filters.specs?.[itemKey] as string[] | undefined)) ?? []
-    const [search, setSearch] = useState('')
-    const [expanded, setExpanded] = useState(false)
-    const filtered = options?.filter(o =>
-      o.value.toLowerCase().includes(search.toLowerCase())
-    ) || []
-    const display = expanded ? filtered : filtered.slice(0, 10)
     const toggle = (val: string, chk: boolean) => {
       const next = chk
         ? [...selected, val]
@@ -112,43 +131,38 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
       updateFilter(itemKey, next)
     }
     return (
-      <div className="space-y-2">
-        {options && options.length > 10 && (
-          <Input
-            placeholder="Recherche..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        )}
-        <div className="space-y-1 max-h-60 overflow-y-auto">
-          {display.map(o => (
-            <Label
-              key={o.value}
-              className="flex items-center gap-2 text-sm"
-            >
-              <Checkbox
-                checked={selected.includes(o.value)}
-                onCheckedChange={chk => toggle(o.value, !!chk)}
-              />
-              {o.value} ({o.count})
-            </Label>
-          ))}
-        </div>
-        {filtered.length > 10 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded(e => !e)}
-          >
-            {expanded ? 'Voir moins' : 'Voir plus'}
-          </Button>
-        )}
+      <div className="space-y-1 max-h-60 overflow-y-auto">
+        {options?.map(o => (
+          <Label key={o.value} className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={selected.includes(o.value)}
+              onCheckedChange={chk => toggle(o.value, !!chk)}
+            />
+            {o.value} ({o.count})
+          </Label>
+        ))}
+      </div>
+    )
+  }
+
+  if (facets.length === 0) {
+    return (
+      <div className="p-4 text-sm text-muted-foreground">
+        Aucune facette disponible
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onChange({})}
+        className="mb-2"
+      >
+        Réinitialiser tout
+      </Button>
       {facets.map(group => (
         <div key={group.group} className="space-y-4">
           <h4 className="font-semibold">{group.group_label ?? group.group}</h4>
@@ -157,8 +171,7 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
               <Label className="text-sm font-medium">
                 {item.label || item.key}
               </Label>
-              {item.type === 'number' &&
-                renderNumber(item.key, item.unit, item.min, item.max)}
+              {item.type === 'number' && renderNumber(item.key, item)}
               {item.type === 'boolean' && renderBoolean(item.key)}
               {(item.type === 'enum' || item.type === 'text') &&
                 renderEnum(item.key, item.dist_text)}
