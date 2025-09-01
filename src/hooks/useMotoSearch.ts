@@ -1,117 +1,101 @@
-'use client'
+import { useEffect, useState } from 'react';
 
-import { useEffect, useState } from 'react'
-
-export type Range = { min?: number; max?: number }
+export type Range = { min?: number; max?: number };
 export type Filters = {
-  price?: Range
-  year?: Range
-  brand_ids?: string[]
-  specs?: Record<string, boolean | string | string[] | Range | { in: string[] }>
-}
+  price?: Range;
+  year?: Range;
+  brand_ids?: string[];
+  specs?: Record<string, boolean | string | string[] | Range | { in: string[] }>;
+};
 
 export function cleanFilters(input: Filters): Filters {
-  const output: Filters = {}
-  if (input.price && (input.price.min !== undefined || input.price.max !== undefined)) {
-    output.price = { ...input.price }
-  }
-  if (input.year && (input.year.min !== undefined || input.year.max !== undefined)) {
-    output.year = { ...input.year }
-  }
-  if (input.brand_ids && input.brand_ids.length > 0) {
-    output.brand_ids = [...input.brand_ids]
-  }
+  const out: Filters = {};
+  if (input.price && (input.price.min != null || input.price.max != null)) out.price = input.price;
+  if (input.year && (input.year.min != null || input.year.max != null)) out.year = input.year;
+  if (input.brand_ids && input.brand_ids.length) out.brand_ids = input.brand_ids;
+
   if (input.specs) {
-    const specs: Filters['specs'] = {}
-    for (const [key, value] of Object.entries(input.specs)) {
-      if (value === undefined || value === null) continue
-      if (typeof value === 'string') {
-        if (value !== '') specs[key] = value
-      } else if (typeof value === 'boolean') {
-        specs[key] = value
-      } else if (Array.isArray(value)) {
-        if (value.length > 0) specs[key] = value
-      } else if ('in' in value) {
-        if (Array.isArray(value.in) && value.in.length > 0) specs[key] = { in: [...value.in] }
-      } else {
-        const range = value as Range
-        if (range.min !== undefined || range.max !== undefined) {
-          specs[key] = { ...range }
-        }
+    const s: NonNullable<Filters['specs']> = {};
+    for (const [k, v] of Object.entries(input.specs)) {
+      if (v === undefined || v === null) continue;
+      if (typeof v === 'string' && v.trim() === '') continue;
+      if (Array.isArray(v) && v.length === 0) continue;
+      if (typeof v === 'object' && !Array.isArray(v)) {
+        const hasAny =
+          ('min' in v && (v as any).min != null) ||
+          ('max' in v && (v as any).max != null) ||
+          ('in' in v && Array.isArray((v as any).in) && (v as any).in.length > 0);
+        if (!hasAny) continue;
       }
+      s[k] = v as any;
     }
-    if (specs && Object.keys(specs).length > 0) {
-      output.specs = specs
-    }
+    if (Object.keys(s).length) out.specs = s;
   }
-  return output
+  return out;
+}
+
+function normalizeRows(rows: any[]): any[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.map((r: any) => {
+    if (r && typeof r === 'object') {
+      if ('fn_search_motos' in r) return (r as any).fn_search_motos; // cas actuel
+      if ('j' in r) return (r as any).j;                              // variante aliasée
+      return r;                                                       // déjà l'objet moto
+    }
+    return r;
+  });
 }
 
 export function useMotoSearch(filters: Filters, page: number) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const [motos, setMotos] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [lastRequest, setLastRequest] = useState<any>(null)
-  const [lastResponse, setLastResponse] = useState<any>(null)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  const [motos, setMotos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastRequest, setLastRequest] = useState<any>(null);
+  const [lastResponse, setLastResponse] = useState<any>(null);
 
   useEffect(() => {
-    if (!url || !anon) return
-    const controller = new AbortController()
+    let cancelled = false;
     async function run() {
+      setLoading(true);
+      setError(null);
       const body = {
         p_filters: cleanFilters(filters),
         p_limit: 24,
-        p_offset: page * 24,
-      }
+        p_offset: Math.max(0, page) * 24,
+      };
+      setLastRequest(body);
       try {
-        console.debug('[filters->RPC]', body.p_filters)
-        setLoading(true)
-        setLastRequest(body)
         const res = await fetch(`${url}/rest/v1/rpc/fn_search_motos`, {
           method: 'POST',
           headers: {
+            apikey: anon,
+            Authorization: `Bearer ${anon}`,
             'Content-Type': 'application/json',
-            apikey: anon!,
-            Authorization: `Bearer ${anon!}`,
           },
           body: JSON.stringify(body),
-          signal: controller.signal,
-        })
-        const rows = await res.json().catch(() => [])
-        setLastResponse(rows)
-        if (res.status === 401 || res.status === 403) {
-          setMotos([])
-          setError(String(res.status))
-          return
-        }
-        console.debug('[RPC->rows]', rows)
-        let list: any[] = []
-        if (Array.isArray(rows)) {
-          if (rows.every(r => r && typeof r === 'object' && 'j' in r)) {
-            list = rows.map((r: any) => r.j)
-          } else if (rows.every(r => typeof r === 'object')) {
-            list = rows as any[]
-          }
-        } else if (rows && typeof rows === 'object') {
-          list = [rows]
-        }
-        setMotos(list)
-        setError(null)
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setError(err.message ?? String(err))
-        }
+        });
+        const raw = await res.json().catch(() => null);
+        setLastResponse(raw);
+        if (!res.ok) throw new Error(`HTTP ${res.status} – ${JSON.stringify(raw)}`);
+        const list = normalizeRows(raw);
+        if (!cancelled) setMotos(list);
+        // logs dev
+        console.debug('[filters->RPC]', body.p_filters);
+        console.debug('[RPC->rows]', raw);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? 'Unknown error');
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false);
       }
     }
-    run()
-    return () => controller.abort()
-  }, [filters, page, url, anon])
+    // IMPORTANT: aucun debounce → chaque changement déclenche la requête
+    run();
+    return () => { cancelled = true; };
+  }, [filters, page, url, anon]);
 
-  return { motos, loading, error, lastRequest, lastResponse }
+  return { motos, loading, error, lastRequest, lastResponse };
 }
 
-export default useMotoSearch

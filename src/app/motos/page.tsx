@@ -44,20 +44,15 @@ export default function MotosPage() {
   const [filters, setFilters] = useState<Filters>(init.filters)
   const [page, setPage] = useState(init.page)
   const { facets, error: facetsError } = useMotoFacets()
-  const {
-    motos,
-    loading,
-    error,
-    lastRequest,
-    lastResponse,
-  } = useMotoSearch(filters, page)
+  const { motos, loading, error, lastRequest, lastResponse } = useMotoSearch(
+    filters,
+    page
+  )
   const [diagOpen, setDiagOpen] = useState(false)
-  const [testResult, setTestResult] = useState<any>(null)
   const blocked =
-    error === '401' ||
-    error === '403' ||
-    facetsError === '401' ||
-    facetsError === '403'
+    (error && (error.includes('HTTP 401') || error.includes('HTTP 403'))) ||
+    (facetsError &&
+      (facetsError.includes('HTTP 401') || facetsError.includes('HTTP 403')))
 
   // update URL when filters or page change
   useEffect(() => {
@@ -67,7 +62,28 @@ export default function MotosPage() {
   }, [filters, page])
 
   const handleFilterChange = (next: Filters) => {
-    setFilters(next)
+    const parseRange = (r?: Range): Range | undefined =>
+      r
+        ? {
+            min: r.min != null ? parseFloat(String(r.min)) : undefined,
+            max: r.max != null ? parseFloat(String(r.max)) : undefined,
+          }
+        : undefined
+    const normalized: Filters = { ...next }
+    if (normalized.price) normalized.price = parseRange(normalized.price)
+    if (normalized.year) normalized.year = parseRange(normalized.year)
+    if (normalized.specs) {
+      const s: NonNullable<Filters['specs']> = {}
+      for (const [k, v] of Object.entries(normalized.specs)) {
+        if (v && typeof v === 'object' && !Array.isArray(v) && !('in' in v)) {
+          s[k] = parseRange(v as Range) as any
+        } else {
+          s[k] = v as any
+        }
+      }
+      normalized.specs = s
+    }
+    setFilters(normalized)
     setPage(0)
   }
 
@@ -200,21 +216,6 @@ export default function MotosPage() {
     }
   }
 
-  async function runTest() {
-    if (!supabaseUrl || !supabaseAnon) return
-    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/fn_search_motos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: supabaseAnon,
-        Authorization: `Bearer ${supabaseAnon}`,
-      },
-      body: JSON.stringify({ p_filters: {}, p_limit: 8, p_offset: 0 }),
-    })
-    const data = await res.json().catch(() => null)
-    setTestResult(data)
-  }
-
   return (
     <div className="p-4 space-y-4">
       {blocked && (
@@ -305,19 +306,6 @@ export default function MotosPage() {
             </Button>
             {diagOpen && (
               <div className="mt-2 border p-4 space-y-2 text-sm">
-                <div>Environnement</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(
-                    {
-                      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-                      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnon
-                        ? `****${supabaseAnon.slice(-6)}`
-                        : null,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
                 <div>lastRequest</div>
                 <pre className="overflow-x-auto">
                   {JSON.stringify(lastRequest, null, 2)}
@@ -326,14 +314,6 @@ export default function MotosPage() {
                 <pre className="overflow-x-auto">
                   {JSON.stringify(lastResponse, null, 2)}
                 </pre>
-                <Button size="sm" onClick={runTest}>
-                  Tester sans filtres
-                </Button>
-                {testResult && (
-                  <pre className="overflow-x-auto">
-                    {JSON.stringify(testResult, null, 2)}
-                  </pre>
-                )}
               </div>
             )}
           </div>
