@@ -17,7 +17,7 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-const IMG_EXT = /(\.png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
+const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)$/i;
 const isHttpUrl = (s: any) => typeof s === "string" && /^https?:\/\//i.test(s) && IMG_EXT.test(s);
 const looksLikePath = (s: any) => typeof s === "string" && IMG_EXT.test(s) && !/^https?:\/\//i.test(s);
 
@@ -44,13 +44,6 @@ function asImageUrl(val: any): string | null {
   } catch {}
   return null;
 }
-function buildFromBrandModel(brand: any, model: any): string[] {
-  const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
-  const brandSlug = slugify(String(brand || ""));
-  const modelSlug = slugify(String(model || ""));
-  const base = `${bucket}/${brandSlug}-${modelSlug}`;
-  return ["1.webp","cover.webp","1.jpg","1.jpeg","1.png","main.webp","2.webp"].map((n)=>`${base}/${n}`);
-}
 function sniffImageFromRecord(m: any): string | null {
   const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail","image","img"];
   for (const k of commons) { const v = (m as any)?.[k]; const url = asImageUrl(v); if (url) return url; }
@@ -60,14 +53,22 @@ function sniffImageFromRecord(m: any): string | null {
     if (Array.isArray(v)) { for (const x of v) { const url = asImageUrl(x); if (url) return url; } }
     else { const url = asImageUrl(v); if (url) return url; }
   }
-  const brandName = (m.brands?.name || m.brand_name || m.brand || "").toString();
-  const modelName = (m.model_name || m.model || "").toString();
-  const candidates = buildFromBrandModel(brandName, modelName);
-  for (const c of candidates) {
-    const u = toPublicStorageUrl(c.replace(/^[^/]+\//, "").replace(/^motos\//, "")) || `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${c}`;
-    if (u) return u;
-  }
   return null;
+}
+
+async function listImagesForDetail(
+  supabase: ReturnType<typeof createClient>,
+  brandName: string | null | undefined,
+  modelName: string | null | undefined
+): Promise<string[]> {
+  const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
+  const folder = `${slugify(String(brandName || ""))}-${slugify(String(modelName || ""))}`;
+  if (!folder.replace(/-/g, "")) return [];
+  const { data } = await supabase.storage
+    .from(bucket)
+    .list(folder, { limit: 100, sortBy: { column: "name", order: "asc" } });
+  const files = (data || []).filter((f) => IMG_EXT.test(f.name));
+  return files.map((f) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl);
 }
 
 const fmtInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
@@ -85,7 +86,13 @@ export default async function MotoDetail({ params }: { params: { id: string } })
     return <div className="max-w-4xl mx-auto px-4 py-10">Moto introuvable.</div>;
   }
 
-  const img = sniffImageFromRecord(moto);
+  // Galerie complète via Storage.list
+  let gallery = await listImagesForDetail(supabase, moto.brands?.name ?? (moto as any).brand_name, moto.model_name ?? (moto as any).model);
+  if (!gallery || gallery.length === 0) {
+    const first = sniffImageFromRecord(moto);
+    gallery = first ? [first] : [];
+  }
+  const hero = gallery[0] ?? null;
 
   const { data: groups } = await supabase
     .from("spec_groups")
@@ -124,24 +131,35 @@ export default async function MotoDetail({ params }: { params: { id: string } })
     }
   }
 
-  const groupsWithData = (groups || []).map((g: any) => {
-    const its = (items || []).filter((it: any) => it.group_id === g.id);
-    const rows = its.map((it: any) => ({ it, val: renderValue(it) })).filter((x: any) => x.val !== null);
+  const groupsWithData = (groups || []).map((g: Group) => {
+    const its = (items || []).filter((it: Item) => it.group_id === g.id);
+    const rows = its.map((it) => ({ it, val: renderValue(it) })).filter((x) => x.val !== null);
     return { group: g, rows };
-  }).filter((g: any) => g.rows.length > 0);
+  }).filter((g) => g.rows.length > 0);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-white/10 overflow-hidden">
           <div className="aspect-[4/3] bg-black/10">
-            {img ? (
-              <img src={img} alt={`${moto.brands?.name ?? ""} ${moto.model_name ?? ""}`} className="w-full h-full object-cover" />
+            {hero ? (
+              <img src={hero} alt={`${moto.brands?.name ?? ""} ${moto.model_name ?? ""}`} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-sm opacity-60">Pas d'image</div>
             )}
           </div>
+          {/* Bande de miniatures */}
+          {gallery.length > 1 && (
+            <div className="px-3 py-2 overflow-x-auto">
+              <div className="flex gap-2">
+                {gallery.slice(1).map((u, i) => (
+                  <img key={u + i} src={u} alt="miniature" className="h-16 w-24 object-cover rounded border border-white/10 flex-shrink-0" />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">{moto.brands?.name ?? "—"} {moto.model_name ?? ""}</h1>
           <p className="opacity-80">{moto.year ?? "—"} · {moto.price_tnd != null ? `${moto.price_tnd} TND` : "—"}</p>
@@ -151,12 +169,12 @@ export default async function MotoDetail({ params }: { params: { id: string } })
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Fiche technique</h2>
         <div className="space-y-4">
-          {groupsWithData.map(({ group, rows }: any) => (
+          {groupsWithData.map(({ group, rows }) => (
             <div key={group.id} className="rounded-lg border border-white/10">
               <div className="px-4 py-2 font-semibold">{group.name}</div>
               <div className="px-4 pb-3">
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                  {rows.map(({ it, val }: any) => (
+                  {rows.map(({ it, val }) => (
                     <div key={it.id} className="py-2 border-b border-white/5 sm:border-b-0">
                       <dt className="text-sm opacity-75">{it.label}</dt>
                       <dd className="text-sm">{val}</dd>
