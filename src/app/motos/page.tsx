@@ -84,7 +84,7 @@ function normalizeLabel(s: string) {
   return s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // <-- CORRECT: enlève les accents
+    .replace(/[\u0300-\u036f]/g, "") // enlève les accents
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -201,7 +201,7 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
             brands={brands}
             initialF={fRaw || ""}
             initialFilters={filters}
-            specSchema={specSchema}
+            specSchema={specSchema as any}
             priceRange={rangesGlobal.price}
             yearRange={rangesGlobal.year}
           />
