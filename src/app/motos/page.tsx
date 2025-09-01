@@ -54,77 +54,62 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+/** ---------- Image helpers ---------- */
 const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
 const isHttpUrl = (s: any) => typeof s === "string" && /^https?:\/\//i.test(s) && IMG_EXT.test(s);
 const looksLikePath = (s: any) => typeof s === "string" && IMG_EXT.test(s) && !/^https?:\/\//i.test(s);
+const firstSeg = (p: string) => p.replace(/^\/+/, "").split("/")[0] || "";
 
-/** Transforme une valeur en URL d'image :
- * - Si HTTP(S) -> garde
- * - Si chemin "bucket/key.jpg" -> construit URL publique Supabase
- */
+function toPublicStorageUrl(pathLike: string): string | null {
+  const supa = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supa) return null;
+  const DEFAULT_BUCKET = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
+  let p = String(pathLike).trim().replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!IMG_EXT.test(p)) return null;
+  const seg0 = firstSeg(p).toLowerCase();
+  const known = new Set([DEFAULT_BUCKET.toLowerCase(), "public", "images", "motos", "photos", "gallery"]);
+  if (!known.has(seg0)) p = `${DEFAULT_BUCKET}/${p}`;
+  return `${supa.replace(/\/+$/,"")}/storage/v1/object/public/${p}`;
+}
 function asImageUrl(val: any): string | null {
   if (!val) return null;
   if (isHttpUrl(val)) return val;
-  if (looksLikePath(val)) {
-    const supa = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!supa) return null;
-    const path = String(val).replace(/^\/+/, "");
-    const parts = path.split("/");
-    if (parts.length >= 2) {
-      const bucket = parts.shift();
-      const key = parts.join("/");
-      return `${supa}/storage/v1/object/public/${bucket}/${key}`;
+  if (looksLikePath(val)) return toPublicStorageUrl(String(val));
+  try {
+    if (typeof val === "string" && val.trim().startsWith("[")) {
+      const arr = JSON.parse(val);
+      if (Array.isArray(arr)) {
+        for (const x of arr) {
+          const u = asImageUrl(x);
+          if (u) return u;
+        }
+      }
     }
-    // Si la valeur n'a pas de bucket explicite, on tente tel quel
-    return `${supa}/storage/v1/object/public/${path}`;
-  }
+  } catch {}
   return null;
 }
-
 function sniffImageFromRecord(m: any): string | null {
-  const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail"];
-  for (const k of commons) {
-    const v = (m as any)?.[k];
-    const url = asImageUrl(v);
-    if (url) return url;
-  }
-  const listKeys = ["images","gallery","photos","imgs","pictures"];
+  const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail","image","img"];
+  for (const k of commons) { const v = (m as any)?.[k]; const url = asImageUrl(v); if (url) return url; }
+  const listKeys = ["images","gallery","photos","imgs","pictures","media"];
   for (const k of listKeys) {
     const v = (m as any)?.[k];
-    if (Array.isArray(v)) {
-      for (const x of v) {
-        const url = asImageUrl(x);
-        if (url) return url;
-      }
-    }
+    if (Array.isArray(v)) { for (const x of v) { const url = asImageUrl(x); if (url) return url; } }
+    else { const url = asImageUrl(v); if (url) return url; }
   }
-  for (const v of Object.values(m || {})) {
-    const url = asImageUrl(v);
-    if (url) return url;
-  }
+  for (const v of Object.values(m || {})) { const url = asImageUrl(v); if (url) return url; }
   const scanDeep = (val: any): string | null => {
     if (!val) return null;
-    const url = asImageUrl(val);
-    if (url) return url;
-    if (Array.isArray(val)) {
-      for (const x of val) {
-        const r = scanDeep(x);
-        if (r) return r;
-      }
-    } else if (typeof val === "object") {
-      for (const vv of Object.values(val)) {
-        const r = scanDeep(vv);
-        if (r) return r;
-      }
-    }
+    const u = asImageUrl(val);
+    if (u) return u;
+    if (Array.isArray(val)) { for (const x of val) { const r = scanDeep(x); if (r) return r; } }
+    else if (typeof val === "object") { for (const vv of Object.values(val)) { const r = scanDeep(vv); if (r) return r; } }
     return null;
   };
-  for (const v of Object.values(m || {})) {
-    const r = scanDeep(v);
-    if (r) return r;
-  }
+  for (const v of Object.values(m || {})) { const r = scanDeep(v); if (r) return r; }
   return null;
 }
+/** ---------- /Image helpers ---------- */
 
 export default async function Page({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   const supabase = getSupabase();
@@ -144,13 +129,26 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   const groups: SpecGroupRow[] = Array.isArray(groupsData) ? groupsData : [];
   const items: SpecItemRow[] = Array.isArray(itemsData) ? itemsData : [];
 
+  // Facettes dynamiques
   const { data: numericRanges } = await supabase.rpc("get_spec_numeric_ranges_filtered", { f });
   const ranges = (Array.isArray(numericRanges) ? numericRanges : []) as NumericRangeRow[];
-
   const { data: textOptions } = await supabase.rpc("get_spec_text_options_filtered", { f, limit_per_item: 50 });
   const options = (Array.isArray(textOptions) ? textOptions : []) as TextOptionRow[];
 
+  // Résultats (via RPC existante)
   const { data: motos } = await supabase.rpc("search_motos", { f });
+  const list = Array.isArray(motos) ? (motos as any[]) : [];
+
+  // ---- NOUVEAU : on récupère les colonnes images directement depuis la table 'motos' ----
+  const ids = list.map((x) => x.id).filter(Boolean);
+  let imageMap: Record<string, any> = {};
+  if (ids.length) {
+    const { data: rows } = await supabase
+      .from("motos")
+      .select("id, display_image, image_url, cover_url, cover, photo_url, photo, thumbnail_url, thumbnail, images, gallery, photos")
+      .in("id", ids);
+    for (const r of rows || []) imageMap[r.id] = r;
+  }
 
   const specSchema = (groups || []).map((g) => ({
     id: g.id,
@@ -175,8 +173,9 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         </aside>
         <main className="col-span-12 md:col-span-9 lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {(motos as any[] | null)?.map((m) => {
-              const img = sniffImageFromRecord(m);
+            {list.map((m) => {
+              const shadow = imageMap[m.id] || {};
+              const img = sniffImageFromRecord({ ...shadow, ...m });
               return (
                 <Link
                   key={m.id}
