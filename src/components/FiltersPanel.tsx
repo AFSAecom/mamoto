@@ -12,19 +12,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 interface FiltersPanelProps {
   facets: FacetGroup[]
   filters: Filters
-  onChange: (f: Filters) => void
+  onChange: (updater: (prev: Filters) => Filters) => void
 }
 
 export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
   const updateFilter = (key: string, value: any) => {
-    if (key === 'price' || key === 'year' || key === 'brand_ids') {
-      onChange({ ...filters, [key]: value })
-    } else {
-      onChange({
-        ...filters,
-        specs: { ...filters.specs, [key]: value },
-      })
-    }
+    onChange(prev => {
+      if (key === 'price' || key === 'year' || key === 'brand_ids') {
+        return { ...prev, [key]: value }
+      }
+      return {
+        ...prev,
+        specs: { ...prev.specs, [key]: value },
+      }
+    })
   }
 
   const renderNumber = (itemKey: string, unit?: string | null, min?: number | null, max?: number | null) => {

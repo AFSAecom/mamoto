@@ -84,8 +84,8 @@ export default function MotosPage() {
         <FiltersPanel
           facets={facets}
           filters={filters}
-          onChange={f => {
-            setFilters(f)
+          onChange={fn => {
+            setFilters(prev => fn(prev))
             setPage(0)
           }}
         />
