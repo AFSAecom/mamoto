@@ -1,7 +1,7 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /** ---------- Types ---------- */
@@ -28,6 +28,7 @@ export type SpecGroup = {
   }>;
 };
 type Range = { min: number; max: number };
+
 /** ---------- Utils ---------- */
 function utoa(json: string) {
   if (typeof window === "undefined") {
@@ -42,17 +43,9 @@ function encodeF(f: { filters: Filters; page: number }) {
   return b64;
 }
 const norm = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 
-/** ---------- DualRange (sans lib) ----------
- * Un seul "rail", deux poignées. Fonctionne en overlay de 2 <input type=range>,
- * avec un style dynamique sur la bande sélectionnée.
- */
+/** ---------- DualRange (single red rail + 2 thumbs) ---------- */
 function DualRange({
   min,
   max,
@@ -73,27 +66,27 @@ function DualRange({
   "aria-label"?: string;
 }) {
   const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
+  const roundToStep = (val: number) => Math.round(val / step) * step;
 
-  const percent = useCallback(
-    (v: number) => ((v - min) * 100) / (max - min || 1),
-    [min, max]
-  );
+  const percent = useCallback((v: number) => ((v - min) * 100) / (max - min || 1), [min, max]);
 
+  const railRef = useRef<HTMLDivElement | null>(null);
   const [localMin, setLocalMin] = useState(valueMin);
   const [localMax, setLocalMax] = useState(valueMax);
+  const [active, setActive] = useState<"min" | "max" | null>(null);
 
   useEffect(() => {
     setLocalMin(valueMin);
     setLocalMax(valueMax);
   }, [valueMin, valueMax]);
 
-  const onMin = (v: number) => {
-    const val = clamp(v, min, localMax);
+  const setMin = (v: number) => {
+    const val = clamp(roundToStep(v), min, localMax);
     setLocalMin(val);
     onChange({ min: val, max: localMax });
   };
-  const onMax = (v: number) => {
-    const val = clamp(v, localMin, max);
+  const setMax = (v: number) => {
+    const val = clamp(roundToStep(v), localMin, max);
     setLocalMax(val);
     onChange({ min: localMin, max: val });
   };
@@ -101,16 +94,31 @@ function DualRange({
   const pMin = percent(localMin);
   const pMax = percent(localMax);
 
+  const onRailClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = (railRef.current as HTMLDivElement).getBoundingClientRect();
+    const ratio = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+    const value = min + ratio * (max - min);
+    // place the nearest thumb
+    const distMin = Math.abs(value - localMin);
+    const distMax = Math.abs(value - localMax);
+    if (distMin <= distMax) setMin(value);
+    else setMax(value);
+  };
+
   return (
-    <div className="relative h-6 select-none" aria-label={ariaLabel}>
-      {/* rail */}
-      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded bg-white/20" />
-      {/* segment sélectionné */}
+    <div className="relative h-8 select-none" aria-label={ariaLabel}>
+      {/* Clickable rail */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 h-1 bg-blue-500 rounded"
-        style={{ left: `${pMin}%`, right: `${100 - pMax}%` }}
+        ref={railRef}
+        className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-4 rounded-full bg-white/20 cursor-pointer"
+        onMouseDown={onRailClick}
       />
-      {/* deux inputs range overlay */}
+      {/* selected segment (red, thicker like automobile.tn) */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full"
+        style={{ left: `${pMin}%`, right: `${100 - pMax}%`, background: "#E50019" }}
+      />
+      {/* min range */}
       <input
         id={id ? `${id}-min` : undefined}
         type="range"
@@ -118,9 +126,12 @@ function DualRange({
         max={max}
         step={step}
         value={localMin}
-        onChange={(e) => onMin(Number(e.target.value))}
-        className="range-thumb absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full bg-transparent appearance-none pointer-events-auto"
+        onMouseDown={() => setActive("min")}
+        onTouchStart={() => setActive("min")}
+        onChange={(e) => setMin(Number(e.target.value))}
+        className={`range-thumb absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full bg-transparent appearance-none pointer-events-auto ${active==="min" ? "z-20" : "z-10"}`}
       />
+      {/* max range */}
       <input
         id={id ? `${id}-max` : undefined}
         type="range"
@@ -128,46 +139,49 @@ function DualRange({
         max={max}
         step={step}
         value={localMax}
-        onChange={(e) => onMax(Number(e.target.value))}
-        className="range-thumb absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full bg-transparent appearance-none pointer-events-auto"
+        onMouseDown={() => setActive("max")}
+        onTouchStart={() => setActive("max")}
+        onChange={(e) => setMax(Number(e.target.value))}
+        className={`range-thumb absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full bg-transparent appearance-none pointer-events-auto ${active==="max" ? "z-20" : "z-10"}`}
       />
       <style jsx>{`
+        /* Larger thumbs for easy grab */
         .range-thumb::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 9999px;
-          background: white;
-          border: 2px solid #3b82f6; /* blue-500 */
+          background: #fff;
+          border: 2px solid #E50019; /* automotive red */
+          box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
           cursor: pointer;
           position: relative;
-          z-index: 2;
         }
         .range-thumb::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 9999px;
-          background: white;
-          border: 2px solid #3b82f6;
+          background: #fff;
+          border: 2px solid #E50019;
+          box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
           cursor: pointer;
           position: relative;
-          z-index: 2;
         }
         .range-thumb::-webkit-slider-runnable-track {
           background: transparent;
-          height: 1px;
+          height: 14px; /* ensures big clickable area */
         }
         .range-thumb::-moz-range-track {
           background: transparent;
-          height: 1px;
+          height: 14px;
         }
       `}</style>
     </div>
   );
 }
 
-/** ---------- Composant principal ---------- */
+/** ---------- Component ---------- */
 export default function FiltersLeft({
   brands,
   initialF = "",
@@ -197,7 +211,7 @@ export default function FiltersLeft({
     year_max: initialFilters.year_max ?? yearDefaults.max,
   }));
 
-  // push URL
+  // push URL à chaque changement
   useEffect(() => {
     const fEnc = encodeF({ filters, page: 0 });
     const q = new URLSearchParams(searchParams?.toString());
@@ -208,9 +222,8 @@ export default function FiltersLeft({
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-  /** Détections spécifiques demandées */
-  const forceNumericIds = useMemo(() => {
-    // labels que tu veux FORCEMENT en sliders 2 curseurs
+  /** Forcer certains labels en slider numérique même si range manque */
+  const forcedNumericLabels = useMemo(() => {
     const must = new Set(["cylindree", "puissance", "nb rapports", "couple"]);
     const ids: string[] = [];
     for (const g of specSchema || []) {
@@ -341,10 +354,9 @@ export default function FiltersLeft({
             <summary className="cursor-pointer text-sm font-semibold">{g.name}</summary>
             <div className="mt-3 space-y-4">
               {g.items.map((it) => {
-                const labelN = norm(it.label);
-                const isForcedNumeric = forceNumericIds.has(it.id);
+                const isForcedNumeric = forcedNumericLabels.has(it.id);
 
-                // Boolean spéciaux (ABS / Contrôle de traction)
+                // Booleans (ABS / contrôle traction)
                 if (isBooleanLabel(it.label)) {
                   const current = (filters.specs?.[it.id] as any) || {};
                   const val: "all" | "yes" | "no" = current.bool ?? "all";
@@ -375,11 +387,12 @@ export default function FiltersLeft({
 
                 const isNumeric = isForcedNumeric || it.data_type === "numeric";
                 if (isNumeric) {
-                  const rmin = it.range?.min_value ?? 0;
-                  const rmax = it.range?.max_value ?? 0;
+                  // si aucune range en DB -> fallback inputs sans slider
+                  const rmin = it.range?.min_value ?? null;
+                  const rmax = it.range?.max_value ?? null;
                   const current = (filters.specs?.[it.id] as any) || {};
-                  const vmin = current.min ?? rmin;
-                  const vmax = current.max ?? rmax;
+                  const vmin = current.min ?? (rmin ?? 0);
+                  const vmax = current.max ?? (rmax ?? (vmin + 1));
 
                   return (
                     <div key={it.id}>
@@ -398,14 +411,11 @@ export default function FiltersLeft({
                           type="number"
                           className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
                           value={vmin}
-                          min={rmin ?? 0}
-                          max={vmax ?? rmax ?? 0}
                           onChange={(e) => {
-                            const v = Number(e.target.value || rmin || 0);
-                            const minClamped = isFinite(v) ? v : (rmin || 0);
+                            const val = Number(e.target.value || 0);
                             setFilters((f) => ({
                               ...f,
-                              specs: { ...(f.specs || {}), [it.id]: { ...current, min: Math.min(minClamped, vmax) } },
+                              specs: { ...(f.specs || {}), [it.id]: { ...current, min: val } },
                             }));
                           }}
                         />
@@ -413,37 +423,37 @@ export default function FiltersLeft({
                           type="number"
                           className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
                           value={vmax}
-                          min={vmin ?? rmin ?? 0}
-                          max={rmax ?? vmax ?? 0}
                           onChange={(e) => {
-                            const v = Number(e.target.value || rmax || 0);
-                            const maxClamped = isFinite(v) ? v : (rmax || 0);
+                            const val = Number(e.target.value || 0);
                             setFilters((f) => ({
                               ...f,
-                              specs: { ...(f.specs || {}), [it.id]: { ...current, max: Math.max(maxClamped, vmin) } },
+                              specs: { ...(f.specs || {}), [it.id]: { ...current, max: val } },
                             }));
                           }}
                         />
                       </div>
-                      <DualRange
-                        min={rmin ?? 0}
-                        max={rmax ?? Math.max((rmin ?? 0) + 1, 1)}
-                        step={1}
-                        valueMin={vmin ?? rmin ?? 0}
-                        valueMax={vmax ?? rmax ?? 0}
-                        onChange={({ min, max }) => {
-                          setFilters((f) => ({
-                            ...f,
-                            specs: { ...(f.specs || {}), [it.id]: { ...current, min, max } },
-                          }));
-                        }}
-                        aria-label={it.label}
-                      />
+
+                      {rmin !== null && rmax !== null && rmin !== rmax && (
+                        <DualRange
+                          min={rmin}
+                          max={rmax}
+                          step={1}
+                          valueMin={vmin}
+                          valueMax={vmax}
+                          onChange={({ min, max }) => {
+                            setFilters((f) => ({
+                              ...f,
+                              specs: { ...(f.specs || {}), [it.id]: { ...current, min, max } },
+                            }));
+                          }}
+                          aria-label={it.label}
+                        />
+                      )}
                     </div>
                   );
                 }
 
-                // Text options (checkboxes). Affiche les counts.
+                // Text options (checkboxes) avec counts
                 const current = (filters.specs?.[it.id] as any) || {};
                 const values: string[] = current.values || [];
                 return (
