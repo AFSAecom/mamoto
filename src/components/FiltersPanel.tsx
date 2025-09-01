@@ -42,7 +42,8 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
         !('in' in value && Array.isArray((value as any).in) && (value as any).in.length > 0))
     if (shouldRemove) delete specs[key]
     else specs[key] = value
-    next.specs = specs
+    if (Object.keys(specs).length) next.specs = specs
+    else delete next.specs
     onChange(next)
   }
 
@@ -115,14 +116,13 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
     )
   }
 
-  const renderEnum = (
-    itemKey: string,
+  interface EnumFacetProps {
+    itemKey: string
     options: { value: string; count: number }[] | null | undefined
-  ) => {
-    const selected: string[] =
-      (itemKey === 'brand_ids'
-        ? filters.brand_ids
-        : (filters.specs?.[itemKey] as string[] | undefined)) ?? []
+    selected: string[]
+  }
+
+  function EnumFacet({ itemKey, options, selected }: EnumFacetProps) {
     const [search, setSearch] = useState('')
     const [expanded, setExpanded] = useState(false)
     const filtered =
@@ -132,7 +132,7 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
       const next = chk
         ? [...selected, val]
         : selected.filter(v => v !== val)
-      updateFilter(itemKey, next)
+      updateFilter(itemKey, next.length ? next : undefined)
     }
     return (
       <div className="space-y-2">
@@ -180,8 +180,17 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
               {item.type === 'number' &&
                 renderNumber(item.key, item.unit, item.min, item.max)}
               {item.type === 'boolean' && renderBoolean(item.key)}
-              {(item.type === 'enum' || item.type === 'text') &&
-                renderEnum(item.key, item.dist_text)}
+              {(item.type === 'enum' || item.type === 'text') && (
+                <EnumFacet
+                  itemKey={item.key}
+                  options={item.dist_text}
+                  selected={
+                    item.key === 'brand_ids'
+                      ? filters.brand_ids ?? []
+                      : (filters.specs?.[item.key] as string[] | undefined) ?? []
+                  }
+                />
+              )}
             </div>
           ))}
         </div>
