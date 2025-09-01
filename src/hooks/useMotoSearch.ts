@@ -22,7 +22,8 @@ export function useMotoSearch(filters: Filters, page: number) {
 
   useEffect(() => {
     const controller = new AbortController()
-    const timer = setTimeout(async () => {
+
+    async function run() {
       try {
         setLoading(true)
         const res = await fetch(
@@ -55,11 +56,12 @@ export function useMotoSearch(filters: Filters, page: number) {
       } finally {
         setLoading(false)
       }
-    }, 300)
+    }
+
+    run()
 
     return () => {
       controller.abort()
-      clearTimeout(timer)
     }
   }, [filters, page])
 
