@@ -1,7 +1,7 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Brand = { id: string; name: string };
@@ -14,7 +14,7 @@ type Filters = {
   q?: string;
   specs?: Record<string, any>;
 };
-type SpecSchema = {
+export type SpecGroup = {
   id: string;
   name: string;
   items: Array<{
@@ -26,66 +26,69 @@ type SpecSchema = {
     options: Array<{ value: string; count: number }>;
   }>;
 };
-
 type Range = { min: number; max: number };
 
+function utoa(json: string) {
+  if (typeof window === "undefined") {
+    // @ts-ignore
+    return Buffer.from(json, "utf8").toString("base64");
+  }
+  return btoa(unescape(encodeURIComponent(json)));
+}
+function atou(b64: string) {
+  if (typeof window === "undefined") {
+    // @ts-ignore
+    return Buffer.from(b64, "base64").toString("utf8");
+  }
+  return decodeURIComponent(escape(atob(b64)));
+}
 function encodeF(f: { filters: Filters; page: number }) {
   const json = JSON.stringify(f);
-  const b64 = Buffer.from(json, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const b64 = utoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   return b64;
-}
-function decodeF(fRaw?: string | null): { filters: Filters; page: number } {
-  if (!fRaw) return { filters: {}, page: 0 };
-  try {
-    const pad = fRaw.length % 4 ? "=".repeat(4 - (fRaw.length % 4)) : "";
-    const std = fRaw.replace(/-/g, "+").replace(/_/g, "/") + pad;
-    const json = Buffer.from(std, "base64").toString("utf8");
-    const v = JSON.parse(json);
-    return { filters: v.filters || {}, page: typeof v.page === "number" ? v.page : 0 };
-  } catch {
-    return { filters: {}, page: 0 };
-  }
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
 }
 
 export default function FiltersLeft({
   brands,
-  initialF,
-  initialFilters,
-  specSchema,
+  initialF = "",
+  initialFilters = {},
+  specSchema = [],
   priceRange,
   yearRange,
 }: {
   brands: Brand[];
-  initialF: string;
-  initialFilters: Filters;
-  specSchema: SpecSchema[];
-  priceRange: Range;
-  yearRange: Range;
+  initialF?: string;
+  initialFilters?: Filters;
+  specSchema?: SpecGroup[];
+  priceRange?: Range;
+  yearRange?: Range;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const priceDefaults: Range = priceRange ?? { min: 0, max: 500000 };
+  const yearDefaults: Range = yearRange ?? { min: 1990, max: new Date().getFullYear() };
+
   const [filters, setFilters] = useState<Filters>(() => ({
     ...initialFilters,
+    price_min: initialFilters.price_min ?? priceDefaults.min,
+    price_max: initialFilters.price_max ?? priceDefaults.max,
+    year_min: initialFilters.year_min ?? yearDefaults.min,
+    year_max: initialFilters.year_max ?? yearDefaults.max,
   }));
 
-  // Valeurs par défaut dynamiques (si non définies dans l'URL)
-  const priceMin = filters.price_min ?? priceRange.min;
-  const priceMax = filters.price_max ?? priceRange.max;
-  const yearMin = filters.year_min ?? yearRange.min;
-  const yearMax = filters.year_max ?? yearRange.max;
-
-  // Sync URL à chaque modification
+  // Sync URL à chaque modif
   useEffect(() => {
     const fEnc = encodeF({ filters, page: 0 });
     const q = new URLSearchParams(searchParams?.toString());
     if (fEnc) q.set("f", fEnc);
     router.replace(`/motos?${q.toString()}`);
-  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
+  function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+  }
 
   return (
     <div className="space-y-5">
@@ -117,116 +120,116 @@ export default function FiltersLeft({
         />
       </div>
 
-      {/* Prix */}
+      {/* Prix (bornes dynamiques) */}
       <div>
         <div className="text-sm font-semibold mb-1">Prix</div>
         <div className="flex items-center gap-2">
           <input
             type="number"
             className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
-            value={priceMin}
-            min={priceRange.min}
-            max={priceRange.max}
+            value={filters.price_min ?? priceDefaults.min}
+            min={priceDefaults.min}
+            max={filters.price_max ?? priceDefaults.max}
             onChange={(e) => {
-              const v = clamp(Number(e.target.value || priceRange.min), priceRange.min, priceMax);
+              const v = clamp(Number(e.target.value || priceDefaults.min), priceDefaults.min, filters.price_max ?? priceDefaults.max);
               setFilters((f) => ({ ...f, price_min: v }));
             }}
           />
           <input
             type="number"
             className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
-            value={priceMax}
-            min={priceMin}
-            max={priceRange.max}
+            value={filters.price_max ?? priceDefaults.max}
+            min={filters.price_min ?? priceDefaults.min}
+            max={priceDefaults.max}
             onChange={(e) => {
-              const v = clamp(Number(e.target.value || priceRange.max), priceMin, priceRange.max);
+              const v = clamp(Number(e.target.value || priceDefaults.max), filters.price_min ?? priceDefaults.min, priceDefaults.max);
               setFilters((f) => ({ ...f, price_max: v }));
             }}
           />
         </div>
         <input
           type="range"
-          min={priceRange.min}
-          max={priceRange.max}
+          min={priceDefaults.min}
+          max={priceDefaults.max}
           step={100}
-          value={priceMin}
+          value={filters.price_min ?? priceDefaults.min}
           onChange={(e) => {
             const v = Number(e.target.value);
-            setFilters((f) => ({ ...f, price_min: Math.min(v, f.price_max ?? priceRange.max) }));
+            setFilters((f) => ({ ...f, price_min: Math.min(v, f.price_max ?? priceDefaults.max) }));
           }}
           className="w-full mt-2"
         />
         <input
           type="range"
-          min={priceRange.min}
-          max={priceRange.max}
+          min={priceDefaults.min}
+          max={priceDefaults.max}
           step={100}
-          value={priceMax}
+          value={filters.price_max ?? priceDefaults.max}
           onChange={(e) => {
             const v = Number(e.target.value);
-            setFilters((f) => ({ ...f, price_max: Math.max(v, f.price_min ?? priceRange.min) }));
+            setFilters((f) => ({ ...f, price_max: Math.max(v, f.price_min ?? priceDefaults.min) }));
           }}
           className="w-full -mt-1"
         />
       </div>
 
-      {/* Année */}
+      {/* Année (bornes dynamiques) */}
       <div>
         <div className="text-sm font-semibold mb-1">Année</div>
         <div className="flex items-center gap-2">
           <input
             type="number"
             className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
-            value={yearMin}
-            min={yearRange.min}
-            max={yearRange.max}
+            value={filters.year_min ?? yearDefaults.min}
+            min={yearDefaults.min}
+            max={filters.year_max ?? yearDefaults.max}
             onChange={(e) => {
-              const v = clamp(Number(e.target.value || yearRange.min), yearRange.min, yearMax);
+              const v = clamp(Number(e.target.value || yearDefaults.min), yearDefaults.min, filters.year_max ?? yearDefaults.max);
               setFilters((f) => ({ ...f, year_min: v }));
             }}
           />
           <input
             type="number"
             className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
-            value={yearMax}
-            min={yearMin}
-            max={yearRange.max}
+            value={filters.year_max ?? yearDefaults.max}
+            min={filters.year_min ?? yearDefaults.min}
+            max={yearDefaults.max}
             onChange={(e) => {
-              const v = clamp(Number(e.target.value || yearRange.max), yearMin, yearRange.max);
+              const v = clamp(Number(e.target.value || yearDefaults.max), filters.year_min ?? yearDefaults.min, yearDefaults.max);
               setFilters((f) => ({ ...f, year_max: v }));
             }}
           />
         </div>
         <input
           type="range"
-          min={yearRange.min}
-          max={yearRange.max}
+          min={yearDefaults.min}
+          max={yearDefaults.max}
           step={1}
-          value={yearMin}
+          value={filters.year_min ?? yearDefaults.min}
           onChange={(e) => {
             const v = Number(e.target.value);
-            setFilters((f) => ({ ...f, year_min: Math.min(v, f.year_max ?? yearRange.max) }));
+            setFilters((f) => ({ ...f, year_min: Math.min(v, f.year_max ?? yearDefaults.max) }));
           }}
           className="w-full mt-2"
         />
         <input
           type="range"
-          min={yearRange.min}
-          max={yearRange.max}
+          min={yearDefaults.min}
+          max={yearDefaults.max}
           step={1}
-          value={yearMax}
+          value={filters.year_max ?? yearDefaults.max}
           onChange={(e) => {
             const v = Number(e.target.value);
-            setFilters((f) => ({ ...f, year_max: Math.max(v, f.year_min ?? yearRange.min) }));
+            setFilters((f) => ({ ...f, year_max: Math.max(v, f.year_min ?? yearDefaults.min) }));
           }}
           className="w-full -mt-1"
         />
       </div>
 
-      {/* Groupes de specs (Année/Prix ont été retirés côté serveur) */}
+      {/* Groupes de specs (Année/Prix retirés côté serveur) */}
       <div className="divide-y divide-white/10 border-t border-white/10">
         {specSchema.map((g) => (
-          <details key={g.id} className="py-3" open={false}>
+          <details key={g.id} className="py-3">
             <summary className="cursor-pointer text-sm font-semibold">{g.name}</summary>
             <div className="mt-2 space-y-3">
               {g.items.map((it) => {
