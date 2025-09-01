@@ -54,6 +54,43 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+// Sniff any URL-looking string in a record (and nested arrays/objects)
+function sniffImageFromRecord(m: any): string | null {
+  const isUrl = (s: any) => typeof s === "string" && /^https?:\/\/.+\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(s);
+  // 1) common keys first
+  const common = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail"];
+  for (const k of common) {
+    const v = (m as any)?.[k];
+    if (isUrl(v)) return v;
+  }
+  // 2) scan any direct string field
+  for (const v of Object.values(m || {})) {
+    if (isUrl(v)) return v as string;
+  }
+  // 3) scan arrays/objects for a url-like field
+  const scanDeep = (val: any): string | null => {
+    if (!val) return null;
+    if (isUrl(val)) return val;
+    if (Array.isArray(val)) {
+      for (const x of val) {
+        const r = scanDeep(x);
+        if (r) return r;
+      }
+    } else if (typeof val === "object") {
+      for (const vv of Object.values(val)) {
+        const r = scanDeep(vv);
+        if (r) return r;
+      }
+    }
+    return null;
+  };
+  for (const v of Object.values(m || {})) {
+    const r = scanDeep(v);
+    if (r) return r;
+  }
+  return null;
+}
+
 export default async function Page({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   const supabase = getSupabase();
 
@@ -96,14 +133,6 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
       })),
   }));
 
-  // Helper pour récupérer l'URL d'image la plus probable
-  const getImg = (m: any): string | null => {
-    return (
-      m.image_url ?? m.display_image ?? m.cover_url ?? m.cover ??
-      m.photo_url ?? m.photo ?? m.thumbnail_url ?? m.thumbnail ?? null
-    );
-  };
-
   return (
     <div className="w-full max-w-[1400px] mx-auto px-3 md:px-6 py-4">
       <div className="grid grid-cols-12 gap-6">
@@ -113,7 +142,7 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         <main className="col-span-12 md:col-span-9 lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {(motos as any[] | null)?.map((m) => {
-              const img = getImg(m);
+              const img = sniffImageFromRecord(m);
               return (
                 <Link
                   key={m.id}
@@ -122,7 +151,6 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden bg-black/10">
                     {img ? (
-                      // on reste en <img> pour ne pas dépendre de next.config
                       <img
                         src={img}
                         alt={`${m.brand_name ?? ""} ${m.model_name ?? ""}`}
