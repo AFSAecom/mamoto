@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import FiltersLeft from "@/components/motos/FiltersLeft";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { slugify } from "./_slug";
 import CardGallery from "@/components/motos/CardGallery";
 
@@ -29,6 +29,8 @@ type SpecItemRow = {
 type NumericRangeRow = { spec_item_id: string; min_value: number | null; max_value: number | null };
 type TextOptionRow = { spec_item_id: string; value_text: string; n: number };
 
+type Range = { min: number; max: number };
+
 function addBase64Padding(b64: string) {
   const pad = b64.length % 4;
   return pad ? b64 + "=".repeat(4 - pad) : b64;
@@ -49,9 +51,9 @@ function decodeFServer(fParam?: string | null): FParam {
   }
 }
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function getSupabase(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   if (!url || !key) throw new Error("Supabase env manquants");
   return createClient(url, key, { auth: { persistSession: false } });
 }
@@ -60,7 +62,7 @@ function getSupabase() {
 const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)$/i;
 
 async function listImagesFor(
-  supabase: any,
+  supabase: SupabaseClient,
   brandName: string | null | undefined,
   modelName: string | null | undefined
 ): Promise<string[]> {
@@ -82,7 +84,7 @@ function normalizeLabel(s: string) {
   return s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/\u0300-\u036f/g, "")
+    .replace(/[\u0300-\u036f]/g, "") // <-- CORRECT: enlève les accents
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -95,6 +97,43 @@ const HIDE_LABELS = new Set([
   "price",
 ]);
 
+// Récupère min/max globaux pour year et price_tnd
+async function getGlobalRanges(supabase: SupabaseClient): Promise<{ year: Range; price: Range }> {
+  // YEAR min/max
+  const { data: yMinRows } = await supabase
+    .from("motos")
+    .select("year")
+    .not("year", "is", null)
+    .order("year", { ascending: true })
+    .limit(1);
+  const { data: yMaxRows } = await supabase
+    .from("motos")
+    .select("year")
+    .not("year", "is", null)
+    .order("year", { ascending: false })
+    .limit(1);
+  const minYear = yMinRows && yMinRows.length > 0 ? Number(yMinRows[0].year) : 1900;
+  const maxYear = yMaxRows && yMaxRows.length > 0 ? Number(yMaxRows[0].year) : minYear;
+
+  // PRICE min/max
+  const { data: pMinRows } = await supabase
+    .from("motos")
+    .select("price_tnd")
+    .not("price_tnd", "is", null)
+    .order("price_tnd", { ascending: true })
+    .limit(1);
+  const { data: pMaxRows } = await supabase
+    .from("motos")
+    .select("price_tnd")
+    .not("price_tnd", "is", null)
+    .order("price_tnd", { ascending: false })
+    .limit(1);
+  const minPrice = pMinRows && pMinRows.length > 0 ? Number(pMinRows[0].price_tnd) : 0;
+  const maxPrice = pMaxRows && pMaxRows.length > 0 ? Number(pMaxRows[0].price_tnd) : minPrice;
+
+  return { year: { min: minYear, max: maxYear }, price: { min: minPrice, max: maxPrice } };
+}
+
 export default async function Page({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   const supabase = getSupabase();
 
@@ -102,7 +141,10 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   const f = decodeFServer(fRaw);
   const { filters } = f;
 
-  const { data: brandsData } = await supabase.from("brands").select("id, name").order("name", { ascending: true });
+  const [{ data: brandsData }, rangesGlobal] = await Promise.all([
+    supabase.from("brands").select("id, name").order("name", { ascending: true }),
+    getGlobalRanges(supabase),
+  ]);
   const brands: Brand[] = Array.isArray(brandsData) ? brandsData : [];
 
   const { data: groupsData } = await supabase.from("spec_groups").select("id, name, sort_order").order("sort_order", { ascending: true });
@@ -155,7 +197,14 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
     <div className="w-full max-w-[1400px] mx-auto px-3 md:px-6 py-4">
       <div className="grid grid-cols-12 gap-6">
         <aside className="col-span-12 md:col-span-3 lg:col-span-3">
-          <FiltersLeft brands={brands} initialF={fRaw || ""} initialFilters={filters} specSchema={specSchema} />
+          <FiltersLeft
+            brands={brands}
+            initialF={fRaw || ""}
+            initialFilters={filters}
+            specSchema={specSchema}
+            priceRange={rangesGlobal.price}
+            yearRange={rangesGlobal.year}
+          />
         </aside>
         <main className="col-span-12 md:col-span-9 lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
