@@ -64,16 +64,17 @@ function cleanFilters(obj: Filters): Filters {
   if (obj.specs) {
     for (const [k, v] of Object.entries(obj.specs)) {
       if (!v || typeof v !== "object") continue;
-      if ((v as any).type === "number") {
-        const min = cleanNum((v as any).min);
-        const max = cleanNum((v as any).max);
+      const vv: any = v;
+      if (vv.type === "number") {
+        const min = cleanNum(vv.min);
+        const max = cleanNum(vv.max);
         if (min === undefined && max === undefined) continue;
         nextSpecs[k] = { type: "number", min, max };
-      } else if ((v as any).type === "boolean") {
-        if (typeof (v as any).value === "boolean") nextSpecs[k] = { type: "boolean", value: (v as any).value };
-      } else if ((v as any).type === "text") {
-        const values = Array.isArray((v as any).values) ? (v as any).values.filter((s: any) => typeof s === "string" && s.trim() !== "") : [];
-        if (values.length) nextSpecs[k] = { type: "text", values };
+      } else if (vv.type === "boolean") {
+        if (typeof vv.value === "boolean") nextSpecs[k] = { type: "boolean", value: vv.value };
+      } else if (vv.type === "text") {
+        const arr: string[] = Array.isArray(vv.values) ? vv.values.filter((s: any) => typeof s === "string" && s.trim() !== "") : [];
+        if (arr.length) nextSpecs[k] = { type: "text", values: arr };
       }
     }
   }
@@ -87,12 +88,12 @@ export default function FiltersLeft({
   brands,
   initialF = "",
   initialFilters,
-  specSchema,
+  specSchema = [],
 }: {
   brands: Brand[];
   initialF?: string;
   initialFilters?: Filters;
-  specSchema: SpecGroup[];
+  specSchema?: SpecGroup[];
 }) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -205,12 +206,12 @@ export default function FiltersLeft({
       </div>
 
       <div className="space-y-6">
-        {specSchema.map((group) => (
+        {(specSchema || []).map((group) => (
           <div key={group.id} className="space-y-3">
             <h4 className="text-sm font-semibold opacity-90">{group.name}</h4>
 
-            {group.items.map((it) => {
-              const specSel = (filters.specs && (filters.specs as any)[it.id]) || null;
+            {(group.items || []).map((it) => {
+              const specSel: any = (filters.specs && (filters.specs as any)[it.id]) || null;
 
               if (it.data_type === "number") {
                 const min = it.range?.min_value ?? 0;
@@ -256,45 +257,39 @@ export default function FiltersLeft({
                   <div key={it.id} className="space-y-1">
                     <label className="text-sm">{it.label}</label>
                     <div className="flex items-center gap-3 text-sm">
-                      <label className="flex items-center gap-1">
-                        <input type="radio" name={`b-${it.id}`} checked={cur === undefined} onChange={() => clearSpec(it.id)} /> Tous
-                      </label>
-                      <label className="flex items-center gap-1">
-                        <input type="radio" name={`b-${it.id}`} checked={cur === true} onChange={() => patchSpec(it.id, { type: "boolean", value: true })} /> Oui
-                      </label>
-                      <label className="flex items-center gap-1">
-                        <input type="radio" name={`b-${it.id}`} checked={cur === false} onChange={() => patchSpec(it.id, { type: "boolean", value: false })} /> Non
-                      </label>
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === undefined} onChange={() => clearSpec(it.id)} /> Tous</label>
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === true} onChange={() => patchSpec(it.id, { type: "boolean", value: true })} /> Oui</label>
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === false} onChange={() => patchSpec(it.id, { type: "boolean", value: false })} /> Non</label>
                     </div>
                   </div>
                 );
               }
 
+              // TEXT options
+              const valuesArray: string[] = Array.isArray(specSel?.values) ? (specSel.values as string[]) : [];
+              const valuesSet = new Set<string>(valuesArray);
+
               return (
                 <div key={it.id} className="space-y-1">
                   <label className="text-sm">{it.label}</label>
                   <div className="max-h-40 overflow-auto pr-1 space-y-1">
-                    {it.options?.map((op) => {
-                      const selected = Array.isArray((specSel && (specSel as any).values) ? (specSel as any).values : []) && (specSel as any).values.includes(op.value);
-                      const valuesSet = new Set<string>(Array.isArray((specSel as any)?.values) ? (specSel as any).values : []);
-                      return (
-                        <label key={op.value} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={valuesSet.has(op.value)}
-                            onChange={(e) => {
-                              if (e.target.checked) valuesSet.add(op.value);
-                              else valuesSet.delete(op.value);
-                              const arr = Array.from(valuesSet);
-                              if (arr.length === 0) clearSpec(it.id);
-                              else patchSpec(it.id, { type: "text", values: arr });
-                            }}
-                          />
-                          <span>{op.value}</span>
-                          <span className="opacity-50">({op.count})</span>
-                        </label>
-                      );
-                    })}
+                    {(it.options || []).map((op) => (
+                      <label key={op.value} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={valuesSet.has(op.value)}
+                          onChange={(e) => {
+                            if (e.target.checked) valuesSet.add(op.value);
+                            else valuesSet.delete(op.value);
+                            const arr = Array.from(valuesSet);
+                            if (arr.length === 0) clearSpec(it.id);
+                            else patchSpec(it.id, { type: "text", values: arr });
+                          }}
+                        />
+                        <span>{op.value}</span>
+                        <span className="opacity-50">({op.count})</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               );
