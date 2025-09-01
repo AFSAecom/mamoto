@@ -89,7 +89,15 @@ function cleanFilters(obj: Filters): Filters {
   return out;
 }
 
-/** Small dual-handle range slider built with two <input type="range"> + a colored track. */
+/** Format helpers */
+const formatInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
+const formatPrice = (v: number) => `${formatInt(v)} DT`;
+
+/** Dual-handle range slider (fix for left handle non-draggable):
+ *  - We set pointer-events: none on the input tracks, and re-enable on thumbs only.
+ *  - This prevents the top input from blocking the bottom one.
+ *  - We also display floating value badges above each thumb.
+ */
 function DualRange({
   min = 0,
   max = 100,
@@ -97,6 +105,7 @@ function DualRange({
   valueMin,
   valueMax,
   onChange,
+  format = (v: number) => String(v),
   disabled = false,
 }: {
   min?: number;
@@ -105,17 +114,14 @@ function DualRange({
   valueMin: number;
   valueMax: number;
   onChange: (vmin: number, vmax: number) => void;
+  format?: (v: number) => string;
   disabled?: boolean;
 }) {
   const [a, setA] = useState<number>(valueMin);
   const [b, setB] = useState<number>(valueMax);
 
-  useEffect(() => {
-    setA(valueMin);
-  }, [valueMin]);
-  useEffect(() => {
-    setB(valueMax);
-  }, [valueMax]);
+  useEffect(() => setA(valueMin), [valueMin]);
+  useEffect(() => setB(valueMax), [valueMax]);
 
   const lo = Math.min(a, b);
   const hi = Math.max(a, b);
@@ -136,15 +142,32 @@ function DualRange({
     onChange(lo2, hi2);
   };
 
+  // Ensure thumbs are always above the red track
+  const zA = a > b ? 5 : 6;
+  const zB = b >= a ? 5 : 6;
+
   return (
-    <div className="relative h-6 mt-1">
+    <div className="relative h-10 mt-1">
       {/* Track */}
       <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-white/15" />
       <div
         className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full bg-red-500"
         style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }}
       />
-      {/* Handles */}
+      {/* Value badges */}
+      <div
+        className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40"
+        style={{ left: `${pct(a)}%`, transform: "translate(-50%, 0)", pointerEvents: "none" }}
+      >
+        {format(a)}
+      </div>
+      <div
+        className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40"
+        style={{ left: `${pct(b)}%`, transform: "translate(-50%, 0)", pointerEvents: "none" }}
+      >
+        {format(b)}
+      </div>
+      {/* Handles (tracks ignore pointer events; thumbs catch them) */}
       <input
         type="range"
         min={min}
@@ -153,7 +176,8 @@ function DualRange({
         value={a}
         onChange={handleA}
         disabled={disabled}
-        className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-auto"
+        className="dual-range absolute inset-0 w-full appearance-none bg-transparent"
+        style={{ zIndex: zA }}
       />
       <input
         type="range"
@@ -163,10 +187,12 @@ function DualRange({
         value={b}
         onChange={handleB}
         disabled={disabled}
-        className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-auto"
+        className="dual-range absolute inset-0 w-full appearance-none bg-transparent"
+        style={{ zIndex: zB }}
       />
       <style jsx>{`
-        input[type="range"]::-webkit-slider-thumb {
+        .dual-range { pointer-events: none; }
+        .dual-range::-webkit-slider-thumb {
           -webkit-appearance: none;
           height: 18px;
           width: 14px;
@@ -175,14 +201,16 @@ function DualRange({
           cursor: pointer;
           border: 1px solid rgba(255, 255, 255, 0.25);
           margin-top: -8px;
+          pointer-events: all; /* the trick */
         }
-        input[type="range"]::-moz-range-thumb {
+        .dual-range::-moz-range-thumb {
           height: 18px;
           width: 14px;
           border-radius: 4px;
           background: #bdbdbd;
           cursor: pointer;
           border: 1px solid rgba(255, 255, 255, 0.25);
+          pointer-events: all; /* the trick */
         }
       `}</style>
     </div>
@@ -246,7 +274,6 @@ export default function FiltersLeft({
   const fObj = base64UrlDecodeToObj<FParam>(fFromUrl) || base64UrlDecodeToObj<FParam>(initialF) || { filters: {}, page: 0 };
   const filters = useMemo<Filters>(() => cleanFilters(fObj?.filters || {}), [fObj]);
 
-  // Collapsed state per spec group: open if any item active, else closed by default
   const defaultOpen: Record<string, boolean> = useMemo(() => {
     const m: Record<string, boolean> = {};
     (specSchema || []).forEach((g) => {
@@ -256,9 +283,7 @@ export default function FiltersLeft({
     return m;
   }, [specSchema, filters.specs]);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(defaultOpen);
-  useEffect(() => {
-    setOpenGroups(defaultOpen);
-  }, [defaultOpen]);
+  useEffect(() => { setOpenGroups(defaultOpen); }, [defaultOpen]);
 
   const setGroupOpen = (id: string, open: boolean) => setOpenGroups((s) => ({ ...s, [id]: open }));
 
@@ -281,7 +306,6 @@ export default function FiltersLeft({
     patchFilters({ specs: nextSpecs });
   };
 
-  // Defaults for top-level sliders (in absence de bornes DB)
   const PRICE_MIN = 0, PRICE_MAX = 500000, PRICE_STEP = 500;
   const YEAR_MIN = 1980, YEAR_MAX = new Date().getFullYear() + 1, YEAR_STEP = 1;
 
@@ -359,6 +383,7 @@ export default function FiltersLeft({
             valueMin={priceMin}
             valueMax={priceMax}
             onChange={(vmin, vmax) => patchFilters({ price_min: vmin, price_max: vmax })}
+            format={formatPrice}
           />
         </div>
 
@@ -396,6 +421,7 @@ export default function FiltersLeft({
             valueMin={yearMin}
             valueMax={yearMax}
             onChange={(vmin, vmax) => patchFilters({ year_min: vmin, year_max: vmax })}
+            format={(v) => String(v)}
           />
         </div>
       </div>
@@ -446,7 +472,7 @@ export default function FiltersLeft({
                               inputMode="decimal"
                               placeholder={String(min)}
                               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-                              value={valStr(specSel?.min)}
+                              value={specSel?.min ?? ""}
                               onChange={(e) => {
                                 const v = e.target.value;
                                 if (v === "") clearSpec(it.id);
@@ -458,7 +484,7 @@ export default function FiltersLeft({
                               inputMode="decimal"
                               placeholder={String(max)}
                               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-                              value={valStr(specSel?.max)}
+                              value={specSel?.max ?? ""}
                               onChange={(e) => {
                                 const v = e.target.value;
                                 if (v === "") clearSpec(it.id);
@@ -474,6 +500,7 @@ export default function FiltersLeft({
                               valueMin={curMin}
                               valueMax={curMax}
                               onChange={(vmin, vmax) => patchSpec(it.id, { type: "number", min: vmin, max: vmax })}
+                              format={(v) => (it.unit ? `${formatInt(v)} ${it.unit}` : formatInt(v))}
                             />
                           ) : null}
                         </div>
