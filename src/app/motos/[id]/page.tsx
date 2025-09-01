@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import { getMotoFull, formatTND } from '@/lib/db/motos'
-import { supabase } from '@/lib/supabaseClient'
+import getPublicImageUrl from '@/lib/getPublicImageUrl'
+import MotoImage from '@/components/MotoImage'
 
 export default async function MotoDetailPage({ params }: { params: { id: string } }) {
   let moto: any
@@ -17,13 +17,6 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
 
   const title = `${moto.brand ?? ''} ${moto.model ?? ''} ${moto.year ?? ''}`.trim()
 
-  const resolveUrl = (url?: string | null) => {
-    if (!url) return ''
-    if (url.startsWith('http')) return url
-    const { data } = supabase.storage.from('motos').getPublicUrl(url)
-    return data.publicUrl || url
-  }
-
   return (
     <div className="max-w-6xl mx-auto">
       <header className="sticky top-0 z-10 bg-white p-6 shadow">
@@ -34,21 +27,17 @@ export default async function MotoDetailPage({ params }: { params: { id: string 
       {Array.isArray(moto.images) && moto.images.length > 0 && (
         <section className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {moto.images.map((img: any, idx: number) => {
-            const src = resolveUrl(img.url)
+            const src = getPublicImageUrl(img.url)
             return (
               <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border">
-                {src ? (
-                  <Image
-                    src={src}
-                    alt={img.alt ?? title}
-                    fill
-                    className="object-contain bg-white"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-gray-400">Image indisponible</div>
-                )}
+                <MotoImage
+                  src={src}
+                  alt={img.alt ?? title}
+                  fill
+                  className="object-contain bg-white"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  unoptimized
+                />
               </div>
             )
           })}
