@@ -3,80 +3,88 @@
 import { useEffect, useState } from 'react'
 import type { Filters } from '@/types/filters'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export type Range = { min?: number; max?: number }
 
-export interface MotoSearchResult {
-  id: string
-  brand: string
-  model: string
-  year?: number | null
-  price?: number | null
-  display_image?: string | null
-}
-
-function useDebouncedValue<T>(value: T, delay: number) {
-  const [debounced, setDebounced] = useState(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebounced(value), delay)
-    return () => clearTimeout(handler)
-  }, [value, delay])
-
-  return debounced
+function cleanFilters(input: Filters): Filters {
+  const out: Filters = {}
+  if (input.price && (input.price.min != null || input.price.max != null))
+    out.price = input.price
+  if (input.year && (input.year.min != null || input.year.max != null))
+    out.year = input.year
+  if (input.brand_ids && input.brand_ids.length) out.brand_ids = input.brand_ids
+  if (input.specs) {
+    const s: NonNullable<Filters['specs']> = {}
+    for (const [k, v] of Object.entries(input.specs)) {
+      if (v === undefined || v === null) continue
+      if (typeof v === 'string' && v.trim() === '') continue
+      if (Array.isArray(v) && v.length === 0) continue
+      if (typeof v === 'object' && !Array.isArray(v)) {
+        const hasAny =
+          ('min' in v && (v as any).min != null) ||
+          ('max' in v && (v as any).max != null) ||
+          ('in' in v && Array.isArray((v as any).in) && (v as any).in.length > 0)
+        if (!hasAny) continue
+      }
+      s[k] = v as any
+    }
+    if (Object.keys(s).length) out.specs = s
+  }
+  return out
 }
 
 export function useMotoSearch(filters: Filters, page: number) {
-  const [motos, setMotos] = useState<MotoSearchResult[]>([])
+  const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const debouncedFilters = useDebouncedValue(filters, 300)
-  const debouncedPage = useDebouncedValue(page, 300)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
   useEffect(() => {
-    const controller = new AbortController()
-
+    let cancelled = false
     async function run() {
+      setLoading(true)
+      setError(null)
+      const cleaned = cleanFilters(filters)
+      console.debug('[search] filters', cleaned)
+      console.debug('[search] page', page)
       try {
-        setLoading(true)
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/fn_search_motos`, {
+        const body = {
+          p_filters: cleaned,
+          p_limit: 24,
+          p_offset: Math.max(0, page) * 24,
+        }
+        const res = await fetch(`${url}/rest/v1/rpc/fn_search_motos`, {
           method: 'POST',
           headers: {
+            apikey: anon,
+            Authorization: `Bearer ${anon}`,
             'Content-Type': 'application/json',
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
           },
-          body: JSON.stringify({
-            p_filters: debouncedFilters,
-            p_limit: 24,
-            p_offset: debouncedPage * 24,
-          }),
-          signal: controller.signal,
+          body: JSON.stringify(body),
         })
         if (!res.ok) {
-          throw new Error(`Search failed: ${res.status}`)
+          const t = await res.text()
+          throw new Error(`fn_search_motos HTTP ${res.status}: ${t}`)
         }
-        const data: MotoSearchResult[] = await res.json()
-        setMotos(data)
-        setError(null)
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setError(err as Error)
-        }
+        const rows = await res.json()
+        const list = Array.isArray(rows)
+          ? rows.map((r: any) => r.j ?? r)
+          : []
+        if (!cancelled) setData(list)
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? 'Unknown error')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-
     run()
-
     return () => {
-      controller.abort()
+      cancelled = true
     }
-  }, [debouncedFilters, debouncedPage])
+  }, [filters, page, url, anon])
 
-  return { motos, loading, error }
+  return { motos: data, loading, error }
 }
 
 export default useMotoSearch

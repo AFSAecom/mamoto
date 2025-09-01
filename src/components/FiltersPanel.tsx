@@ -12,23 +12,46 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 interface FiltersPanelProps {
   facets: FacetGroup[]
   filters: Filters
-  onChange: (updater: (prev: Filters) => Filters) => void
+  onChange: (next: Filters) => void
 }
 
 export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
   const updateFilter = (key: string, value: any) => {
-    onChange(prev => {
-      if (key === 'price' || key === 'year' || key === 'brand_ids') {
-        return { ...prev, [key]: value }
-      }
-      return {
-        ...prev,
-        specs: { ...prev.specs, [key]: value },
-      }
-    })
+    const next: Filters = { ...filters }
+    if (key === 'price' || key === 'year') {
+      if (value && (value.min != null || value.max != null)) (next as any)[key] = value
+      else delete (next as any)[key]
+      onChange(next)
+      return
+    }
+    if (key === 'brand_ids') {
+      if (Array.isArray(value) && value.length) next.brand_ids = value
+      else delete next.brand_ids
+      onChange(next)
+      return
+    }
+    const specs = { ...(next.specs ?? {}) }
+    const shouldRemove =
+      value === undefined ||
+      (typeof value === 'string' && value.trim() === '') ||
+      (Array.isArray(value) && value.length === 0) ||
+      (typeof value === 'object' &&
+        !Array.isArray(value) &&
+        !('min' in value && (value as any).min != null) &&
+        !('max' in value && (value as any).max != null) &&
+        !('in' in value && Array.isArray((value as any).in) && (value as any).in.length > 0))
+    if (shouldRemove) delete specs[key]
+    else specs[key] = value
+    next.specs = specs
+    onChange(next)
   }
 
-  const renderNumber = (itemKey: string, unit?: string | null, min?: number | null, max?: number | null) => {
+  const renderNumber = (
+    itemKey: string,
+    unit?: string | null,
+    min?: number | null,
+    max?: number | null
+  ) => {
     const range =
       (itemKey === 'price' || itemKey === 'year'
         ? (filters as any)[itemKey]
@@ -45,7 +68,12 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
           step={1}
           value={value}
           onValueChange={v =>
-            updateFilter(itemKey, { min: v[0], max: v[1] })
+            updateFilter(
+              itemKey,
+              min != null && max != null && v[0] === min && v[1] === max
+                ? undefined
+                : { min: parseFloat(String(v[0])), max: parseFloat(String(v[1])) }
+            )
           }
         />
         <div className="flex justify-between text-sm text-muted-foreground">
@@ -65,16 +93,12 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
       (itemKey === 'price' || itemKey === 'year'
         ? undefined
         : (filters.specs?.[itemKey] as boolean | undefined)) ?? undefined
-    const value =
-      current === undefined ? 'all' : current ? 'true' : 'false'
+    const value = current === undefined ? 'all' : current ? 'true' : 'false'
     return (
       <RadioGroup
         value={value}
         onValueChange={v =>
-          updateFilter(
-            itemKey,
-            v === 'all' ? undefined : v === 'true'
-          )
+          updateFilter(itemKey, v === 'all' ? undefined : v === 'true')
         }
         className="flex gap-4"
       >
@@ -101,9 +125,8 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
         : (filters.specs?.[itemKey] as string[] | undefined)) ?? []
     const [search, setSearch] = useState('')
     const [expanded, setExpanded] = useState(false)
-    const filtered = options?.filter(o =>
-      o.value.toLowerCase().includes(search.toLowerCase())
-    ) || []
+    const filtered =
+      options?.filter(o => o.value.toLowerCase().includes(search.toLowerCase())) || []
     const display = expanded ? filtered : filtered.slice(0, 10)
     const toggle = (val: string, chk: boolean) => {
       const next = chk
@@ -122,10 +145,7 @@ export function FiltersPanel({ facets, filters, onChange }: FiltersPanelProps) {
         )}
         <div className="space-y-1 max-h-60 overflow-y-auto">
           {display.map(o => (
-            <Label
-              key={o.value}
-              className="flex items-center gap-2 text-sm"
-            >
+            <Label key={o.value} className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={selected.includes(o.value)}
                 onCheckedChange={chk => toggle(o.value, !!chk)}

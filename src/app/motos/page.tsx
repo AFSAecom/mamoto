@@ -14,10 +14,11 @@ import {
   PaginationPrevious,
   PaginationLink,
 } from '@/components/ui/pagination'
+import { Skeleton } from '@/components/ui/skeleton'
 
-function encodeFilters(filters: Filters) {
+function encodeState(state: { filters: Filters; page: number }) {
   try {
-    const json = JSON.stringify(filters)
+    const json = JSON.stringify(state)
     const base64 =
       typeof window === 'undefined'
         ? Buffer.from(json).toString('base64')
@@ -28,17 +29,18 @@ function encodeFilters(filters: Filters) {
   }
 }
 
-function decodeFilters(value: string): Filters {
+function decodeState(value: string): { filters: Filters; page: number } {
   try {
     const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-    const pad = base64.length % 4 ? base64 + '='.repeat(4 - (base64.length % 4)) : base64
+    const pad =
+      base64.length % 4 ? base64 + '='.repeat(4 - (base64.length % 4)) : base64
     const json =
       typeof window === 'undefined'
         ? Buffer.from(pad, 'base64').toString()
         : window.atob(pad)
     return JSON.parse(json)
   } catch {
-    return {}
+    return { filters: {}, page: 0 }
   }
 }
 
@@ -52,25 +54,20 @@ export default function MotosPage() {
     const params = new URLSearchParams(window.location.search)
     const f = params.get('f')
     if (f) {
-      const parsed = decodeFilters(f)
-      setFilters({ specs: {}, ...parsed })
+      const parsed = decodeState(f)
+      setFilters({ specs: {}, ...(parsed.filters ?? {}) })
+      if (parsed.page) setPage(parsed.page)
     }
-    const p = params.get('p')
-    if (p) setPage(parseInt(p, 10) || 0)
   }, [])
 
   // update URL when filters or page change
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (filters && Object.keys(filters).length > 0) {
-      params.set('f', encodeFilters(filters))
+    const encoded = encodeState({ filters, page })
+    if (encoded) {
+      params.set('f', encoded)
     } else {
       params.delete('f')
-    }
-    if (page > 0) {
-      params.set('p', String(page))
-    } else {
-      params.delete('p')
     }
     const url = `${window.location.pathname}?${params.toString()}`
     window.history.replaceState(null, '', url)
@@ -84,8 +81,8 @@ export default function MotosPage() {
         <FiltersPanel
           facets={facets}
           filters={filters}
-          onChange={fn => {
-            setFilters(prev => fn(prev))
+          onChange={next => {
+            setFilters(next)
             setPage(0)
           }}
         />
@@ -95,9 +92,11 @@ export default function MotosPage() {
           <div className="font-semibold">{motos.length} résultats</div>
         </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {motos.map(m => (
-            <MotoCard key={m.id} moto={m} />
-          ))}
+          {loading
+            ? Array.from({ length: 12 }).map((_, i) => (
+                <Skeleton key={i} className="h-64 w-full" />
+              ))
+            : motos.map(m => <MotoCard key={m.id} moto={m} />)}
         </div>
         <Pagination className="mt-6">
           <PaginationContent>
