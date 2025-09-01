@@ -20,8 +20,8 @@ export function useMotoFacets() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: anon,
-            Authorization: `Bearer ${anon}`,
+            apikey: anon!,
+            Authorization: `Bearer ${anon!}`,
           },
           body: JSON.stringify({}),
           signal: controller.signal,

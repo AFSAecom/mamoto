@@ -73,8 +73,8 @@ export function useMotoSearch(filters: Filters, page: number) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: anon,
-            Authorization: `Bearer ${anon}`,
+            apikey: anon!,
+            Authorization: `Bearer ${anon!}`,
           },
           body: JSON.stringify(body),
           signal: controller.signal,
