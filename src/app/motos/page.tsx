@@ -3,7 +3,7 @@ import React from "react";
 import FiltersLeft from "@/components/motos/FiltersLeft";
 import { createClient } from "@supabase/supabase-js";
 
-// Force le rendu dynamique et pas de cache
+// Force le rendu dynamique et pas de cache (Next.js App Router)
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -32,7 +32,7 @@ type Moto = {
   display_image?: string | null;
 };
 
-// ---------- Base64 utils (server) ----------
+// ---------- Helpers Base64 (server) ----------
 function addBase64Padding(b64: string) {
   const pad = b64.length % 4;
   return pad ? b64 + "=".repeat(4 - pad) : b64;
@@ -45,7 +45,7 @@ function decodeFServer(fParam: string | null): FParam {
     const json = Buffer.from(std, "base64").toString("utf8");
     const obj = JSON.parse(json);
     if (!obj || typeof obj !== "object") return { filters: {}, page: 0 };
-    // Petite normalisation
+    // Normalisation
     const raw: any = obj;
     const filters: Filters = {};
     if (typeof raw.filters === "object" && raw.filters) {
@@ -115,7 +115,8 @@ export default async function Page({
   const f = decodeFServer(fRaw);
   const { filters } = f;
 
-  // 2) Charger les marques pour le Select (id, name)
+  // 2) Charger les marques pour le Select (⚠️ adapte le nom de table si besoin)
+  //    Si ta table s'appelle autrement (ex: 'moto_brands'), remplace 'brands' ci-dessous.
   const { data: brandsData, error: brandsErr } = await supabase
     .from("brands")
     .select("id, name")
@@ -136,16 +137,17 @@ export default async function Page({
   if (filters.price_max !== undefined)
     query = query.lte("price_tnd", filters.price_max);
 
+  // NOTE: Si tu as une colonne 'model_name' ou 'brand_name', tu peux activer la recherche plein-texte simple.
   if (filters.q) {
-    // Recherche simple sur brand_name / model_name si présents
     const like = `%${filters.q}%`;
+    // Adapte les colonnes ci-dessous à ton schéma réel si nécessaire
     query = query.or(
       `brand_name.ilike.${like},model_name.ilike.${like}`
     );
   }
 
   // Tri & limite
-  query = query.order("created_at", { ascending: false }).limit(60);
+  query = query.order("id", { ascending: false }).limit(60);
 
   const { data: motos, error: motosErr } = await query;
 
@@ -159,7 +161,6 @@ export default async function Page({
           <FiltersLeft
             brands={brands}
             initialF={fRaw || ""}
-            // On passe aussi les filtres courants pour pré-remplissage immédiat
             initialFilters={filters}
           />
         </aside>
@@ -179,7 +180,6 @@ export default async function Page({
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-black/10">
                     {m.display_image ? (
-                      // img classique pour éviter toute dépendance à next/image
                       <img
                         src={m.display_image}
                         alt={`${m.brand_name ?? ""} ${m.model_name ?? ""}`}
