@@ -1,6 +1,7 @@
 // src/app/motos/[id]/page.tsx
 import React from "react";
 import { createClient } from "@supabase/supabase-js";
+import { slugify } from "../_slug";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,19 +17,19 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
+const IMG_EXT = /(\.png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
 const isHttpUrl = (s: any) => typeof s === "string" && /^https?:\/\//i.test(s) && IMG_EXT.test(s);
 const looksLikePath = (s: any) => typeof s === "string" && IMG_EXT.test(s) && !/^https?:\/\//i.test(s);
-const firstSeg = (p: string) => p.replace(/^\/+/, "").split("/")[0] || "";
+
 function toPublicStorageUrl(pathLike: string): string | null {
   const supa = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supa) return null;
   const DEFAULT_BUCKET = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
   let p = String(pathLike).trim().replace(/\\/g, "/").replace(/^\/+/, "");
   if (!IMG_EXT.test(p)) return null;
-  const seg0 = firstSeg(p).toLowerCase();
-  const known = new Set([DEFAULT_BUCKET.toLowerCase(), "public", "images", "motos", "photos", "gallery"]);
-  if (!known.has(seg0)) p = `${DEFAULT_BUCKET}/${p}`;
+  if (!p.includes("/")) p = `${DEFAULT_BUCKET}/${p}`;
+  const firstSeg = p.split("/")[0]?.toLowerCase() || "";
+  if (firstSeg !== DEFAULT_BUCKET.toLowerCase()) p = `${DEFAULT_BUCKET}/${p}`;
   return `${supa.replace(/\/+$/,"")}/storage/v1/object/public/${p}`;
 }
 function asImageUrl(val: any): string | null {
@@ -38,15 +39,17 @@ function asImageUrl(val: any): string | null {
   try {
     if (typeof val === "string" && val.trim().startsWith("[")) {
       const arr = JSON.parse(val);
-      if (Array.isArray(arr)) {
-        for (const x of arr) {
-          const u = asImageUrl(x);
-          if (u) return u;
-        }
-      }
+      if (Array.isArray(arr)) for (const x of arr) { const u = asImageUrl(x); if (u) return u; }
     }
   } catch {}
   return null;
+}
+function buildFromBrandModel(brand: any, model: any): string[] {
+  const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
+  const brandSlug = slugify(String(brand || ""));
+  const modelSlug = slugify(String(model || ""));
+  const base = `${bucket}/${brandSlug}-${modelSlug}`;
+  return ["1.webp","cover.webp","1.jpg","1.jpeg","1.png","main.webp","2.webp"].map((n)=>`${base}/${n}`);
 }
 function sniffImageFromRecord(m: any): string | null {
   const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail","image","img"];
@@ -57,16 +60,13 @@ function sniffImageFromRecord(m: any): string | null {
     if (Array.isArray(v)) { for (const x of v) { const url = asImageUrl(x); if (url) return url; } }
     else { const url = asImageUrl(v); if (url) return url; }
   }
-  for (const v of Object.values(m || {})) { const url = asImageUrl(v); if (url) return url; }
-  const scanDeep = (val: any): string | null => {
-    if (!val) return null;
-    const u = asImageUrl(val);
+  const brandName = (m.brands?.name || m.brand_name || m.brand || "").toString();
+  const modelName = (m.model_name || m.model || "").toString();
+  const candidates = buildFromBrandModel(brandName, modelName);
+  for (const c of candidates) {
+    const u = toPublicStorageUrl(c.replace(/^[^/]+\//, "").replace(/^motos\//, "")) || `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${c}`;
     if (u) return u;
-    if (Array.isArray(val)) { for (const x of val) { const r = scanDeep(x); if (r) return r; } }
-    else if (typeof val === "object") { for (const vv of Object.values(val)) { const r = scanDeep(vv); if (r) return r; } }
-    return null;
-  };
-  for (const v of Object.values(m || {})) { const r = scanDeep(v); if (r) return r; }
+  }
   return null;
 }
 
@@ -75,7 +75,6 @@ const fmtInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDi
 export default async function MotoDetail({ params }: { params: { id: string } }) {
   const supabase = getSupabase();
 
-  // Récupère toutes les colonnes possibles d'image si elles existent
   const { data: moto } = await supabase
     .from("motos")
     .select("*, brands(name)")
@@ -125,11 +124,11 @@ export default async function MotoDetail({ params }: { params: { id: string } })
     }
   }
 
-  const groupsWithData = (groups || []).map((g: Group) => {
-    const its = (items || []).filter((it: Item) => it.group_id === g.id);
-    const rows = its.map((it) => ({ it, val: renderValue(it) })).filter((x) => x.val !== null);
+  const groupsWithData = (groups || []).map((g: any) => {
+    const its = (items || []).filter((it: any) => it.group_id === g.id);
+    const rows = its.map((it: any) => ({ it, val: renderValue(it) })).filter((x: any) => x.val !== null);
     return { group: g, rows };
-  }).filter((g) => g.rows.length > 0);
+  }).filter((g: any) => g.rows.length > 0);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
@@ -152,12 +151,12 @@ export default async function MotoDetail({ params }: { params: { id: string } })
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Fiche technique</h2>
         <div className="space-y-4">
-          {groupsWithData.map(({ group, rows }) => (
+          {groupsWithData.map(({ group, rows }: any) => (
             <div key={group.id} className="rounded-lg border border-white/10">
               <div className="px-4 py-2 font-semibold">{group.name}</div>
               <div className="px-4 pb-3">
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                  {rows.map(({ it, val }) => (
+                  {rows.map(({ it, val }: any) => (
                     <div key={it.id} className="py-2 border-b border-white/5 sm:border-b-0">
                       <dt className="text-sm opacity-75">{it.label}</dt>
                       <dd className="text-sm">{val}</dd>
