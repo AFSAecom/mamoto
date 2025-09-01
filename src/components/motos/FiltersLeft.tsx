@@ -53,32 +53,26 @@ function base64UrlDecodeToObj<T = any>(b64: string | null): T | null {
 
 function cleanFilters(obj: Filters): Filters {
   const out: Filters = { ...obj };
-  // Nettoyage des champs numériques: retirer les vides
   const cleanNum = (v: any) =>
-    typeof v === "number"
-      ? v
-      : typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v))
-      ? Number(v)
-      : undefined;
+    typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v)) ? Number(v) : undefined;
   if (obj.year_min !== undefined) out.year_min = cleanNum(obj.year_min);
   if (obj.year_max !== undefined) out.year_max = cleanNum(obj.year_max);
   if (obj.price_min !== undefined) out.price_min = cleanNum(obj.price_min);
   if (obj.price_max !== undefined) out.price_max = cleanNum(obj.price_max);
 
-  // Nettoyage specs: retirer entrées vides
   const nextSpecs: Record<string, any> = {};
   if (obj.specs) {
     for (const [k, v] of Object.entries(obj.specs)) {
       if (!v || typeof v !== "object") continue;
-      if (v.type === "number") {
-        const min = cleanNum(v.min);
-        const max = cleanNum(v.max);
+      if ((v as any).type === "number") {
+        const min = cleanNum((v as any).min);
+        const max = cleanNum((v as any).max);
         if (min === undefined && max === undefined) continue;
         nextSpecs[k] = { type: "number", min, max };
-      } else if (v.type === "boolean") {
-        if (typeof v.value === "boolean") nextSpecs[k] = { type: "boolean", value: v.value };
-      } else if (v.type === "text") {
-        const values = Array.isArray(v.values) ? v.values.filter((s: any) => typeof s === "string" && s.trim() !== "") : [];
+      } else if ((v as any).type === "boolean") {
+        if (typeof (v as any).value === "boolean") nextSpecs[k] = { type: "boolean", value: (v as any).value };
+      } else if ((v as any).type === "text") {
+        const values = Array.isArray((v as any).values) ? (v as any).values.filter((s: any) => typeof s === "string" && s.trim() !== "") : [];
         if (values.length) nextSpecs[k] = { type: "text", values };
       }
     }
@@ -106,7 +100,6 @@ export default function FiltersLeft({
 
   const fFromUrl = sp.get("f");
   const fObj = base64UrlDecodeToObj<FParam>(fFromUrl) || base64UrlDecodeToObj<FParam>(initialF) || { filters: {}, page: 0 };
-
   const filters = useMemo<Filters>(() => cleanFilters(fObj?.filters || {}), [fObj]);
 
   const valStr = (v?: number | string) => (v === undefined || v === null ? "" : String(v));
@@ -117,25 +110,22 @@ export default function FiltersLeft({
     startTransition(() => router.replace(`/motos?f=${encoded}`, { scroll: false }));
   };
 
-  // Helpers pour les specs
   const patchSpec = (specId: string, partial: any) => {
-    const current = (filters.specs && filters.specs[specId]) || {};
+    const current = (filters.specs && (filters.specs as any)[specId]) || {};
     const nextSpecs = { ...(filters.specs || {}), [specId]: { ...current, ...partial } };
     patchFilters({ specs: nextSpecs });
   };
   const clearSpec = (specId: string) => {
     const nextSpecs = { ...(filters.specs || {}) };
-    delete nextSpecs[specId];
+    delete (nextSpecs as any)[specId];
     patchFilters({ specs: nextSpecs });
   };
 
   return (
     <div className="space-y-6 pr-2">
-      {/* Bloc filtres "Motos" (déjà existants) */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold opacity-90">Motos</h3>
 
-        {/* Marque */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm opacity-80">Marque</label>
           <select
@@ -152,7 +142,6 @@ export default function FiltersLeft({
           </select>
         </div>
 
-        {/* Année min/max */}
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col">
             <label className="mb-1 text-sm opacity-80">Année min</label>
@@ -162,7 +151,7 @@ export default function FiltersLeft({
               placeholder="0"
               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
               value={valStr(filters.year_min)}
-              onChange={(e) => patchFilters({ year_min: e.target.value === "" ? undefined : e.target.value as any })}
+              onChange={(e) => patchFilters({ year_min: e.target.value === "" ? undefined : (e.target.value as any) })}
             />
           </div>
           <div className="flex flex-col">
@@ -173,12 +162,11 @@ export default function FiltersLeft({
               placeholder="0"
               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
               value={valStr(filters.year_max)}
-              onChange={(e) => patchFilters({ year_max: e.target.value === "" ? undefined : e.target.value as any })}
+              onChange={(e) => patchFilters({ year_max: e.target.value === "" ? undefined : (e.target.value as any) })}
             />
           </div>
         </div>
 
-        {/* Prix min/max */}
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col">
             <label className="mb-1 text-sm opacity-80">Prix min</label>
@@ -188,7 +176,7 @@ export default function FiltersLeft({
               placeholder="0"
               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
               value={valStr(filters.price_min)}
-              onChange={(e) => patchFilters({ price_min: e.target.value === "" ? undefined : e.target.value as any })}
+              onChange={(e) => patchFilters({ price_min: e.target.value === "" ? undefined : (e.target.value as any) })}
             />
           </div>
           <div className="flex flex-col">
@@ -199,12 +187,11 @@ export default function FiltersLeft({
               placeholder="0"
               className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
               value={valStr(filters.price_max)}
-              onChange={(e) => patchFilters({ price_max: e.target.value === "" ? undefined : e.target.value as any })}
+              onChange={(e) => patchFilters({ price_max: e.target.value === "" ? undefined : (e.target.value as any) })}
             />
           </div>
         </div>
 
-        {/* Recherche texte */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm opacity-80">Recherche</label>
           <input
@@ -217,14 +204,13 @@ export default function FiltersLeft({
         </div>
       </div>
 
-      {/* Bloc filtres par groupes de specs */}
       <div className="space-y-6">
         {specSchema.map((group) => (
           <div key={group.id} className="space-y-3">
             <h4 className="text-sm font-semibold opacity-90">{group.name}</h4>
 
             {group.items.map((it) => {
-              const specSel = (filters.specs && filters.specs[it.id]) || null;
+              const specSel = (filters.specs && (filters.specs as any)[it.id]) || null;
 
               if (it.data_type === "number") {
                 const min = it.range?.min_value ?? 0;
@@ -284,24 +270,24 @@ export default function FiltersLeft({
                 );
               }
 
-              // texte (liste d'options)
               return (
                 <div key={it.id} className="space-y-1">
                   <label className="text-sm">{it.label}</label>
                   <div className="max-h-40 overflow-auto pr-1 space-y-1">
                     {it.options?.map((op) => {
-                      const selected = Array.isArray(specSel?.values) && specSel.values.includes(op.value);
+                      const selected = Array.isArray((specSel && (specSel as any).values) ? (specSel as any).values : []) && (specSel as any).values.includes(op.value);
+                      const valuesSet = new Set<string>(Array.isArray((specSel as any)?.values) ? (specSel as any).values : []);
                       return (
                         <label key={op.value} className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={!!selected}
+                            checked={valuesSet.has(op.value)}
                             onChange={(e) => {
-                              const values = new Set<string>(Array.isArray(specSel?.values) ? specSel.values : []);
-                              if (e.target.checked) values.add(op.value);
-                              else values.delete(op.value);
-                              if (values.size === 0) clearSpec(it.id);
-                              else patchSpec(it.id, { type: "text", values: Array.from(values) });
+                              if (e.target.checked) valuesSet.add(op.value);
+                              else valuesSet.delete(op.value);
+                              const arr = Array.from(valuesSet);
+                              if (arr.length === 0) clearSpec(it.id);
+                              else patchSpec(it.id, { type: "text", values: arr });
                             }}
                           />
                           <span>{op.value}</span>
