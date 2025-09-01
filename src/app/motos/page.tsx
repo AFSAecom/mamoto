@@ -77,6 +77,24 @@ async function listImagesFor(
 }
 /** ---------- /Image helpers ---------- */
 
+// Helpers pour filtrer les items doublons (Prix / Année) dans les groupes
+function normalizeLabel(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\u0300-\u036f/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const HIDE_LABELS = new Set([
+  "annee",
+  "year",
+  "prix",
+  "prix (tnd)",
+  "prix tnd",
+  "price",
+]);
+
 export default async function Page({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   const supabase = getSupabase();
 
@@ -115,11 +133,13 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
     })
   );
 
+  // --------- SPEC SCHEMA (on retire Prix / Année des groupes) ---------
   const specSchema = (groups || []).map((g) => ({
     id: g.id,
     name: g.name,
     items: (items || [])
       .filter((it) => it.group_id === g.id)
+      .filter((it) => !HIDE_LABELS.has(normalizeLabel(it.label)))
       .map((it) => ({
         id: it.id,
         label: it.label,
@@ -128,7 +148,8 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         range: ranges.find((r) => r.spec_item_id === it.id) || null,
         options: (options || []).filter((o) => o.spec_item_id === it.id).map((o) => ({ value: o.value_text, count: o.n })),
       })),
-  }));
+  })).filter((g) => g.items.length > 0);
+  // --------------------------------------------------------------------
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-3 md:px-6 py-4">
