@@ -1,7 +1,7 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Brand = { id: string; name: string };
@@ -56,10 +56,8 @@ function cleanNumber(v: any): number | undefined {
   if (typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v))) return Number(v);
   return undefined;
 }
-
 function cleanFilters(obj: Filters): Filters {
   const out: Filters = { ...obj };
-
   if (obj.year_min !== undefined) out.year_min = cleanNumber(obj.year_min);
   if (obj.year_max !== undefined) out.year_max = cleanNumber(obj.year_max);
   if (obj.price_min !== undefined) out.price_min = cleanNumber(obj.price_min);
@@ -85,43 +83,28 @@ function cleanFilters(obj: Filters): Filters {
   }
   if (Object.keys(nextSpecs).length) out.specs = nextSpecs;
   else delete out.specs;
-
   return out;
 }
 
-/** Format helpers */
 const formatInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
 const formatPrice = (v: number) => `${formatInt(v)} DT`;
 
-/** Dual-handle range slider (fix for left handle non-draggable):
- *  - We set pointer-events: none on the input tracks, and re-enable on thumbs only.
- *  - This prevents the top input from blocking the bottom one.
- *  - We also display floating value badges above each thumb.
- */
+/** Dual range with pointer-events trick + value badges */
 function DualRange({
-  min = 0,
-  max = 100,
-  step = 1,
-  valueMin,
-  valueMax,
-  onChange,
+  min = 0, max = 100, step = 1,
+  valueMin, valueMax, onChange,
   format = (v: number) => String(v),
-  disabled = false,
 }: {
-  min?: number;
-  max?: number;
-  step?: number;
-  valueMin: number;
-  valueMax: number;
+  min?: number; max?: number; step?: number;
+  valueMin: number; valueMax: number;
   onChange: (vmin: number, vmax: number) => void;
   format?: (v: number) => string;
-  disabled?: boolean;
 }) {
   const [a, setA] = useState<number>(valueMin);
   const [b, setB] = useState<number>(valueMax);
 
-  useEffect(() => setA(valueMin), [valueMin]);
-  useEffect(() => setB(valueMax), [valueMax]);
+  React.useEffect(() => setA(valueMin), [valueMin]);
+  React.useEffect(() => setB(valueMax), [valueMax]);
 
   const lo = Math.min(a, b);
   const hi = Math.max(a, b);
@@ -130,87 +113,37 @@ function DualRange({
   const handleA = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = Number(e.target.value);
     setA(v);
-    const lo2 = Math.min(v, b);
-    const hi2 = Math.max(v, b);
-    onChange(lo2, hi2);
+    onChange(Math.min(v, b), Math.max(v, b));
   };
   const handleB = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = Number(e.target.value);
     setB(v);
-    const lo2 = Math.min(a, v);
-    const hi2 = Math.max(a, v);
-    onChange(lo2, hi2);
+    onChange(Math.min(a, v), Math.max(a, v));
   };
 
-  // Ensure thumbs are always above the red track
-  const zA = a > b ? 5 : 6;
-  const zB = b >= a ? 5 : 6;
+  const zA = a > b ? 6 : 7;
+  const zB = b >= a ? 6 : 7;
 
   return (
     <div className="relative h-10 mt-1">
-      {/* Track */}
       <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-white/15" />
-      <div
-        className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full bg-red-500"
-        style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }}
-      />
-      {/* Value badges */}
-      <div
-        className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40"
-        style={{ left: `${pct(a)}%`, transform: "translate(-50%, 0)", pointerEvents: "none" }}
-      >
-        {format(a)}
-      </div>
-      <div
-        className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40"
-        style={{ left: `${pct(b)}%`, transform: "translate(-50%, 0)", pointerEvents: "none" }}
-      >
-        {format(b)}
-      </div>
-      {/* Handles (tracks ignore pointer events; thumbs catch them) */}
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={a}
-        onChange={handleA}
-        disabled={disabled}
-        className="dual-range absolute inset-0 w-full appearance-none bg-transparent"
-        style={{ zIndex: zA }}
-      />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={b}
-        onChange={handleB}
-        disabled={disabled}
-        className="dual-range absolute inset-0 w-full appearance-none bg-transparent"
-        style={{ zIndex: zB }}
-      />
+      <div className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full bg-red-500" style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }} />
+      <div className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40" style={{ left: `${pct(a)}%`, transform: "translate(-50%,0)", pointerEvents: "none" }}>{format(a)}</div>
+      <div className="absolute -top-5 text-xs px-1 py-0.5 rounded bg-black/40" style={{ left: `${pct(b)}%`, transform: "translate(-50%,0)", pointerEvents: "none" }}>{format(b)}</div>
+      <input type="range" min={min} max={max} step={step} value={a} onChange={handleA} className="dual absolute inset-0 w-full appearance-none bg-transparent" style={{ zIndex: zA }} />
+      <input type="range" min={min} max={max} step={step} value={b} onChange={handleB} className="dual absolute inset-0 w-full appearance-none bg-transparent" style={{ zIndex: zB }} />
       <style jsx>{`
-        .dual-range { pointer-events: none; }
-        .dual-range::-webkit-slider-thumb {
+        .dual { pointer-events: none; }
+        .dual::-webkit-slider-thumb {
           -webkit-appearance: none;
-          height: 18px;
-          width: 14px;
-          border-radius: 4px;
-          background: #bdbdbd;
-          cursor: pointer;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          margin-top: -8px;
-          pointer-events: all; /* the trick */
+          height: 18px; width: 14px; border-radius: 4px;
+          background: #bdbdbd; border: 1px solid rgba(255,255,255,.25);
+          margin-top: -8px; cursor: pointer; pointer-events: all;
         }
-        .dual-range::-moz-range-thumb {
-          height: 18px;
-          width: 14px;
-          border-radius: 4px;
-          background: #bdbdbd;
-          cursor: pointer;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          pointer-events: all; /* the trick */
+        .dual::-moz-range-thumb {
+          height: 18px; width: 14px; border-radius: 4px;
+          background: #bdbdbd; border: 1px solid rgba(255,255,255,.25);
+          cursor: pointer; pointer-events: all;
         }
       `}</style>
     </div>
@@ -218,54 +151,24 @@ function DualRange({
 }
 
 function SectionHeader({
-  title,
-  isOpen,
-  toggle,
-  onClear,
-  hasActive,
-}: {
-  title: string;
-  isOpen: boolean;
-  toggle: () => void;
-  onClear?: () => void;
-  hasActive?: boolean;
-}) {
+  title, isOpen, toggle, onClear, hasActive,
+}: { title: string; isOpen: boolean; toggle: () => void; onClear?: () => void; hasActive?: boolean; }) {
   return (
     <div className="flex items-center justify-between py-2 select-none">
-      <button
-        type="button"
-        onClick={toggle}
-        className="flex items-center gap-2 text-sm font-semibold"
-      >
-        <span className="inline-block w-4 text-center">
-          {isOpen ? "−" : "+"}
-        </span>
+      <button type="button" onClick={toggle} className="flex items-center gap-2 text-sm font-semibold">
+        <span className="inline-block w-4 text-center">{isOpen ? "−" : "+"}</span>
         <span>{title}</span>
       </button>
       {onClear ? (
-        <button
-          title="Réinitialiser"
-          onClick={onClear}
-          className={`text-xs opacity-60 hover:opacity-100 ${hasActive ? "" : "invisible"}`}
-        >
-          ⨯
-        </button>
+        <button title="Réinitialiser" onClick={onClear} className={`text-xs opacity-60 hover:opacity-100 ${hasActive ? "" : "invisible"}`}>⨯</button>
       ) : null}
     </div>
   );
 }
 
 export default function FiltersLeft({
-  brands,
-  initialF = "",
-  initialFilters,
-  specSchema = [],
-}: {
-  brands: Brand[];
-  initialF?: string;
-  initialFilters?: Filters;
-  specSchema?: SpecGroup[];
-}) {
+  brands, initialF = "", initialFilters, specSchema = [],
+}: { brands: Brand[]; initialF?: string; initialFilters?: Filters; specSchema?: SpecGroup[]; }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -274,17 +177,16 @@ export default function FiltersLeft({
   const fObj = base64UrlDecodeToObj<FParam>(fFromUrl) || base64UrlDecodeToObj<FParam>(initialF) || { filters: {}, page: 0 };
   const filters = useMemo<Filters>(() => cleanFilters(fObj?.filters || {}), [fObj]);
 
+  // Init état des groupes une seule fois (ne pas réinitialiser après navigation)
   const defaultOpen: Record<string, boolean> = useMemo(() => {
     const m: Record<string, boolean> = {};
     (specSchema || []).forEach((g) => {
       const anyActive = (g.items || []).some((it) => !!filters.specs?.[it.id]);
-      m[g.id] = anyActive;
+      m[g.id] = anyActive; // ouvre par défaut s'il y a un critère actif dans ce groupe
     });
     return m;
-  }, [specSchema, filters.specs]);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(defaultOpen);
-  useEffect(() => { setOpenGroups(defaultOpen); }, [defaultOpen]);
-
+  }, []); // ⬅️ only once
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => defaultOpen);
   const setGroupOpen = (id: string, open: boolean) => setOpenGroups((s) => ({ ...s, [id]: open }));
 
   const valStr = (v?: number | string) => (v === undefined || v === null ? "" : String(v));
@@ -323,110 +225,40 @@ export default function FiltersLeft({
         {/* Marque */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm opacity-80">Marque</label>
-          <select
-            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-            value={valStr(filters.brand_id)}
-            onChange={(e) => patchFilters({ brand_id: e.target.value || undefined })}
-          >
+          <select className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.brand_id)} onChange={(e) => patchFilters({ brand_id: e.target.value || undefined })}>
             <option value="">Toutes marques</option>
-            {brands?.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
+            {brands?.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
           </select>
         </div>
 
-        {/* Recherche texte */}
+        {/* Recherche */}
         <div className="flex flex-col">
           <label className="mb-1 text-sm opacity-80">Mots clefs</label>
-          <input
-            type="text"
-            placeholder="Rechercher"
-            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-            value={valStr(filters.q)}
-            onChange={(e) => patchFilters({ q: e.target.value })}
-          />
+          <input type="text" placeholder="Rechercher" className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.q)} onChange={(e) => patchFilters({ q: e.target.value })} />
         </div>
 
-        {/* Prix avec slider double */}
+        {/* Prix */}
         <div className="rounded-lg border border-white/10 p-3">
-          <SectionHeader
-            title="Prix"
-            isOpen={true}
-            toggle={() => {}}
-            onClear={() => patchFilters({ price_min: undefined, price_max: undefined })}
-            hasActive={filters.price_min !== undefined || filters.price_max !== undefined}
-          />
+          <SectionHeader title="Prix" isOpen={true} toggle={() => {}} onClear={() => patchFilters({ price_min: undefined, price_max: undefined })} hasActive={filters.price_min !== undefined || filters.price_max !== undefined} />
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              inputMode="decimal"
-              placeholder={String(PRICE_MIN)}
-              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-              value={valStr(filters.price_min)}
-              onChange={(e) => patchFilters({ price_min: e.target.value === "" ? undefined : (e.target.value as any) })}
-            />
-            <input
-              type="number"
-              inputMode="decimal"
-              placeholder={String(PRICE_MAX)}
-              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-              value={valStr(filters.price_max)}
-              onChange={(e) => patchFilters({ price_max: e.target.value === "" ? undefined : (e.target.value as any) })}
-            />
+            <input type="number" inputMode="decimal" placeholder={String(PRICE_MIN)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.price_min)} onChange={(e) => patchFilters({ price_min: e.target.value === "" ? undefined : (e.target.value as any) })} />
+            <input type="number" inputMode="decimal" placeholder={String(PRICE_MAX)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.price_max)} onChange={(e) => patchFilters({ price_max: e.target.value === "" ? undefined : (e.target.value as any) })} />
           </div>
-          <DualRange
-            min={PRICE_MIN}
-            max={PRICE_MAX}
-            step={PRICE_STEP}
-            valueMin={priceMin}
-            valueMax={priceMax}
-            onChange={(vmin, vmax) => patchFilters({ price_min: vmin, price_max: vmax })}
-            format={formatPrice}
-          />
+          <DualRange min={PRICE_MIN} max={PRICE_MAX} step={PRICE_STEP} valueMin={priceMin} valueMax={priceMax} onChange={(vmin, vmax) => patchFilters({ price_min: vmin, price_max: vmax })} format={formatPrice} />
         </div>
 
-        {/* Année avec slider double */}
+        {/* Année */}
         <div className="rounded-lg border border-white/10 p-3">
-          <SectionHeader
-            title="Année"
-            isOpen={true}
-            toggle={() => {}}
-            onClear={() => patchFilters({ year_min: undefined, year_max: undefined })}
-            hasActive={filters.year_min !== undefined || filters.year_max !== undefined}
-          />
+          <SectionHeader title="Année" isOpen={true} toggle={() => {}} onClear={() => patchFilters({ year_min: undefined, year_max: undefined })} hasActive={filters.year_min !== undefined || filters.year_max !== undefined} />
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder={String(YEAR_MIN)}
-              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-              value={valStr(filters.year_min)}
-              onChange={(e) => patchFilters({ year_min: e.target.value === "" ? undefined : (e.target.value as any) })}
-            />
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder={String(YEAR_MAX)}
-              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-              value={valStr(filters.year_max)}
-              onChange={(e) => patchFilters({ year_max: e.target.value === "" ? undefined : (e.target.value as any) })}
-            />
+            <input type="number" inputMode="numeric" placeholder={String(YEAR_MIN)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.year_min)} onChange={(e) => patchFilters({ year_min: e.target.value === "" ? undefined : (e.target.value as any) })} />
+            <input type="number" inputMode="numeric" placeholder={String(YEAR_MAX)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={valStr(filters.year_max)} onChange={(e) => patchFilters({ year_max: e.target.value === "" ? undefined : (e.target.value as any) })} />
           </div>
-          <DualRange
-            min={YEAR_MIN}
-            max={YEAR_MAX}
-            step={YEAR_STEP}
-            valueMin={yearMin}
-            valueMax={yearMax}
-            onChange={(vmin, vmax) => patchFilters({ year_min: vmin, year_max: vmax })}
-            format={(v) => String(v)}
-          />
+          <DualRange min={YEAR_MIN} max={YEAR_MAX} step={YEAR_STEP} valueMin={yearMin} valueMax={yearMax} onChange={(vmin, vmax) => patchFilters({ year_min: vmin, year_max: vmax })} format={(v) => String(v)} />
         </div>
       </div>
 
-      {/* Groups de specs (collapsibles) */}
+      {/* Groups de specs */}
       <div className="space-y-4">
         {(specSchema || []).map((group) => {
           const isOpen = !!openGroups[group.id];
@@ -434,17 +266,11 @@ export default function FiltersLeft({
           return (
             <div key={group.id} className="rounded-lg border border-white/10">
               <div className="px-3">
-                <SectionHeader
-                  title={group.name}
-                  isOpen={isOpen}
-                  toggle={() => setGroupOpen(group.id, !isOpen)}
-                  onClear={hasActive ? () => {
-                    const next = { ...(filters.specs || {}) };
-                    for (const it of group.items || []) delete (next as any)[it.id];
-                    patchFilters({ specs: next });
-                  } : undefined}
-                  hasActive={hasActive}
-                />
+                <SectionHeader title={group.name} isOpen={isOpen} toggle={() => setGroupOpen(group.id, !isOpen)} onClear={hasActive ? () => {
+                  const next = { ...(filters.specs || {}) };
+                  for (const it of group.items || []) delete (next as any)[it.id];
+                  patchFilters({ specs: next });
+                } : undefined} hasActive={hasActive} />
               </div>
               {isOpen ? (
                 <div className="px-3 pb-3 space-y-3">
@@ -462,46 +288,22 @@ export default function FiltersLeft({
                         <div key={it.id} className="space-y-1">
                           <div className="flex items-center justify-between">
                             <label className="text-sm">{it.label}{it.unit ? ` (${it.unit})` : ""}</label>
-                            {(specSel?.min !== undefined || specSel?.max !== undefined) ? (
-                              <button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>
-                            ) : null}
+                            {(specSel?.min !== undefined || specSel?.max !== undefined) ? (<button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>) : null}
                           </div>
                           <div className="grid grid-cols-2 gap-2">
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              placeholder={String(min)}
-                              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-                              value={specSel?.min ?? ""}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                if (v === "") clearSpec(it.id);
-                                else patchSpec(it.id, { type: "number", min: v });
-                              }}
-                            />
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              placeholder={String(max)}
-                              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
-                              value={specSel?.max ?? ""}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                if (v === "") clearSpec(it.id);
-                                else patchSpec(it.id, { type: "number", max: v });
-                              }}
-                            />
+                            <input type="number" inputMode="decimal" placeholder={String(min)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={specSel?.min ?? ""} onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === "") clearSpec(it.id);
+                              else patchSpec(it.id, { type: "number", min: v });
+                            }} />
+                            <input type="number" inputMode="decimal" placeholder={String(max)} className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2" value={specSel?.max ?? ""} onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === "") clearSpec(it.id);
+                              else patchSpec(it.id, { type: "number", max: v });
+                            }} />
                           </div>
                           {!single ? (
-                            <DualRange
-                              min={min}
-                              max={max}
-                              step={1}
-                              valueMin={curMin}
-                              valueMax={curMax}
-                              onChange={(vmin, vmax) => patchSpec(it.id, { type: "number", min: vmin, max: vmax })}
-                              format={(v) => (it.unit ? `${formatInt(v)} ${it.unit}` : formatInt(v))}
-                            />
+                            <DualRange min={min} max={max} step={1} valueMin={curMin} valueMax={curMax} onChange={(vmin, vmax) => patchSpec(it.id, { type: "number", min: vmin, max: vmax })} format={(v) => (it.unit ? `${formatInt(v)} ${it.unit}` : formatInt(v))} />
                           ) : null}
                         </div>
                       );
@@ -513,26 +315,17 @@ export default function FiltersLeft({
                         <div key={it.id} className="space-y-1">
                           <div className="flex items-center justify-between">
                             <label className="text-sm">{it.label}</label>
-                            {cur !== undefined ? (
-                              <button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>
-                            ) : null}
+                            {cur !== undefined ? (<button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>) : null}
                           </div>
                           <div className="flex items-center gap-3 text-sm">
-                            <label className="flex items-center gap-1">
-                              <input type="radio" name={`b-${it.id}`} checked={cur === undefined} onChange={() => clearSpec(it.id)} /> Tous
-                            </label>
-                            <label className="flex items-center gap-1">
-                              <input type="radio" name={`b-${it.id}`} checked={cur === true} onChange={() => patchSpec(it.id, { type: "boolean", value: true })} /> Oui
-                            </label>
-                            <label className="flex items-center gap-1">
-                              <input type="radio" name={`b-${it.id}`} checked={cur === false} onChange={() => patchSpec(it.id, { type: "boolean", value: false })} /> Non
-                            </label>
+                            <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === undefined} onChange={() => clearSpec(it.id)} /> Tous</label>
+                            <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === true} onChange={() => patchSpec(it.id, { type: "boolean", value: true })} /> Oui</label>
+                            <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === false} onChange={() => patchSpec(it.id, { type: "boolean", value: false })} /> Non</label>
                           </div>
                         </div>
                       );
                     }
 
-                    // TEXT options
                     const valuesArray: string[] = Array.isArray(specSel?.values) ? (specSel.values as string[]) : [];
                     const valuesSet = new Set<string>(valuesArray);
 
@@ -540,24 +333,18 @@ export default function FiltersLeft({
                       <div key={it.id} className="space-y-1">
                         <div className="flex items-center justify-between">
                           <label className="text-sm">{it.label}</label>
-                          {valuesSet.size > 0 ? (
-                            <button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>
-                          ) : null}
+                          {valuesSet.size > 0 ? (<button className="text-xs opacity-60 hover:opacity-100" onClick={() => clearSpec(it.id)}>⨯</button>) : null}
                         </div>
                         <div className="max-h-40 overflow-auto pr-1 space-y-1">
                           {(it.options || []).map((op) => (
-                            <label key={op.value} className="flex items-center gap-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={valuesSet.has(op.value)}
-                                onChange={(e) => {
-                                  if (e.target.checked) valuesSet.add(op.value);
-                                  else valuesSet.delete(op.value);
-                                  const arr = Array.from(valuesSet);
-                                  if (arr.length === 0) clearSpec(it.id);
-                                  else patchSpec(it.id, { type: "text", values: arr });
-                                }}
-                              />
+                            <label key={op.value} className="flex items-center gap-2 text-sm opacity-90">
+                              <input type="checkbox" checked={valuesSet.has(op.value)} onChange={(e) => {
+                                if (e.target.checked) valuesSet.add(op.value);
+                                else valuesSet.delete(op.value);
+                                const arr = Array.from(valuesSet);
+                                if (arr.length === 0) clearSpec(it.id);
+                                else patchSpec(it.id, { type: "text", values: arr });
+                              }} />
                               <span>{op.value}</span>
                               <span className="opacity-50">({op.count})</span>
                             </label>
