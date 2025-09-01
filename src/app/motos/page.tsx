@@ -15,6 +15,7 @@ type Filters = {
   price_min?: number;
   price_max?: number;
   q?: string;
+  specs?: Record<string, any>; // spec_item_id -> {type, ...}
 };
 type FParam = {
   filters: Filters;
@@ -22,70 +23,36 @@ type FParam = {
 };
 
 type Brand = { id: string; name: string };
-type Moto = {
+
+type SpecGroupRow = { id: string; name: string; sort_order: number };
+type SpecItemRow = {
   id: string;
-  brand_id: string | null;
-  brand_name?: string | null;
-  model_name?: string | null;
-  year?: number | null;
-  price_tnd?: number | null;
-  display_image?: string | null;
+  group_id: string;
+  label: string;
+  unit: string | null;
+  data_type: string; // 'number' | 'text' | 'boolean' | 'json'...
+  sort_order: number;
 };
+
+type NumericRangeRow = { spec_item_id: string; min_value: number | null; max_value: number | null };
+type TextOptionRow = { spec_item_id: string; value_text: string; n: number };
 
 // ---------- Helpers Base64 (server) ----------
 function addBase64Padding(b64: string) {
   const pad = b64.length % 4;
   return pad ? b64 + "=".repeat(4 - pad) : b64;
 }
-// ⬇️ Correction: accepter 'undefined' et 'null'
+// accepte undefined et null
 function decodeFServer(fParam?: string | null): FParam {
   try {
     if (!fParam) return { filters: {}, page: 0 };
-    // URL-safe → standard base64
     const std = addBase64Padding(fParam.replace(/-/g, "+").replace(/_/g, "/"));
     const json = Buffer.from(std, "base64").toString("utf8");
     const obj = JSON.parse(json);
     if (!obj || typeof obj !== "object") return { filters: {}, page: 0 };
-    // Normalisation
     const raw: any = obj;
-    const filters: Filters = {};
-    if (typeof raw.filters === "object" && raw.filters) {
-      const f = raw.filters;
-      const uuidRe =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-      if (typeof f.brand_id === "string" && uuidRe.test(f.brand_id))
-        filters.brand_id = f.brand_id;
-
-      const toInt = (v: any) =>
-        typeof v === "number"
-          ? v
-          : typeof v === "string" && v.trim() !== "" && !isNaN(parseInt(v, 10))
-          ? parseInt(v, 10)
-          : undefined;
-      const toNum = (v: any) =>
-        typeof v === "number"
-          ? v
-          : typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v))
-          ? parseFloat(v)
-          : undefined;
-
-      const ymn = toInt(f.year_min);
-      if (ymn !== undefined) filters.year_min = ymn;
-      const ymx = toInt(f.year_max);
-      if (ymx !== undefined) filters.year_max = ymx;
-
-      const pmin = toNum(f.price_min);
-      if (pmin !== undefined) filters.price_min = pmin;
-      const pmax = toNum(f.price_max);
-      if (pmax !== undefined) filters.price_max = pmax;
-
-      if (typeof f.q === "string" && f.q.trim() !== "") filters.q = f.q.trim();
-    }
-
-    const page =
-      typeof raw.page === "number" && raw.page >= 0 ? raw.page : 0;
-
+    const filters: Filters = (raw.filters && typeof raw.filters === "object") ? raw.filters : {};
+    const page = typeof raw.page === "number" && raw.page >= 0 ? raw.page : 0;
     return { filters, page };
   } catch {
     return { filters: {}, page: 0 };
@@ -96,9 +63,7 @@ function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
-    throw new Error(
-      "Supabase env manquants: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY"
-    );
+    throw new Error("Supabase env manquants: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY");
   }
   return createClient(url, key, { auth: { persistSession: false } });
 }
@@ -111,45 +76,61 @@ export default async function Page({
   const supabase = getSupabase();
 
   // 1) Lire & normaliser f
-  const fRaw =
-    typeof searchParams.f === "string" ? searchParams.f : undefined;
+  const fRaw = typeof searchParams.f === "string" ? searchParams.f : undefined;
   const f = decodeFServer(fRaw);
   const { filters } = f;
 
   // 2) Charger les marques pour le Select (⚠️ adapte le nom de table si besoin)
-  //    Si ta table s'appelle autrement (ex: 'moto_brands'), remplace 'brands' ci-dessous.
-  const { data: brandsData, error: brandsErr } = await supabase
+  const { data: brandsData } = await supabase
     .from("brands")
     .select("id, name")
     .order("name", { ascending: true });
-
   const brands: Brand[] = Array.isArray(brandsData) ? brandsData : [];
 
-  // 3) Construire la requête motos en fonction des filtres
-  let query = supabase.from("motos").select("*");
+  // 3) Charger la taxonomie des specs (groupes + items) + stats (ranges / options)
+  const { data: groupsData } = await supabase
+    .from("spec_groups")
+    .select("id, name, sort_order")
+    .order("sort_order", { ascending: true });
 
-  if (filters.brand_id) query = query.eq("brand_id", filters.brand_id);
-  if (filters.year_min !== undefined)
-    query = query.gte("year", filters.year_min);
-  if (filters.year_max !== undefined)
-    query = query.lte("year", filters.year_max);
-  if (filters.price_min !== undefined)
-    query = query.gte("price_tnd", filters.price_min);
-  if (filters.price_max !== undefined)
-    query = query.lte("price_tnd", filters.price_max);
+  const { data: itemsData } = await supabase
+    .from("spec_items")
+    .select("id, group_id, label, unit, data_type, sort_order")
+    .order("sort_order", { ascending: true });
 
-  // Recherche texte simple (ajuste les colonnes si elles existent)
-  if (filters.q) {
-    const like = `%${filters.q}%`;
-    query = query.or(`brand_name.ilike.${like},model_name.ilike.${like}`);
-  }
+  const groups: SpecGroupRow[] = Array.isArray(groupsData) ? groupsData : [];
+  const items: SpecItemRow[] = Array.isArray(itemsData) ? itemsData : [];
 
-  // Tri & limite
-  query = query.order("id", { ascending: false }).limit(60);
+  // Stats: min/max pour les numériques
+  const { data: numericRanges } = await supabase
+    .rpc("get_spec_numeric_ranges");
+  const ranges = (Array.isArray(numericRanges) ? numericRanges : []) as NumericRangeRow[];
 
-  const { data: motos, error: motosErr } = await query;
+  // Options texte (limitées à 50 valeurs par item)
+  const { data: textOptions } = await supabase
+    .rpc("get_spec_text_options", { limit_per_item: 50 });
+  const options = (Array.isArray(textOptions) ? textOptions : []) as TextOptionRow[];
 
-  const loadError = !!motosErr || !!brandsErr;
+  // 4) Rechercher les motos via la RPC (gère toutes les conditions y compris specs)
+  const { data: motos, error: motosErr } = await supabase.rpc("search_motos", { f });
+
+  const loadError = !!motosErr;
+
+  // Prépare un objet simple pour la sidebar (groupes -> items -> meta + range/options)
+  const specSchema = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    items: items
+      .filter((it) => it.group_id === g.id)
+      .map((it) => ({
+        id: it.id,
+        label: it.label,
+        unit: it.unit,
+        data_type: it.data_type,
+        range: ranges.find((r) => r.spec_item_id === it.id) || null,
+        options: options.filter((o) => o.spec_item_id === it.id).map((o) => ({ value: o.value_text, count: o.n })),
+      })),
+  }));
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-3 md:px-6 py-4">
@@ -160,22 +141,18 @@ export default async function Page({
             brands={brands}
             initialF={fRaw || ""}
             initialFilters={filters}
+            specSchema={specSchema}
           />
         </aside>
 
         {/* Liste des motos */}
         <main className="col-span-12 md:col-span-9 lg:col-span-9">
           {loadError ? (
-            <p className="text-red-500 font-semibold">
-              Impossible de charger les motos.
-            </p>
+            <p className="text-red-500 font-semibold">Impossible de charger les motos.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {(motos as Moto[] | null)?.map((m) => (
-                <article
-                  key={m.id}
-                  className="rounded-xl border border-white/10 p-3 hover:shadow-md transition"
-                >
+              {(motos as any[] | null)?.map((m) => (
+                <article key={m.id} className="rounded-xl border border-white/10 p-3 hover:shadow-md transition">
                   <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-black/10">
                     {m.display_image ? (
                       <img
@@ -191,8 +168,7 @@ export default async function Page({
                       {m.brand_name ?? "—"} {m.model_name ?? ""}
                     </h3>
                     <p className="text-sm opacity-80">
-                      {m.year ?? "—"} ·{" "}
-                      {m.price_tnd != null ? `${m.price_tnd} TND` : "—"}
+                      {m.year ?? "—"} · {m.price_tnd != null ? `${m.price_tnd} TND` : "—"}
                     </p>
                   </div>
                 </article>
