@@ -37,7 +37,8 @@ function addBase64Padding(b64: string) {
   const pad = b64.length % 4;
   return pad ? b64 + "=".repeat(4 - pad) : b64;
 }
-function decodeFServer(fParam: string | null): FParam {
+// ⬇️ Correction: accepter 'undefined' et 'null'
+function decodeFServer(fParam?: string | null): FParam {
   try {
     if (!fParam) return { filters: {}, page: 0 };
     // URL-safe → standard base64
@@ -137,13 +138,10 @@ export default async function Page({
   if (filters.price_max !== undefined)
     query = query.lte("price_tnd", filters.price_max);
 
-  // NOTE: Si tu as une colonne 'model_name' ou 'brand_name', tu peux activer la recherche plein-texte simple.
+  // Recherche texte simple (ajuste les colonnes si elles existent)
   if (filters.q) {
     const like = `%${filters.q}%`;
-    // Adapte les colonnes ci-dessous à ton schéma réel si nécessaire
-    query = query.or(
-      `brand_name.ilike.${like},model_name.ilike.${like}`
-    );
+    query = query.or(`brand_name.ilike.${like},model_name.ilike.${like}`);
   }
 
   // Tri & limite
