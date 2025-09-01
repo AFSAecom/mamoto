@@ -56,7 +56,7 @@ function getSupabase() {
 }
 
 /** ---------- Image helpers ---------- */
-const IMG_EXT = /(\.png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i;
+const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp|svg)$/i;
 const isHttpUrl = (s: any) => typeof s === "string" && /^https?:\/\//i.test(s) && IMG_EXT.test(s);
 const looksLikePath = (s: any) => typeof s === "string" && IMG_EXT.test(s) && !/^https?:\/\//i.test(s);
 
@@ -71,7 +71,6 @@ function toPublicStorageUrl(pathLike: string): string | null {
   if (firstSeg !== DEFAULT_BUCKET.toLowerCase()) p = `${DEFAULT_BUCKET}/${p}`;
   return `${supa.replace(/\/+$/,"")}/storage/v1/object/public/${p}`;
 }
-
 function asImageUrl(val: any): string | null {
   if (!val) return null;
   if (isHttpUrl(val)) return val;
@@ -89,40 +88,34 @@ function asImageUrl(val: any): string | null {
   } catch {}
   return null;
 }
-
-function buildFromBrandModel(brand: any, model: any): string[] {
-  const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
-  const brandSlug = slugify(String(brand || ""));
-  const modelSlug = slugify(String(model || ""));
-  const base = `${bucket}/${brandSlug}-${modelSlug}`;
-  const names = ["1.webp", "cover.webp", "1.jpg", "1.jpeg", "1.png", "main.webp", "2.webp"];
-  return names.map((n) => `${base}/${n}`);
-}
-
 function sniffImageFromRecord(m: any): string | null {
   const commons = ["image_url","display_image","cover_url","cover","photo_url","photo","thumbnail_url","thumbnail","image","img"];
-  for (const k of commons) {
-    const v = (m as any)?.[k];
-    const url = asImageUrl(v);
-    if (url) return url;
-  }
+  for (const k of commons) { const v = (m as any)?.[k]; const url = asImageUrl(v); if (url) return url; }
   const listKeys = ["images","gallery","photos","imgs","pictures","media"];
   for (const k of listKeys) {
     const v = (m as any)?.[k];
-    if (Array.isArray(v)) {
-      for (const x of v) { const url = asImageUrl(x); if (url) return url; }
-    } else {
-      const url = asImageUrl(v); if (url) return url;
-    }
-  }
-  const brandName = (m.brand_name || m.brand || m.brands?.name || "").toString();
-  const modelName = (m.model_name || m.model || "").toString();
-  const candidates = buildFromBrandModel(brandName, modelName);
-  for (const c of candidates) {
-    const u = toPublicStorageUrl(c.replace(/^[^/]+\//, "").replace(/^motos\//, "")) || `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${c}`;
-    if (u) return u;
+    if (Array.isArray(v)) { for (const x of v) { const url = asImageUrl(x); if (url) return url; } }
+    else { const url = asImageUrl(v); if (url) return url; }
   }
   return null;
+}
+
+/** Liste toutes les images d’un dossier brand-model depuis Storage */
+async function listImagesFor(
+  supabase: ReturnType<typeof createClient>,
+  brandName: string | null | undefined,
+  modelName: string | null | undefined
+): Promise<string[]> {
+  const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "motos";
+  const folder = `${slugify(String(brandName || ""))}-${slugify(String(modelName || ""))}`;
+  if (!folder.replace(/-/g, "")) return [];
+  const { data } = await supabase.storage
+    .from(bucket)
+    .list(folder, { limit: 100, sortBy: { column: "name", order: "asc" } });
+  const files = (data || []).filter((f) => IMG_EXT.test(f.name));
+  return files.map(
+    (f) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl
+  );
 }
 /** ---------- /Image helpers ---------- */
 
@@ -144,24 +137,28 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   const groups: SpecGroupRow[] = Array.isArray(groupsData) ? groupsData : [];
   const items: SpecItemRow[] = Array.isArray(itemsData) ? itemsData : [];
 
+  // Facettes dynamiques
   const { data: numericRanges } = await supabase.rpc("get_spec_numeric_ranges_filtered", { f });
   const ranges = (Array.isArray(numericRanges) ? numericRanges : []) as NumericRangeRow[];
-
   const { data: textOptions } = await supabase.rpc("get_spec_text_options_filtered", { f, limit_per_item: 50 });
   const options = (Array.isArray(textOptions) ? textOptions : []) as TextOptionRow[];
 
+  // Résultats (via RPC existante)
   const { data: motos } = await supabase.rpc("search_motos", { f });
   const list = Array.isArray(motos) ? (motos as any[]) : [];
 
-  const ids = list.map((x) => x.id).filter(Boolean);
-  let imageMap: Record<string, any> = {};
-  if (ids.length) {
-    const { data: rows } = await supabase
-      .from("motos")
-      .select("id, image_url, cover_url, cover, photo_url, photo, thumbnail_url, thumbnail, images, gallery, photos")
-      .in("id", ids);
-    for (const r of rows || []) imageMap[r.id] = r;
-  }
+  // Récupère toutes les images par moto (via Storage.list)
+  const withImages = await Promise.all(
+    list.map(async (m) => {
+      const urls = await listImagesFor(supabase, m.brand_name ?? m.brands?.name, m.model_name ?? m.model);
+      // Fallback: si rien listé, prends la meilleure image sniffée
+      if (!urls || urls.length === 0) {
+        const u = sniffImageFromRecord(m);
+        return { m, urls: u ? [u] : [] };
+      }
+      return { m, urls };
+    })
+  );
 
   const specSchema = (groups || []).map((g) => ({
     id: g.id,
@@ -186,9 +183,8 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         </aside>
         <main className="col-span-12 md:col-span-9 lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {list.map((m) => {
-              const shadow = imageMap[m.id] || {};
-              const img = sniffImageFromRecord({ ...shadow, ...m });
+            {withImages.map(({ m, urls }) => {
+              const main = urls[0] ?? null;
               return (
                 <Link
                   key={m.id}
@@ -196,9 +192,9 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
                   className="group rounded-xl border border-white/10 hover:border-white/20 hover:shadow-md transition overflow-hidden"
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden bg-black/10">
-                    {img ? (
+                    {main ? (
                       <img
-                        src={img}
+                        src={main}
                         alt={`${m.brand_name ?? ""} ${m.model_name ?? ""}`}
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition"
                         loading="lazy"
@@ -209,6 +205,24 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
                       </div>
                     )}
                   </div>
+
+                  {/* Miniatures si plusieurs images */}
+                  {urls.length > 1 && (
+                    <div className="px-3 pt-2 pb-1 overflow-x-auto">
+                      <div className="flex gap-2">
+                        {urls.slice(1).map((u: string, i: number) => (
+                          <img
+                            key={u + i}
+                            src={u}
+                            alt="miniature"
+                            className="h-14 w-20 object-cover rounded border border-white/10 flex-shrink-0"
+                            loading="lazy"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-3">
                     <h3 className="text-base font-semibold line-clamp-1">
                       {m.brand_name ?? "—"} {m.model_name ?? ""}
