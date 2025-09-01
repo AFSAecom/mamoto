@@ -89,7 +89,7 @@ export default function MotosPage() {
 
   function findItem(key: string) {
     for (const g of facets) {
-      const it = g.items.find(i => i.key === key)
+      const it = (g.items as any[]).find((i: any) => i.key === key)
       if (it) return it
     }
     return undefined
