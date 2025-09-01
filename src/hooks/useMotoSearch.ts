@@ -81,6 +81,11 @@ export function useMotoSearch(filters: Filters, page: number) {
         })
         const rows = await res.json().catch(() => [])
         setLastResponse(rows)
+        if (res.status === 401 || res.status === 403) {
+          setMotos([])
+          setError(String(res.status))
+          return
+        }
         console.debug('[RPC->rows]', rows)
         let list: any[] = []
         if (Array.isArray(rows)) {

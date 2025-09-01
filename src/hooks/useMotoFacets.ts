@@ -27,6 +27,11 @@ export function useMotoFacets() {
           signal: controller.signal,
         })
         const data: FacetGroup[] = await res.json().catch(() => [])
+        if (res.status === 401 || res.status === 403) {
+          setFacets([])
+          setError(String(res.status))
+          return
+        }
         data.sort(
           (a, b) =>
             (a.group_sort ?? Infinity) - (b.group_sort ?? Infinity) ||

@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react'
 import MotoCard from '@/components/MotoCard'
 import FiltersPanel from '@/components/FiltersPanel'
 import { useMotoFacets } from '@/hooks/useMotoFacets'
-import { useMotoSearch, Filters, Range, cleanFilters } from '@/hooks/useMotoSearch'
+import {
+  useMotoSearch,
+  Filters,
+  Range,
+  cleanFilters,
+} from '@/hooks/useMotoSearch'
 import {
   Pagination,
   PaginationContent,
@@ -22,26 +27,37 @@ import { encode, decode } from '@/utils/base64url'
 export default function MotosPage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const [filters, setFilters] = useState<Filters>({})
-  const [page, setPage] = useState(0)
-  const { facets } = useMotoFacets()
-  const { motos, loading, error, lastRequest, lastResponse } = useMotoSearch(
-    filters,
-    page
-  )
+  const init = (() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const f = params.get('f')
+      if (f) {
+        const decoded = decode<{ filters: Filters; page: number }>(f)
+        return {
+          filters: decoded.filters || {},
+          page: typeof decoded.page === 'number' ? decoded.page : 0,
+        }
+      }
+    }
+    return { filters: {}, page: 0 }
+  })()
+  const [filters, setFilters] = useState<Filters>(init.filters)
+  const [page, setPage] = useState(init.page)
+  const { facets, error: facetsError } = useMotoFacets()
+  const {
+    motos,
+    loading,
+    error,
+    lastRequest,
+    lastResponse,
+  } = useMotoSearch(filters, page)
   const [diagOpen, setDiagOpen] = useState(false)
   const [testResult, setTestResult] = useState<any>(null)
-
-  // hydrate from URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const f = params.get('f')
-    if (f) {
-      const decoded = decode<{ filters: Filters; page: number }>(f)
-      if (decoded.filters) setFilters(decoded.filters)
-      if (typeof decoded.page === 'number') setPage(decoded.page)
-    }
-  }, [])
+  const blocked =
+    error === '401' ||
+    error === '403' ||
+    facetsError === '401' ||
+    facetsError === '403'
 
   // update URL when filters or page change
   useEffect(() => {
@@ -193,7 +209,7 @@ export default function MotosPage() {
         apikey: supabaseAnon,
         Authorization: `Bearer ${supabaseAnon}`,
       },
-      body: JSON.stringify({ p_filters: {}, p_limit: 1, p_offset: 0 }),
+      body: JSON.stringify({ p_filters: {}, p_limit: 8, p_offset: 0 }),
     })
     const data = await res.json().catch(() => null)
     setTestResult(data)
@@ -201,9 +217,14 @@ export default function MotosPage() {
 
   return (
     <div className="p-4 space-y-4">
+      {blocked && (
+        <div className="bg-red-500 text-white p-2 text-center">
+          Accès bloqué : vérifiez les policies RLS et GRANT EXECUTE sur fn_search_motos/fn_get_filter_facets.
+        </div>
+      )}
       {!supabaseUrl || !supabaseAnon ? (
         <div className="bg-red-500 text-white p-2 text-center">
-          Config manquante : NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — configurez .env.local
+          Config manquante : NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — ajoutez-les à .env.local
         </div>
       ) : null}
       <div className="md:hidden">
@@ -238,12 +259,12 @@ export default function MotosPage() {
           </div>
           {loading ? (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 12 }).map((_, i) => (
                 <Skeleton key={i} className="h-48" />
               ))}
             </div>
           ) : motos.length === 0 ? (
-            <div>Aucun résultat</div>
+            <div>Aucun résultat, élargissez les filtres</div>
           ) : (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {motos.map(m => (
@@ -290,7 +311,7 @@ export default function MotosPage() {
                     {
                       NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
                       NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnon
-                        ? supabaseAnon.replace(/.(?=.{4})/g, '*')
+                        ? `****${supabaseAnon.slice(-6)}`
                         : null,
                     },
                     null,
@@ -306,7 +327,7 @@ export default function MotosPage() {
                   {JSON.stringify(lastResponse, null, 2)}
                 </pre>
                 <Button size="sm" onClick={runTest}>
-                  Test direct
+                  Tester sans filtres
                 </Button>
                 {testResult && (
                   <pre className="overflow-x-auto">
