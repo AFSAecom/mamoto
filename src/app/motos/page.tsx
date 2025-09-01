@@ -1,344 +1,208 @@
-'use client'
+// src/app/motos/page.tsx
+import React from "react";
+import FiltersLeft from "@/components/motos/FiltersLeft";
+import { createClient } from "@supabase/supabase-js";
 
-import { useEffect, useState } from 'react'
-import MotoCard from '@/components/MotoCard'
-import FiltersPanel from '@/components/FiltersPanel'
-import { useMotoFacets } from '@/hooks/useMotoFacets'
-import {
-  useMotoSearch,
-  Filters,
-  Range,
-  cleanFilters,
-} from '@/hooks/useMotoSearch'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationLink,
-} from '@/components/ui/pagination'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Skeleton } from '@/components/ui/skeleton'
-import { encode, decode } from '@/utils/base64url'
+// Force le rendu dynamique et pas de cache
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function MotosPage() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const init = (() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const f = params.get('f')
-      if (f) {
-        const decoded = decode<{ filters: Filters; page: number }>(f)
-        return {
-          filters: decoded.filters || {},
-          page: typeof decoded.page === 'number' ? decoded.page : 0,
-        }
-      }
+// ---------- Types ----------
+type Filters = {
+  brand_id?: string;
+  year_min?: number;
+  year_max?: number;
+  price_min?: number;
+  price_max?: number;
+  q?: string;
+};
+type FParam = {
+  filters: Filters;
+  page: number;
+};
+
+type Brand = { id: string; name: string };
+type Moto = {
+  id: string;
+  brand_id: string | null;
+  brand_name?: string | null;
+  model_name?: string | null;
+  year?: number | null;
+  price_tnd?: number | null;
+  display_image?: string | null;
+};
+
+// ---------- Base64 utils (server) ----------
+function addBase64Padding(b64: string) {
+  const pad = b64.length % 4;
+  return pad ? b64 + "=".repeat(4 - pad) : b64;
+}
+function decodeFServer(fParam: string | null): FParam {
+  try {
+    if (!fParam) return { filters: {}, page: 0 };
+    // URL-safe → standard base64
+    const std = addBase64Padding(fParam.replace(/-/g, "+").replace(/_/g, "/"));
+    const json = Buffer.from(std, "base64").toString("utf8");
+    const obj = JSON.parse(json);
+    if (!obj || typeof obj !== "object") return { filters: {}, page: 0 };
+    // Petite normalisation
+    const raw: any = obj;
+    const filters: Filters = {};
+    if (typeof raw.filters === "object" && raw.filters) {
+      const f = raw.filters;
+      const uuidRe =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+      if (typeof f.brand_id === "string" && uuidRe.test(f.brand_id))
+        filters.brand_id = f.brand_id;
+
+      const toInt = (v: any) =>
+        typeof v === "number"
+          ? v
+          : typeof v === "string" && v.trim() !== "" && !isNaN(parseInt(v, 10))
+          ? parseInt(v, 10)
+          : undefined;
+      const toNum = (v: any) =>
+        typeof v === "number"
+          ? v
+          : typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v))
+          ? parseFloat(v)
+          : undefined;
+
+      const ymn = toInt(f.year_min);
+      if (ymn !== undefined) filters.year_min = ymn;
+      const ymx = toInt(f.year_max);
+      if (ymx !== undefined) filters.year_max = ymx;
+
+      const pmin = toNum(f.price_min);
+      if (pmin !== undefined) filters.price_min = pmin;
+      const pmax = toNum(f.price_max);
+      if (pmax !== undefined) filters.price_max = pmax;
+
+      if (typeof f.q === "string" && f.q.trim() !== "") filters.q = f.q.trim();
     }
-    return { filters: {}, page: 0 }
-  })()
-  const [filters, setFilters] = useState<Filters>(init.filters)
-  const [page, setPage] = useState(init.page)
-  const { facets, error: facetsError } = useMotoFacets()
-  const {
-    motos,
-    loading,
-    error,
-    lastRequest,
-    lastResponse,
-  } = useMotoSearch(filters, page)
-  const [diagOpen, setDiagOpen] = useState(false)
-  const [testResult, setTestResult] = useState<any>(null)
-  const blocked =
-    error === '401' ||
-    error === '403' ||
-    facetsError === '401' ||
-    facetsError === '403'
 
-  // update URL when filters or page change
-  useEffect(() => {
-    const encoded = encode({ filters, page })
-    const url = `${window.location.pathname}?f=${encoded}`
-    window.history.replaceState(null, '', url)
-  }, [filters, page])
+    const page =
+      typeof raw.page === "number" && raw.page >= 0 ? raw.page : 0;
 
-  const handleFilterChange = (next: Filters) => {
-    setFilters(next)
-    setPage(0)
+    return { filters, page };
+  } catch {
+    return { filters: {}, page: 0 };
   }
+}
 
-  function findItem(key: string) {
-    for (const g of facets) {
-      const it = g.items.find(i => i.key === key)
-      if (it) return it
-    }
-    return undefined
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Supabase env manquants: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    );
   }
+  return createClient(url, key, { auth: { persistSession: false } });
+}
 
-  const badges: {
-    key: string
-    label: string
-    value: string
-    remove: () => void
-  }[] = []
-  const cleaned = cleanFilters(filters)
-  if (cleaned.price) {
-    const item = findItem('price')
-    badges.push({
-      key: 'price',
-      label: item?.label || 'price',
-      value: `${cleaned.price.min ?? ''}-${cleaned.price.max ?? ''}`,
-      remove: () => setFilters(f => ({ ...f, price: undefined })),
-    })
-  }
-  if (cleaned.year) {
-    const item = findItem('year')
-    badges.push({
-      key: 'year',
-      label: item?.label || 'year',
-      value: `${cleaned.year.min ?? ''}-${cleaned.year.max ?? ''}`,
-      remove: () => setFilters(f => ({ ...f, year: undefined })),
-    })
-  }
-  if (cleaned.brand_ids) {
-    const item = findItem('brand_ids')
-    cleaned.brand_ids.forEach(id => {
-      badges.push({
-        key: `brand_ids:${id}`,
-        label: item?.label || 'brand_ids',
-        value: id,
-        remove: () =>
-          setFilters(f => ({
-            ...f,
-            brand_ids: f.brand_ids?.filter(b => b !== id),
-          })),
-      })
-    })
-  }
-  if (cleaned.specs) {
-    for (const [k, v] of Object.entries(cleaned.specs)) {
-      const item = findItem(k)
-      if (typeof v === 'boolean') {
-        badges.push({
-          key: k,
-          label: item?.label || k,
-          value: v ? 'Oui' : 'Non',
-          remove: () =>
-            setFilters(f => {
-              const n = { ...f }
-              if (n.specs) {
-                delete n.specs[k]
-                if (Object.keys(n.specs).length === 0) delete n.specs
-              }
-              return n
-            }),
-        })
-      } else if (Array.isArray(v)) {
-        v.forEach(val =>
-          badges.push({
-            key: `${k}:${val}`,
-            label: item?.label || k,
-            value: val,
-            remove: () =>
-              setFilters(f => {
-                const n = { ...f }
-                const arr = (n.specs?.[k] as string[]).filter(v2 => v2 !== val)
-                if (arr.length > 0) {
-                  n.specs = { ...n.specs, [k]: arr }
-                } else if (n.specs) {
-                  delete n.specs[k]
-                  if (Object.keys(n.specs).length === 0) delete n.specs
-                }
-                return n
-              }),
-          })
-        )
-      } else if (typeof v === 'object' && v) {
-        if ('in' in v) {
-          v.in.forEach(val =>
-            badges.push({
-              key: `${k}:${val}`,
-              label: item?.label || k,
-              value: val,
-              remove: () =>
-                setFilters(f => {
-                  const n = { ...f }
-                  const arr = (n.specs?.[k] as any).in.filter(
-                    (x: string) => x !== val
-                  )
-                  if (arr.length > 0) {
-                    n.specs = { ...n.specs, [k]: { in: arr } }
-                  } else if (n.specs) {
-                    delete n.specs[k]
-                    if (Object.keys(n.specs).length === 0) delete n.specs
-                  }
-                  return n
-                }),
-            })
-          )
-        } else {
-          badges.push({
-            key: k,
-            label: item?.label || k,
-            value: `${(v as Range).min ?? ''}-${(v as Range).max ?? ''}`,
-            remove: () =>
-              setFilters(f => {
-                const n = { ...f }
-                if (n.specs) {
-                  delete n.specs[k]
-                  if (Object.keys(n.specs).length === 0) delete n.specs
-                }
-                return n
-              }),
-          })
-        }
-      }
-    }
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const supabase = getSupabase();
+
+  // 1) Lire & normaliser f
+  const fRaw =
+    typeof searchParams.f === "string" ? searchParams.f : undefined;
+  const f = decodeFServer(fRaw);
+  const { filters } = f;
+
+  // 2) Charger les marques pour le Select (id, name)
+  const { data: brandsData, error: brandsErr } = await supabase
+    .from("brands")
+    .select("id, name")
+    .order("name", { ascending: true });
+
+  const brands: Brand[] = Array.isArray(brandsData) ? brandsData : [];
+
+  // 3) Construire la requête motos en fonction des filtres
+  let query = supabase.from("motos").select("*");
+
+  if (filters.brand_id) query = query.eq("brand_id", filters.brand_id);
+  if (filters.year_min !== undefined)
+    query = query.gte("year", filters.year_min);
+  if (filters.year_max !== undefined)
+    query = query.lte("year", filters.year_max);
+  if (filters.price_min !== undefined)
+    query = query.gte("price_tnd", filters.price_min);
+  if (filters.price_max !== undefined)
+    query = query.lte("price_tnd", filters.price_max);
+
+  if (filters.q) {
+    // Recherche simple sur brand_name / model_name si présents
+    const like = `%${filters.q}%`;
+    query = query.or(
+      `brand_name.ilike.${like},model_name.ilike.${like}`
+    );
   }
 
-  async function runTest() {
-    if (!supabaseUrl || !supabaseAnon) return
-    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/fn_search_motos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: supabaseAnon,
-        Authorization: `Bearer ${supabaseAnon}`,
-      },
-      body: JSON.stringify({ p_filters: {}, p_limit: 8, p_offset: 0 }),
-    })
-    const data = await res.json().catch(() => null)
-    setTestResult(data)
-  }
+  // Tri & limite
+  query = query.order("created_at", { ascending: false }).limit(60);
+
+  const { data: motos, error: motosErr } = await query;
+
+  const loadError = !!motosErr || !!brandsErr;
 
   return (
-    <div className="p-4 space-y-4">
-      {blocked && (
-        <div className="bg-red-500 text-white p-2 text-center">
-          Accès bloqué : vérifiez les policies RLS et GRANT EXECUTE sur fn_search_motos/fn_get_filter_facets.
-        </div>
-      )}
-      {!supabaseUrl || !supabaseAnon ? (
-        <div className="bg-red-500 text-white p-2 text-center">
-          Config manquante : NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — ajoutez-les à .env.local
-        </div>
-      ) : null}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline">Filtres</Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="overflow-y-auto p-4">
-            <FiltersPanel
-              facets={facets}
-              filters={filters}
-              onChange={handleFilterChange}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-      <div className="flex gap-6">
-        <aside className="w-64 hidden md:block">
-          <FiltersPanel
-            facets={facets}
-            filters={filters}
-            onChange={handleFilterChange}
+    <div className="w-full max-w-[1400px] mx-auto px-3 md:px-6 py-4">
+      <div className="grid grid-cols-12 gap-6">
+        {/* Sidebar filtres à gauche */}
+        <aside className="col-span-12 md:col-span-3 lg:col-span-3">
+          <FiltersLeft
+            brands={brands}
+            initialF={fRaw || ""}
+            // On passe aussi les filtres courants pour pré-remplissage immédiat
+            initialFilters={filters}
           />
         </aside>
-        <div className="flex-1">
-          <div className="mb-4 flex flex-wrap gap-2">
-            {badges.map(b => (
-              <Badge key={b.key} onClick={b.remove} className="cursor-pointer">
-                {b.label}: {b.value}
-              </Badge>
-            ))}
-          </div>
-          {loading ? (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Skeleton key={i} className="h-48" />
-              ))}
-            </div>
-          ) : motos.length === 0 ? (
-            <div>Aucun résultat, élargissez les filtres</div>
+
+        {/* Liste des motos */}
+        <main className="col-span-12 md:col-span-9 lg:col-span-9">
+          {loadError ? (
+            <p className="text-red-500 font-semibold">
+              Impossible de charger les motos.
+            </p>
           ) : (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {motos.map(m => (
-                <MotoCard key={m.id} moto={m} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {(motos as Moto[] | null)?.map((m) => (
+                <article
+                  key={m.id}
+                  className="rounded-xl border border-white/10 p-3 hover:shadow-md transition"
+                >
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-black/10">
+                    {m.display_image ? (
+                      // img classique pour éviter toute dépendance à next/image
+                      <img
+                        src={m.display_image}
+                        alt={`${m.brand_name ?? ""} ${m.model_name ?? ""}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="text-base font-semibold">
+                      {m.brand_name ?? "—"} {m.model_name ?? ""}
+                    </h3>
+                    <p className="text-sm opacity-80">
+                      {m.year ?? "—"} ·{" "}
+                      {m.price_tnd != null ? `${m.price_tnd} TND` : "—"}
+                    </p>
+                  </div>
+                </article>
               ))}
             </div>
           )}
-          <Pagination className="mt-6">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={e => {
-                    e.preventDefault()
-                    if (page > 0) setPage(page - 1)
-                  }}
-                />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#" isActive>
-                  {page + 1}
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={e => {
-                    e.preventDefault()
-                    setPage(page + 1)
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-          <div className="mt-4">
-            <Button variant="ghost" onClick={() => setDiagOpen(o => !o)}>
-              Diagnostic
-            </Button>
-            {diagOpen && (
-              <div className="mt-2 border p-4 space-y-2 text-sm">
-                <div>Environnement</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(
-                    {
-                      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-                      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnon
-                        ? `****${supabaseAnon.slice(-6)}`
-                        : null,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-                <div>lastRequest</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(lastRequest, null, 2)}
-                </pre>
-                <div>lastResponse</div>
-                <pre className="overflow-x-auto">
-                  {JSON.stringify(lastResponse, null, 2)}
-                </pre>
-                <Button size="sm" onClick={runTest}>
-                  Tester sans filtres
-                </Button>
-                {testResult && (
-                  <pre className="overflow-x-auto">
-                    {JSON.stringify(testResult, null, 2)}
-                  </pre>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        </main>
       </div>
     </div>
-  )
+  );
 }
