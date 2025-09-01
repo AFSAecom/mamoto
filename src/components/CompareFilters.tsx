@@ -5,18 +5,18 @@ import { supabase } from "@/lib/supabaseClient";
 type Option = { value: string; label: string };
 
 export default function CompareFilters(props: {
-  onBrandChange?: (brandId: string | null) => void;
+  onBrandChange?: (brand_id: string | null) => void;
   onModelChange?: (model: string | null) => void;
-  defaultBrandId?: string | null;
-  defaultModel?: string | null;
+  default_brand_id?: string | null;
+  default_model?: string | null;
 }) {
   const [brands, setBrands] = React.useState<Option[]>([]);
   const [models, setModels] = React.useState<Option[]>([]);
-  const [brandId, setBrandId] = React.useState<string | null>(
-    props.defaultBrandId ?? null,
+  const [brand_id, setBrandId] = React.useState<string | null>(
+    props.default_brand_id ?? null,
   );
   const [model, setModel] = React.useState<string | null>(
-    props.defaultModel ?? null,
+    props.default_model ?? null,
   );
   const [loadingBrands, setLoadingBrands] = React.useState(false);
   const [loadingModels, setLoadingModels] = React.useState(false);
@@ -47,7 +47,7 @@ export default function CompareFilters(props: {
 
   React.useEffect(() => {
     const loadModels = async () => {
-      if (!brandId) {
+      if (!brand_id) {
         setModels([]);
         setModel(null);
         return;
@@ -58,7 +58,7 @@ export default function CompareFilters(props: {
         let { data, error } = await supabase
           .from("models")
           .select("name")
-          .eq("brand_id", brandId)
+          .eq("brand_id", brand_id)
           .order("name", { ascending: true });
 
         if (error || !data?.length) {
@@ -67,7 +67,7 @@ export default function CompareFilters(props: {
             // Cast options to any to accommodate "distinct", which is supported
             // by Supabase but missing from the current type definitions.
             .select("model_name", { distinct: true } as any)
-            .eq("brand_id", brandId)
+            .eq("brand_id", brand_id)
             .order("model_name", { ascending: true });
           if (err) throw err;
           setModels(
@@ -91,7 +91,7 @@ export default function CompareFilters(props: {
       }
     };
     loadModels();
-  }, [brandId]);
+  }, [brand_id]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -99,7 +99,7 @@ export default function CompareFilters(props: {
         <label className="block text-sm mb-2">Marque</label>
         <select
           className="w-full border rounded p-2"
-          value={brandId ?? ""}
+          value={brand_id ?? ""}
           onChange={(e) => {
             const v = e.target.value || null;
             setBrandId(v);
@@ -122,7 +122,7 @@ export default function CompareFilters(props: {
         <select
           className="w-full border rounded p-2"
           value={model ?? ""}
-          disabled={!brandId}
+          disabled={!brand_id}
           onChange={(e) => {
             const v = e.target.value || null;
             setModel(v);
@@ -130,7 +130,7 @@ export default function CompareFilters(props: {
           }}
         >
           <option value="">
-            {!brandId
+            {!brand_id
               ? "Choisir d’abord une marque"
               : loadingModels
                 ? "Chargement…"

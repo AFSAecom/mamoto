@@ -10,7 +10,7 @@ export interface Brand {
 export interface Model {
   id: string;
   name: string;
-  brandId: string;
+  brand_id: string;
   category: string;
   image: string;
   description?: string;
@@ -46,7 +46,7 @@ export interface Features {
 
 export interface Version {
   id: string;
-  modelId: string;
+  model_id: string;
   name: string;
   price: number;
   engine: EngineSpecs;
