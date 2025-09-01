@@ -3,52 +3,55 @@
 import { useEffect, useState } from 'react'
 import type { FacetGroup } from '@/types/filters'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
 export function useMotoFacets() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const [facets, setFacets] = useState<FacetGroup[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchFacets = async () => {
+    if (!url || !anon) return
+    const controller = new AbortController()
+    async function run() {
       try {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/rpc/fn_get_filter_facets`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-            },
-            body: JSON.stringify({}),
-          }
+        setLoading(true)
+        const res = await fetch(`${url}/rest/v1/rpc/fn_get_filter_facets`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: anon!,
+            Authorization: `Bearer ${anon!}`,
+          },
+          body: JSON.stringify({}),
+          signal: controller.signal,
+        })
+        const data: FacetGroup[] = await res.json().catch(() => [])
+        data.sort(
+          (a, b) =>
+            (a.group_sort ?? Infinity) - (b.group_sort ?? Infinity) ||
+            a.group.localeCompare(b.group)
         )
-        if (!res.ok) {
-          throw new Error(`Failed to load facets: ${res.status}`)
-        }
-        const data: FacetGroup[] = await res.json()
-        // sort groups and items
-        data.sort((a, b) => (a.group_sort ?? 0) - (b.group_sort ?? 0))
         data.forEach(g =>
           g.items.sort(
             (a, b) =>
-              (a.item_sort ?? 0) - (b.item_sort ?? 0) ||
-              (a.label?.localeCompare(b.label ?? '') ?? 0)
+              (a.item_sort ?? Infinity) - (b.item_sort ?? Infinity) ||
+              (a.label ?? a.key).localeCompare(b.label ?? b.key)
           )
         )
         setFacets(data)
-      } catch (err) {
-        setError(err as Error)
+        setError(null)
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          setError(err.message ?? String(err))
+        }
       } finally {
         setLoading(false)
       }
     }
-
-    fetchFacets()
-  }, [])
+    run()
+    return () => controller.abort()
+  }, [url, anon])
 
   return { facets, loading, error }
 }
