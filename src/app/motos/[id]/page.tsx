@@ -57,7 +57,7 @@ function sniffImageFromRecord(m: any): string | null {
 }
 
 async function listImagesForDetail(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // <-- type assoupli
   brandName: string | null | undefined,
   modelName: string | null | undefined
 ): Promise<string[]> {
@@ -67,8 +67,8 @@ async function listImagesForDetail(
   const { data } = await supabase.storage
     .from(bucket)
     .list(folder, { limit: 100, sortBy: { column: "name", order: "asc" } });
-  const files = (data || []).filter((f) => IMG_EXT.test(f.name));
-  return files.map((f) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl);
+  const files = (data || []).filter((f: any) => IMG_EXT.test(f.name));
+  return files.map((f: any) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl);
 }
 
 const fmtInt = (v: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
@@ -148,7 +148,6 @@ export default async function MotoDetail({ params }: { params: { id: string } })
               <div className="w-full h-full flex items-center justify-center text-sm opacity-60">Pas d'image</div>
             )}
           </div>
-          {/* Bande de miniatures */}
           {gallery.length > 1 && (
             <div className="px-3 py-2 overflow-x-auto">
               <div className="flex gap-2">
