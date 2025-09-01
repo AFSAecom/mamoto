@@ -102,7 +102,7 @@ function sniffImageFromRecord(m: any): string | null {
 
 /** Liste toutes les images d’un dossier brand-model depuis Storage */
 async function listImagesFor(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // <-- type assoupli pour éviter les erreurs de génériques
   brandName: string | null | undefined,
   modelName: string | null | undefined
 ): Promise<string[]> {
@@ -112,9 +112,9 @@ async function listImagesFor(
   const { data } = await supabase.storage
     .from(bucket)
     .list(folder, { limit: 100, sortBy: { column: "name", order: "asc" } });
-  const files = (data || []).filter((f) => IMG_EXT.test(f.name));
+  const files = (data || []).filter((f: any) => IMG_EXT.test(f.name));
   return files.map(
-    (f) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl
+    (f: any) => supabase.storage.from(bucket).getPublicUrl(`${folder}/${f.name}`).data.publicUrl
   );
 }
 /** ---------- /Image helpers ---------- */
@@ -150,12 +150,14 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
   // Récupère toutes les images par moto (via Storage.list)
   const withImages = await Promise.all(
     list.map(async (m) => {
-      const urls = await listImagesFor(supabase, m.brand_name ?? m.brands?.name, m.model_name ?? m.model);
+      const brand = m.brand_name ?? m.brands?.name;
+      const model = m.model_name ?? m.model;
+      const urls = await listImagesFor(supabase, brand, model);
       // Fallback: si rien listé, prends la meilleure image sniffée
       if (!urls || urls.length === 0) {
         const u = sniffImageFromRecord(m);
         return { m, urls: u ? [u] : [] };
-      }
+        }
       return { m, urls };
     })
   );
@@ -206,7 +208,6 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
                     )}
                   </div>
 
-                  {/* Miniatures si plusieurs images */}
                   {urls.length > 1 && (
                     <div className="px-3 pt-2 pb-1 overflow-x-auto">
                       <div className="flex gap-2">
