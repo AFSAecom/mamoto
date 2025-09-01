@@ -85,10 +85,10 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
 
   const { data: motos } = await supabase.rpc("search_motos", { f });
 
-  const specSchema = groups.map((g) => ({
+  const specSchema = (groups || []).map((g) => ({
     id: g.id,
     name: g.name,
-    items: items
+    items: (items || [])
       .filter((it) => it.group_id === g.id)
       .map((it) => ({
         id: it.id,
@@ -96,7 +96,9 @@ export default async function Page({ searchParams }: { searchParams: Record<stri
         unit: it.unit,
         data_type: it.data_type,
         range: ranges.find((r) => r.spec_item_id === it.id) || null,
-        options: options.filter((o) => o.spec_item_id === it.id).map((o) => ({ value: o.value_text, count: o.n })),
+        options: (options || [])
+          .filter((o) => o.spec_item_id === it.id)
+          .map((o) => ({ value: o.value_text, count: o.n })),
       })),
   }));
 
