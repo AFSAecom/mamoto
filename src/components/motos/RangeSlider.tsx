@@ -1,33 +1,31 @@
 // src/components/motos/RangeSlider.tsx
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 
 export type RangeTuple = [number, number];
 
-interface Props {
+type Props = {
   min: number;
   max: number;
   step?: number;
-  /** Minimum distance between the two thumbs (in value units). */
+  /** écart minimal entre les deux curseurs (ex: 1 pour l'année) */
   minGap?: number;
+  /** valeur courante [minVal, maxVal] */
   value: RangeTuple;
-  onChange: (v: RangeTuple) => void;
-  className?: string;
-  disabled?: boolean;
-  /** Accessibilité : étiquettes spécifiques pour chaque pouce */
+  /** callback quand ça change */
+  onChange: (next: RangeTuple) => void;
+
+  /** labels d’accessibilité (annonce lecteurs d’écran) */
   ariaLabelMin?: string;
   ariaLabelMax?: string;
-  /**
-   * Raccourci d'accessibilité : si fourni, on en déduit
-   * ariaLabelMin = `${ariaLabel} min` et ariaLabelMax = `${ariaLabel} max`
-   */
-  ariaLabel?: string;
-}
+  /** désactiver le slider */
+  disabled?: boolean;
+};
 
-const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
-const snap = (v: number, step: number, min: number) =>
-  Math.round((v - min) / step) * step + min;
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
+}
 
 export default function RangeSlider({
   min,
@@ -36,135 +34,114 @@ export default function RangeSlider({
   minGap = 0,
   value,
   onChange,
-  className = "",
-  disabled = false,
   ariaLabelMin,
   ariaLabelMax,
-  ariaLabel,
+  disabled = false,
 }: Props) {
-  const [low, high] = value;
-  const rangeRef = useRef<HTMLDivElement>(null);
+  const [leftVal, rightVal] = value;
 
-  // Dérive les labels si ariaLabel est fourni
-  const aMin = ariaLabelMin ?? (ariaLabel ? `${ariaLabel} min` : "Valeur minimale");
-  const aMax = ariaLabelMax ?? (ariaLabel ? `${ariaLabel} max` : "Valeur maximale");
-
-  const pct = useMemo(() => {
+  const [leftPct, widthPct] = useMemo(() => {
     const denom = max - min || 1;
-    const toPct = (v: number) => clamp(((v - min) / denom) * 100, 0, 100);
-    return { left: toPct(low), right: 100 - toPct(high) };
-  }, [low, high, min, max]);
+    const l = ((leftVal - min) / denom) * 100;
+    const r = ((rightVal - min) / denom) * 100;
+    return [l, Math.max(0, r - l)];
+  }, [leftVal, rightVal, min, max]);
 
-  function changeLow(v: number) {
-    const nextLow = clamp(v, min, high - minGap);
-    const snapped = snap(nextLow, step, min);
-    onChange([snapped, high]);
-  }
+  const handleLeft = (raw: number) => {
+    const newLeft = clamp(raw, min, rightVal - minGap);
+    onChange([newLeft, rightVal]);
+  };
 
-  function changeHigh(v: number) {
-    const nextHigh = clamp(v, low + minGap, max);
-    const snapped = snap(nextHigh, step, min);
-    onChange([low, snapped]);
-  }
-
-  function handleTrackClick(e: React.MouseEvent) {
-    if (!rangeRef.current || disabled) return;
-    const rect = rangeRef.current.getBoundingClientRect();
-    const ratio = clamp((e.clientX - rect.left) / rect.width, 0, 1);
-    const raw = min + ratio * (max - min);
-    const snapped = snap(raw, step, min);
-    const distLow = Math.abs(snapped - low);
-    const distHigh = Math.abs(snapped - high);
-    if (distLow <= distHigh) changeLow(snapped);
-    else changeHigh(snapped);
-  }
+  const handleRight = (raw: number) => {
+    const newRight = clamp(raw, leftVal + minGap, max);
+    onChange([leftVal, newRight]);
+  };
 
   return (
-    <div className={`relative w-full select-none ${className}`}>
-      {/* Rail grise */}
-      <div className="h-2 w-full rounded-full bg-neutral-600" />
+    <div className="w-full">
+      <div className="relative h-3 mt-2 mb-1">
+        {/* piste grise */}
+        <div className="slider-track" />
+        {/* portion active rouge */}
+        <div
+          className="slider-range"
+          style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+        />
+        {/* deux inputs overlappés (thumbs) */}
+        <input
+          type="range"
+          aria-label={ariaLabelMin}
+          min={min}
+          max={max}
+          step={step}
+          value={leftVal}
+          onChange={(e) => handleLeft(Number(e.target.value))}
+          disabled={disabled}
+          className="range-input"
+        />
+        <input
+          type="range"
+          aria-label={ariaLabelMax}
+          min={min}
+          max={max}
+          step={step}
+          value={rightVal}
+          onChange={(e) => handleRight(Number(e.target.value))}
+          disabled={disabled}
+          className="range-input"
+        />
+      </div>
 
-      {/* Segment actif rouge */}
-      <div
-        className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full bg-red-600"
-        style={{ left: `${pct.left}%`, right: `${pct.right}%` }}
-      />
-
-      {/* Zone cliquable globale pour déplacer le pouce le plus proche */}
-      <div
-        ref={rangeRef}
-        onMouseDown={handleTrackClick}
-        className="absolute inset-0 cursor-pointer"
-        aria-hidden="true"
-      />
-
-      {/* Input range inférieur */}
-      <input
-        type="range"
-        aria-label={aMin}
-        className="thumb thumb-left absolute inset-x-0 top-1/2 -translate-y-1/2 w-full appearance-none bg-transparent pointer-events-none"
-        min={min}
-        max={max}
-        step={step}
-        value={low}
-        onChange={(e) => changeLow(Number(e.target.value))}
-        disabled={disabled}
-      />
-
-      {/* Input range supérieur */}
-      <input
-        type="range"
-        aria-label={aMax}
-        className="thumb thumb-right absolute inset-x-0 top-1/2 -translate-y-1/2 w-full appearance-none bg-transparent pointer-events-none"
-        min={min}
-        max={max}
-        step={step}
-        value={high}
-        onChange={(e) => changeHigh(Number(e.target.value))}
-        disabled={disabled}
-      />
-
-      {/* Styles des thumbs (webkit, firefox) */}
+      {/* styles locaux (track épaisse + thumbs blancs, liseré rouge) */}
       <style jsx>{`
-        /* Masquer la piste par défaut : on dessine la nôtre */
-        .thumb::-webkit-slider-runnable-track {
-          height: 0;
+        .slider-track {
+          position: absolute;
+          inset: 0;
+          background: #334155; /* slate-700 */
+          border-radius: 9999px;
         }
-        .thumb::-moz-range-track {
-          height: 0;
-          background: transparent;
+        .slider-range {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          background: #dc2626; /* red-600 */
+          border-radius: 9999px;
         }
-        .thumb {
-          pointer-events: none; /* l'input ne prend pas le focus souris, seuls les thumbs oui */
-        }
-        .thumb::-webkit-slider-thumb {
-          pointer-events: auto;
+        .range-input {
           -webkit-appearance: none;
           appearance: none;
-          width: 18px;
-          height: 18px;
+          position: absolute;
+          inset: 0;
+          background: transparent;
+          pointer-events: none; /* on clique sur le thumb seulement */
+        }
+        .range-input::-webkit-slider-runnable-track {
+          height: 12px; /* épaisseur de la piste */
+          background: transparent;
+        }
+        .range-input::-moz-range-track {
+          height: 12px;
+          background: transparent;
+        }
+        .range-input::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          pointer-events: auto; /* important pour saisir le thumb */
+          height: 20px;
+          width: 20px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 3px solid #dc2626; /* red-600 */
-          box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
-          cursor: pointer;
-          margin-top: -9px; /* centre le thumb sur la rail de 8px (h-2) */
+          border: 2px solid #dc2626; /* rouge */
+          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+          margin-top: -4px; /* centrer sur la piste */
         }
-        .thumb::-moz-range-thumb {
+        .range-input::-moz-range-thumb {
           pointer-events: auto;
-          width: 18px;
-          height: 18px;
+          height: 20px;
+          width: 20px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 3px solid #dc2626;
-          box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
-          cursor: pointer;
-        }
-        .thumb:disabled::-webkit-slider-thumb {
-          border-color: #9ca3af; /* neutral-400 */
-        }
-        .thumb:disabled::-moz-range-thumb {
-          border-color: #9ca3af;
+          border: 2px solid #dc2626;
         }
       `}</style>
     </div>
