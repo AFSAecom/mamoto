@@ -1,11 +1,10 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import RangeSlider, { RangeTuple } from "./RangeSlider";
 import { createClient } from "@supabase/supabase-js";
 
-/** ————— Types minimaux pour éviter les erreurs TS (on reste permissif) ————— */
 type Brand = { id: string; name: string };
 type TextOption = { id?: string; value?: string; label?: string; name?: string };
 type NumericRangeRow = { min: number | null; max: number | null; step?: number | null };
@@ -18,13 +17,11 @@ type SpecItem = {
   options?: TextOption[];
 };
 type SpecGroup = { id: string; name: string; items: SpecItem[] };
-
 type Filters = {
   keyword?: string;
   brandId?: string | null;
   price?: RangeTuple;
   year?: RangeTuple;
-  /** map specId -> for number: [min,max], for text: string[], for boolean: true|false|null */
   specs?: Record<string, any>;
 };
 
@@ -33,7 +30,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-/** util – label robuste pour les options texte */
 function labelOf(opt?: TextOption | null): string {
   if (!opt) return "";
   return (
@@ -42,27 +38,19 @@ function labelOf(opt?: TextOption | null): string {
     (opt.value ?? "").toString()
   );
 }
-
-/** util – pas de slider « monobloc »: si aucun range connu, fallback neutre */
 function ensureTuple(v?: RangeTuple, fallback: RangeTuple = [0, 1]): RangeTuple {
-  if (!v) return fallback;
-  if (!Array.isArray(v) || v.length !== 2) return fallback;
+  if (!v || !Array.isArray(v) || v.length !== 2) return fallback;
   const a = Number(v[0]);
   const b = Number(v[1]);
   if (Number.isNaN(a) || Number.isNaN(b)) return fallback;
-  return a <= b ? [a, b] as RangeTuple : [b, a] as RangeTuple;
+  return a <= b ? [a, b] : [b, a];
 }
 
-/** ————— Composant ————— */
 type Props = {
   brands: Brand[];
-  /** F encodé dans l’URL (optionnel) */
   initialF?: string;
-  /** Structure de filtres déjà décodée (optionnelle) */
   initialFilters?: Filters;
-  /** Schéma des specs côté UI */
   specSchema?: SpecGroup[];
-  /** callback si tu veux pousser dans l’URL (facultatif) */
   onFiltersChange?: (f: Filters) => void;
 };
 
@@ -72,7 +60,6 @@ export default function FiltersLeft({
   specSchema = [],
   onFiltersChange,
 }: Props) {
-  /** — état principal des filtres — */
   const [filters, setFilters] = useState<Filters>(() => ({
     brandId: initialFilters?.brandId ?? null,
     keyword: initialFilters?.keyword ?? "",
@@ -81,14 +68,12 @@ export default function FiltersLeft({
     specs: initialFilters?.specs ?? {},
   }));
 
-  /** bornes globales dynamiques pour prix + année (auto depuis DB) */
   const [priceMinMax, setPriceMinMax] = useState<RangeTuple>([0, 500000]);
   const [yearMinMax, setYearMinMax] = useState<RangeTuple>([2000, new Date().getFullYear()]);
 
   useEffect(() => {
     let ignore = false;
     (async () => {
-      // Récupère min/max PRIX
       const { data: pMin } = await supabase
         .from("motos")
         .select("price")
@@ -99,8 +84,6 @@ export default function FiltersLeft({
         .select("price")
         .order("price", { ascending: false })
         .limit(1);
-
-      // Récupère min/max ANNEE
       const { data: yMin } = await supabase
         .from("motos")
         .select("year")
@@ -120,11 +103,8 @@ export default function FiltersLeft({
       if (!ignore) {
         const priceRange: RangeTuple = [Math.min(p0, p1), Math.max(p0, p1)];
         const yearRange: RangeTuple = [Math.min(y0, y1), Math.max(y0, y1)];
-
         setPriceMinMax(priceRange);
         setYearMinMax(yearRange);
-
-        // initialise les valeurs si elles étaient incohérentes
         setFilters((prev) => ({
           ...prev,
           price: ensureTuple(prev.price, priceRange),
@@ -137,29 +117,23 @@ export default function FiltersLeft({
     };
   }, []);
 
-  /** propager à l’URL si demandé */
   useEffect(() => {
     onFiltersChange?.(filters);
   }, [filters, onFiltersChange]);
 
-  /** helpers de mise à jour */
   const setPrice = (tuple: RangeTuple) => setFilters((f) => ({ ...f, price: tuple }));
   const setYear = (tuple: RangeTuple) => setFilters((f) => ({ ...f, year: tuple }));
-
   const setSpecRange = (specId: string, tuple: RangeTuple) =>
     setFilters((f) => ({ ...f, specs: { ...f.specs, [specId]: tuple } }));
-
   const toggleSpecValue = (specId: string, value: string, on: boolean) =>
     setFilters((f) => {
       const prevArr: string[] = Array.isArray(f.specs?.[specId]) ? f.specs![specId] : [];
       const nextArr = on ? Array.from(new Set([...prevArr, value])) : prevArr.filter((v) => v !== value);
       return { ...f, specs: { ...f.specs, [specId]: nextArr } };
     });
-
   const setBoolean = (specId: string, v: boolean | null) =>
     setFilters((f) => ({ ...f, specs: { ...f.specs, [specId]: v } }));
 
-  /** rendu d’un item numérique avec double curseur */
   const renderNumeric = (it: SpecItem) => {
     const r = it.range ?? { min: 0, max: 1, step: 1 };
     const min = Number(r.min ?? 0);
@@ -189,7 +163,6 @@ export default function FiltersLeft({
     );
   };
 
-  /** rendu d’un item texte (checkboxes) avec label robuste */
   const renderText = (it: SpecItem) => {
     const selected: string[] = Array.isArray(filters.specs?.[it.id]) ? filters.specs![it.id] : [];
     const options = (it.options ?? []).map((o) => ({
@@ -197,7 +170,6 @@ export default function FiltersLeft({
       value: (o.value ?? labelOf(o)) as string,
       label: labelOf(o),
     }));
-
     return (
       <div key={it.id} className="mb-3">
         <div className="mb-2 text-sm font-medium">{it.label}</div>
@@ -222,7 +194,6 @@ export default function FiltersLeft({
     );
   };
 
-  /** rendu d’un booléen (Tous / Oui / Non) */
   const renderBoolean = (it: SpecItem) => {
     const val: boolean | null = (filters.specs?.[it.id] ?? null) as any;
     return (
@@ -261,10 +232,8 @@ export default function FiltersLeft({
     );
   };
 
-  /** ————— Rendu ————— */
   return (
     <div className="w-full">
-      {/* Marque */}
       <div className="mb-4">
         <label className="block text-sm mb-1">Toutes marques</label>
         <select
@@ -279,7 +248,6 @@ export default function FiltersLeft({
         </select>
       </div>
 
-      {/* Mots clefs */}
       <div className="mb-4">
         <label className="block text-sm mb-1">Mots clefs</label>
         <input
@@ -290,7 +258,6 @@ export default function FiltersLeft({
         />
       </div>
 
-      {/* Prix */}
       <div className="mb-5">
         <div className="flex items-center justify-between text-sm mb-1">
           <span>Prix</span>
@@ -310,7 +277,6 @@ export default function FiltersLeft({
         />
       </div>
 
-      {/* Année */}
       <div className="mb-6">
         <div className="flex items-center justify-between text-sm mb-1">
           <span>Année</span>
@@ -330,13 +296,10 @@ export default function FiltersLeft({
         />
       </div>
 
-      {/* Groupes de specs */}
       {specSchema.map((group) => {
-        // masque Année/ Prix en doublon si jamais ils existent dans ce groupe
         const items = group.items.filter(
           (it) => !/^(année|annee|price|prix)$/i.test(it.label.trim())
         );
-
         if (items.length === 0) return null;
 
         return (
@@ -344,7 +307,6 @@ export default function FiltersLeft({
             <summary className="cursor-pointer text-sm font-semibold mb-2">
               {group.name}
             </summary>
-
             {items.map((it) => {
               if (it.data_type === "number" && it.range) return renderNumeric(it);
               if (it.data_type === "text") return renderText(it);
