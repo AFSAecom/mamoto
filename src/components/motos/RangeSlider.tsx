@@ -9,17 +9,11 @@ type Props = {
   min: number;
   max: number;
   step?: number;
-  /** écart minimal entre les deux curseurs (ex: 1 pour l'année) */
   minGap?: number;
-  /** valeur courante [minVal, maxVal] */
   value: RangeTuple;
-  /** callback quand ça change */
   onChange: (next: RangeTuple) => void;
-
-  /** labels d’accessibilité (annonce lecteurs d’écran) */
   ariaLabelMin?: string;
   ariaLabelMax?: string;
-  /** désactiver le slider */
   disabled?: boolean;
 };
 
@@ -51,7 +45,6 @@ export default function RangeSlider({
     const newLeft = clamp(raw, min, rightVal - minGap);
     onChange([newLeft, rightVal]);
   };
-
   const handleRight = (raw: number) => {
     const newRight = clamp(raw, leftVal + minGap, max);
     onChange([leftVal, newRight]);
@@ -60,14 +53,11 @@ export default function RangeSlider({
   return (
     <div className="w-full">
       <div className="relative h-3 mt-2 mb-1">
-        {/* piste grise */}
         <div className="slider-track" />
-        {/* portion active rouge */}
         <div
           className="slider-range"
           style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
         />
-        {/* deux inputs overlappés (thumbs) */}
         <input
           type="range"
           aria-label={ariaLabelMin}
@@ -92,7 +82,6 @@ export default function RangeSlider({
         />
       </div>
 
-      {/* styles locaux (track épaisse + thumbs blancs, liseré rouge) */}
       <style jsx>{`
         .slider-track {
           position: absolute;
@@ -113,10 +102,10 @@ export default function RangeSlider({
           position: absolute;
           inset: 0;
           background: transparent;
-          pointer-events: none; /* on clique sur le thumb seulement */
+          pointer-events: none;
         }
         .range-input::-webkit-slider-runnable-track {
-          height: 12px; /* épaisseur de la piste */
+          height: 12px;
           background: transparent;
         }
         .range-input::-moz-range-track {
@@ -126,14 +115,14 @@ export default function RangeSlider({
         .range-input::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          pointer-events: auto; /* important pour saisir le thumb */
+          pointer-events: auto;
           height: 20px;
           width: 20px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 2px solid #dc2626; /* rouge */
+          border: 2px solid #dc2626;
           box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-          margin-top: -4px; /* centrer sur la piste */
+          margin-top: -4px;
         }
         .range-input::-moz-range-thumb {
           pointer-events: auto;
