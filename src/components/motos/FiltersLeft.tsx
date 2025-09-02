@@ -52,6 +52,10 @@ type Props = {
   initialFilters?: Filters;
   specSchema?: SpecGroup[];
   onFiltersChange?: (f: Filters) => void;
+  /** Optionnel — laissé pour compat Vercel : sera ignoré si absent */
+  priceRange?: RangeTuple;
+  /** Optionnel — laissé pour compat Vercel : sera ignoré si absent */
+  yearRange?: RangeTuple;
 };
 
 export default function FiltersLeft({
@@ -59,20 +63,39 @@ export default function FiltersLeft({
   initialFilters,
   specSchema = [],
   onFiltersChange,
+  priceRange,
+  yearRange,
 }: Props) {
   const [filters, setFilters] = useState<Filters>(() => ({
     brandId: initialFilters?.brandId ?? null,
     keyword: initialFilters?.keyword ?? "",
-    price: ensureTuple(initialFilters?.price, [0, 1]),
-    year: ensureTuple(initialFilters?.year, [2000, 2001]),
+    price: ensureTuple(initialFilters?.price, priceRange ?? [0, 1]),
+    year: ensureTuple(initialFilters?.year, yearRange ?? [2000, 2001]),
     specs: initialFilters?.specs ?? {},
   }));
 
-  const [priceMinMax, setPriceMinMax] = useState<RangeTuple>([0, 500000]);
-  const [yearMinMax, setYearMinMax] = useState<RangeTuple>([2000, new Date().getFullYear()]);
+  // Si les ranges sont fournis par le parent, on les prend en priorité
+  const [priceMinMax, setPriceMinMax] = useState<RangeTuple>(
+    priceRange ?? [0, 500000]
+  );
+  const [yearMinMax, setYearMinMax] = useState<RangeTuple>(
+    yearRange ?? [2000, new Date().getFullYear()]
+  );
 
+  // Fetch fallback uniquement si le parent ne les a pas fournis
   useEffect(() => {
     let ignore = false;
+    if (priceRange && yearRange) {
+      // Parent already provided values; sync filters with them just in case
+      setPriceMinMax(priceRange);
+      setYearMinMax(yearRange);
+      setFilters((prev) => ({
+        ...prev,
+        price: ensureTuple(prev.price, priceRange),
+        year: ensureTuple(prev.year, yearRange),
+      }));
+      return;
+    }
     (async () => {
       const { data: pMin } = await supabase
         .from("motos")
@@ -101,21 +124,21 @@ export default function FiltersLeft({
       const y1 = Number(yMax?.[0]?.year ?? new Date().getFullYear());
 
       if (!ignore) {
-        const priceRange: RangeTuple = [Math.min(p0, p1), Math.max(p0, p1)];
-        const yearRange: RangeTuple = [Math.min(y0, y1), Math.max(y0, y1)];
-        setPriceMinMax(priceRange);
-        setYearMinMax(yearRange);
+        const priceR: RangeTuple = [Math.min(p0, p1), Math.max(p0, p1)];
+        const yearR: RangeTuple = [Math.min(y0, y1), Math.max(y0, y1)];
+        setPriceMinMax(priceR);
+        setYearMinMax(yearR);
         setFilters((prev) => ({
           ...prev,
-          price: ensureTuple(prev.price, priceRange),
-          year: ensureTuple(prev.year, yearRange),
+          price: ensureTuple(prev.price, priceR),
+          year: ensureTuple(prev.year, yearR),
         }));
       }
     })();
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [priceRange, yearRange]);
 
   useEffect(() => {
     onFiltersChange?.(filters);
