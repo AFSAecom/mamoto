@@ -1,160 +1,304 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
-import RangeSlider from "./RangeSlider";
+import React, { useMemo, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-// --- Types souples pour corriger l'erreur "Type 'Range' is not assignable to '[number, number]'" ---
-type RangeTuple = [number, number];
-type RangeObj = { min: number; max: number };
-type RangeLike = RangeTuple | RangeObj | undefined;
+type Brand = { id: string; name: string };
+type Filters = {
+  brand_id?: string;
+  year_min?: number;
+  year_max?: number;
+  price_min?: number;
+  price_max?: number;
+  q?: string;
+  specs?: Record<string, any>;
+};
+type FParam = { filters: Filters; page: number };
 
-type Brand = any;
-type Filters = any;
-type SpecGroup = any;
+type SpecGroup = {
+  id: string;
+  name: string;
+  items: Array<{
+    id: string;
+    label: string;
+    unit: string | null;
+    data_type: string;
+    range: { spec_item_id: string; min_value: number | null; max_value: number | null } | null;
+    options: Array<{ value: string; count: number }>;
+  }>;
+};
 
-export interface Props {
-  brands: Brand[];
-  initialF?: string;
-  initialFilters?: Filters;
-  specSchema?: SpecGroup[];
-  /** Accepte soit un tuple [min,max], soit un objet {min,max} */
-  priceRange?: RangeLike;
-  /** Accepte soit un tuple [min,max], soit un objet {min,max} */
-  yearRange?: RangeLike;
+function base64UrlEncode(str: string) {
+  if (typeof window !== "undefined" && "btoa" in window) {
+    return window.btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  }
+  // @ts-ignore
+  return Buffer.from(str, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+function addBase64Padding(b64: string) {
+  const pad = b64.length % 4;
+  return pad ? b64 + "=".repeat(4 - pad) : b64;
+}
+function base64UrlDecodeToObj<T = any>(b64: string | null): T | null {
+  try {
+    if (!b64 || b64.trim() === "") return null;
+    const std = addBase64Padding(b64.replace(/-/g, "+").replace(/_/g, "/"));
+    const json = typeof window !== "undefined" && "atob" in window ? window.atob(std) : Buffer.from(std, "base64").toString("utf8");
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
 
-/** Normalise une valeur de range en tuple [min, max] */
-function toTuple(rangeLike: RangeLike): RangeTuple | undefined {
-  if (!rangeLike) return undefined;
-  if (Array.isArray(rangeLike)) {
-    const [a, b] = rangeLike;
-    if (typeof a === "number" && typeof b === "number") return [a, b];
-    return undefined;
-  }
-  const r = rangeLike as any;
-  if (typeof r.min === "number" && typeof r.max === "number") {
-    return [r.min, r.max];
-  }
-  return undefined;
-}
+function cleanFilters(obj: Filters): Filters {
+  const out: Filters = { ...obj };
+  const cleanNum = (v: any) =>
+    typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" && !isNaN(parseFloat(v)) ? Number(v) : undefined;
+  if (obj.year_min !== undefined) out.year_min = cleanNum(obj.year_min);
+  if (obj.year_max !== undefined) out.year_max = cleanNum(obj.year_max);
+  if (obj.price_min !== undefined) out.price_min = cleanNum(obj.price_min);
+  if (obj.price_max !== undefined) out.price_max = cleanNum(obj.price_max);
 
-/** borne min/max avec défauts sûrs */
-function normalizeRange(rangeLike: RangeLike, fallback: RangeTuple): RangeTuple {
-  const t = toTuple(rangeLike);
-  if (!t) return fallback;
-  // On s'assure que min <= max
-  const [a, b] = t[0] <= t[1] ? t : [t[1], t[0]];
-  return [a, b];
+  const nextSpecs: Record<string, any> = {};
+  if (obj.specs) {
+    for (const [k, v] of Object.entries(obj.specs)) {
+      if (!v || typeof v !== "object") continue;
+      const vv: any = v;
+      if (vv.type === "number") {
+        const min = cleanNum(vv.min);
+        const max = cleanNum(vv.max);
+        if (min === undefined && max === undefined) continue;
+        nextSpecs[k] = { type: "number", min, max };
+      } else if (vv.type === "boolean") {
+        if (typeof vv.value === "boolean") nextSpecs[k] = { type: "boolean", value: vv.value };
+      } else if (vv.type === "text") {
+        const arr: string[] = Array.isArray(vv.values) ? vv.values.filter((s: any) => typeof s === "string" && s.trim() !== "") : [];
+        if (arr.length) nextSpecs[k] = { type: "text", values: arr };
+      }
+    }
+  }
+  if (Object.keys(nextSpecs).length) out.specs = nextSpecs;
+  else delete out.specs;
+
+  return out;
 }
 
 export default function FiltersLeft({
   brands,
-  initialF,
+  initialF = "",
   initialFilters,
-  specSchema,
-  priceRange,
-  yearRange,
-}: Props) {
-  // Défauts raisonnables si rien en base
-  const priceDefault = useMemo<RangeTuple>(() => normalizeRange(priceRange, [0, 500_000]), [priceRange]);
-  const yearDefault = useMemo<RangeTuple>(() => normalizeRange(yearRange, [1990, new Date().getFullYear() + 1]), [yearRange]);
+  specSchema = [],
+}: {
+  brands: Brand[];
+  initialF?: string;
+  initialFilters?: Filters;
+  specSchema?: SpecGroup[];
+}) {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  // États locaux des sliders (double-poignée)
-  const [price, setPrice] = useState<RangeTuple>(priceDefault);
-  const [year, setYear] = useState<RangeTuple>(yearDefault);
+  const fFromUrl = sp.get("f");
+  const fObj = base64UrlDecodeToObj<FParam>(fFromUrl) || base64UrlDecodeToObj<FParam>(initialF) || { filters: {}, page: 0 };
+  const filters = useMemo<Filters>(() => cleanFilters(fObj?.filters || {}), [fObj]);
 
-  // Gap minimal pour éviter que la poignée gauche reste bloquée
-  const MIN_GAP_PRICE = Math.max(1, Math.round((priceDefault[1] - priceDefault[0]) / 100)); // 1% du range
-  const MIN_GAP_YEAR = 1;
+  const valStr = (v?: number | string) => (v === undefined || v === null ? "" : String(v));
+
+  const patchFilters = (patch: Partial<Filters>) => {
+    const next: FParam = { filters: cleanFilters({ ...(fObj?.filters || {}), ...patch }), page: 0 };
+    const encoded = base64UrlEncode(JSON.stringify(next));
+    startTransition(() => router.replace(`/motos?f=${encoded}`, { scroll: false }));
+  };
+
+  const patchSpec = (specId: string, partial: any) => {
+    const current = (filters.specs && (filters.specs as any)[specId]) || {};
+    const nextSpecs = { ...(filters.specs || {}), [specId]: { ...current, ...partial } };
+    patchFilters({ specs: nextSpecs });
+  };
+  const clearSpec = (specId: string) => {
+    const nextSpecs = { ...(filters.specs || {}) };
+    delete (nextSpecs as any)[specId];
+    patchFilters({ specs: nextSpecs });
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Marque */}
-      <div>
-        <label className="block text-sm font-medium mb-2">Marque</label>
-        <select className="w-full border rounded-md p-2">
-          <option value="">Toutes</option>
-          {brands?.map((b: any) => (
-            <option key={b.id ?? b.name} value={b.id ?? b.name}>
-              {b.name ?? b.label ?? "?"}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="space-y-6 pr-2">
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold opacity-90">Motos</h3>
 
-      {/* Mot-clé */}
-      <div>
-        <label className="block text-sm font-medium mb-2">Mot-clé</label>
-        <input
-          type="text"
-          className="w-full border rounded-md p-2"
-          placeholder="Ex. 'Adventure', 'MT-07'..."
-          defaultValue={initialFilters?.q ?? ""}
-        />
-      </div>
-
-      {/* Prix */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium">Prix (TND)</label>
-          <span className="text-xs opacity-70">
-            {Math.round(price[0]).toLocaleString()} — {Math.round(price[1]).toLocaleString()}
-          </span>
+        <div className="flex flex-col">
+          <label className="mb-1 text-sm opacity-80">Marque</label>
+          <select
+            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+            value={valStr(filters.brand_id)}
+            onChange={(e) => patchFilters({ brand_id: e.target.value || undefined })}
+          >
+            <option value="">Toutes marques</option>
+            {brands?.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
         </div>
-        <RangeSlider
-          min={Math.floor(priceDefault[0])}
-          max={Math.ceil(priceDefault[1])}
-          step={100}
-          minGap={MIN_GAP_PRICE}
-          value={price}
-          onChange={setPrice}
-          ariaLabelMin="Valeur minimale prix"
-          ariaLabelMax="Valeur maximale prix"
-        />
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col">
+            <label className="mb-1 text-sm opacity-80">Année min</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+              value={valStr(filters.year_min)}
+              onChange={(e) => patchFilters({ year_min: e.target.value === "" ? undefined : (e.target.value as any) })}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="mb-1 text-sm opacity-80">Année max</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+              value={valStr(filters.year_max)}
+              onChange={(e) => patchFilters({ year_max: e.target.value === "" ? undefined : (e.target.value as any) })}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col">
+            <label className="mb-1 text-sm opacity-80">Prix min</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="0"
+              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+              value={valStr(filters.price_min)}
+              onChange={(e) => patchFilters({ price_min: e.target.value === "" ? undefined : (e.target.value as any) })}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="mb-1 text-sm opacity-80">Prix max</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="0"
+              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+              value={valStr(filters.price_max)}
+              onChange={(e) => patchFilters({ price_max: e.target.value === "" ? undefined : (e.target.value as any) })}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col">
+          <label className="mb-1 text-sm opacity-80">Recherche</label>
+          <input
+            type="text"
+            placeholder="Rechercher"
+            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+            value={valStr(filters.q)}
+            onChange={(e) => patchFilters({ q: e.target.value })}
+          />
+        </div>
       </div>
 
-      {/* Année */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium">Année</label>
-          <span className="text-xs opacity-70">
-            {Math.round(year[0])} — {Math.round(year[1])}
-          </span>
-        </div>
-        <RangeSlider
-          min={Math.floor(yearDefault[0])}
-          max={Math.ceil(yearDefault[1])}
-          step={1}
-          minGap={MIN_GAP_YEAR}
-          value={year}
-          onChange={setYear}
-          ariaLabelMin="Valeur minimale année"
-          ariaLabelMax="Valeur maximale année"
-        />
+      <div className="space-y-6">
+        {(specSchema || []).map((group) => (
+          <div key={group.id} className="space-y-3">
+            <h4 className="text-sm font-semibold opacity-90">{group.name}</h4>
+
+            {(group.items || []).map((it) => {
+              const specSel: any = (filters.specs && (filters.specs as any)[it.id]) || null;
+
+              if (it.data_type === "number") {
+                const min = it.range?.min_value ?? 0;
+                const max = it.range?.max_value ?? 0;
+                const curMin = specSel?.min ?? "";
+                const curMax = specSel?.max ?? "";
+                return (
+                  <div key={it.id} className="space-y-1">
+                    <label className="text-sm">{it.label}{it.unit ? ` (${it.unit})` : ""}</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        placeholder={String(min)}
+                        className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+                        value={valStr(curMin)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === "") clearSpec(it.id);
+                          else patchSpec(it.id, { type: "number", min: v });
+                        }}
+                      />
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        placeholder={String(max)}
+                        className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2"
+                        value={valStr(curMax)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === "") clearSpec(it.id);
+                          else patchSpec(it.id, { type: "number", max: v });
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              if (it.data_type === "boolean") {
+                const cur = specSel?.value;
+                return (
+                  <div key={it.id} className="space-y-1">
+                    <label className="text-sm">{it.label}</label>
+                    <div className="flex items-center gap-3 text-sm">
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === undefined} onChange={() => clearSpec(it.id)} /> Tous</label>
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === true} onChange={() => patchSpec(it.id, { type: "boolean", value: true })} /> Oui</label>
+                      <label className="flex items-center gap-1"><input type="radio" name={`b-${it.id}`} checked={cur === false} onChange={() => patchSpec(it.id, { type: "boolean", value: false })} /> Non</label>
+                    </div>
+                  </div>
+                );
+              }
+
+              // TEXT options
+              const valuesArray: string[] = Array.isArray(specSel?.values) ? (specSel.values as string[]) : [];
+              const valuesSet = new Set<string>(valuesArray);
+
+              return (
+                <div key={it.id} className="space-y-1">
+                  <label className="text-sm">{it.label}</label>
+                  <div className="max-h-40 overflow-auto pr-1 space-y-1">
+                    {(it.options || []).map((op) => (
+                      <label key={op.value} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={valuesSet.has(op.value)}
+                          onChange={(e) => {
+                            if (e.target.checked) valuesSet.add(op.value);
+                            else valuesSet.delete(op.value);
+                            const arr = Array.from(valuesSet);
+                            if (arr.length === 0) clearSpec(it.id);
+                            else patchSpec(it.id, { type: "text", values: arr });
+                          }}
+                        />
+                        <span>{op.value}</span>
+                        <span className="opacity-50">({op.count})</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
-      {/* Groupes de specs (affichage simple pour compatibilité) */}
-      {Array.isArray(specSchema) && specSchema.length > 0 && (
-        <div className="divide-y rounded-md border">
-          {specSchema.map((g: any) => (
-            <div key={g.id ?? g.name} className="p-3">
-              <div className="font-semibold mb-2">{g.name ?? "Caractéristiques"}</div>
-              {Array.isArray(g.items) && g.items.length > 0 ? (
-                <ul className="space-y-1">
-                  {g.items.map((it: any) => (
-                    <li key={it.id ?? it.label} className="text-sm text-gray-700">
-                      • {it.label ?? it.name}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-xs text-gray-500">Aucun sous-filtre</div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {isPending ? <p className="text-xs opacity-60">Mise à jour…</p> : null}
     </div>
   );
 }
