@@ -1,5 +1,7 @@
+// src/components/motos/RangeSlider.tsx
 "use client";
-import React, { useMemo } from "react";
+
+import React, { useCallback, useMemo } from "react";
 
 export type RangeTuple = [number, number];
 
@@ -7,121 +9,157 @@ type Props = {
   min: number;
   max: number;
   step?: number;
+  /** Espace minimum entre les 2 curseurs */
   minGap?: number;
   value: RangeTuple;
   onChange: (next: RangeTuple) => void;
-
-  /** Backward compatible single label (we’ll split to min/max) */
-  ariaLabel?: string;
-  /** Preferred explicit labels */
+  /** Accessibilité */
   ariaLabelMin?: string;
   ariaLabelMax?: string;
 };
 
 /**
- * Double-ended range slider – accessible, robust, and easy to grab.
- * - Single thick rail (like automobile.tn), active track in red.
- * - Click on rail moves the nearest thumb.
- * - Left thumb is never locked; both move independently with minGap enforcement.
+ * Double slider "pur HTML" (2 <input type="range">) avec track épaisse
+ * - Poignées faciles à attraper
+ * - Empêche le blocage du curseur gauche (respect de minGap)
+ * - Track cliquable (zone large)
  */
 export default function RangeSlider({
   min,
   max,
   step = 1,
-  minGap = step,
+  minGap = 1,
   value,
   onChange,
-  ariaLabel,
-  ariaLabelMin,
-  ariaLabelMax,
+  ariaLabelMin = "Minimum",
+  ariaLabelMax = "Maximum",
 }: Props) {
   const [left, right] = value;
-  const clamp = (v: number) => Math.min(max, Math.max(min, v));
-  const toPct = (v: number) => ((v - min) / (max - min)) * 100;
 
-  const bg = useMemo(() => {
-    const l = toPct(left);
-    const r = toPct(right);
-    return {
-      background: `linear-gradient(to right,
-        #E5E7EB 0%, #E5E7EB ${l}%,
-        #D0021B ${l}%, #D0021B ${r}%,
-        #E5E7EB ${r}%, #E5E7EB 100%)`,
-    };
-  }, [left, right, min, max]);
+  const clamp = useCallback((v: number) => Math.min(max, Math.max(min, v)), [min, max]);
 
-  const changeLeft = (next: number) => {
-    next = clamp(next);
-    if (next > right - minGap) next = right - minGap;
-    onChange([next, right]);
-  };
-  const changeRight = (next: number) => {
-    next = clamp(next);
-    if (next < left + minGap) next = left + minGap;
-    onChange([left, next]);
-  };
+  const handleLeft = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const next = clamp(parseFloat(e.target.value));
+      // On maintient minGap pour éviter le "blocage"
+      if (next <= right - minGap) {
+        onChange([next, right]);
+      } else {
+        onChange([right - minGap, right]);
+      }
+    },
+    [right, onChange, clamp, minGap]
+  );
 
-  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    const raw = min + ratio * (max - min);
-    const snapped = Math.round(raw / step) * step;
-    const distLeft = Math.abs(snapped - left);
-    const distRight = Math.abs(snapped - right);
-    if (distLeft <= distRight) changeLeft(snapped); else changeRight(snapped);
-  };
+  const handleRight = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const next = clamp(parseFloat(e.target.value));
+      if (next >= left + minGap) {
+        onChange([left, next]);
+      } else {
+        onChange([left, left + minGap]);
+      }
+    },
+    [left, onChange, clamp, minGap]
+  );
 
-  const labelMin = ariaLabelMin ?? (ariaLabel ? `${ariaLabel} min` : undefined);
-  const labelMax = ariaLabelMax ?? (ariaLabel ? `${ariaLabel} max` : undefined);
+  const percent = useCallback(
+    (v: number) => ((v - min) * 100) / (max - min),
+    [min, max]
+  );
+
+  const leftPct = useMemo(() => percent(left), [left, percent]);
+  const rightPct = useMemo(() => percent(right), [right, percent]);
 
   return (
-    <div className="w-full select-none">
+    <div className="relative h-8">
+      {/* rail de fond (épais) */}
+      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-gray-200" />
+
+      {/* segment sélectionné */}
       <div
-        className="h-3 w-full rounded-full relative cursor-pointer"
-        style={bg}
-        onClick={handleTrackClick}
-      >
-        {/* Left thumb */}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={left}
-          aria-label={labelMin}
-          onChange={(e) => changeLeft(Number(e.target.value))}
-          className="absolute w-full appearance-none h-3 bg-transparent pointer-events-none
-                     [&::-webkit-slider-thumb]:appearance-none
-                     [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5
-                     [&::-webkit-slider-thumb]:rounded-full
-                     [&::-webkit-slider-thumb]:bg-white
-                     [&::-webkit-slider-thumb]:border
-                     [&::-webkit-slider-thumb]:border-neutral-300
-                     [&::-webkit-slider-thumb]:shadow
-                     [&::-webkit-slider-thumb]:pointer-events-auto
-                     focus:outline-none"
-        />
-        {/* Right thumb */}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={right}
-          aria-label={labelMax}
-          onChange={(e) => changeRight(Number(e.target.value))}
-          className="absolute w-full appearance-none h-3 bg-transparent pointer-events-none
-                     [&::-webkit-slider-thumb]:appearance-none
-                     [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5
-                     [&::-webkit-slider-thumb]:rounded-full
-                     [&::-webkit-slider-thumb]:bg-white
-                     [&::-webkit-slider-thumb]:border
-                     [&::-webkit-slider-thumb]:border-neutral-300
-                     [&::-webkit-slider-thumb]:shadow
-                     [&::-webkit-slider-thumb]:pointer-events-auto
-                     focus:outline-none"
-        />
-      </div>
+        className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full bg-red-500"
+        style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
+      />
+
+      {/* inputs (double range) */}
+      <input
+        aria-label={ariaLabelMin}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={left}
+        onChange={handleLeft}
+        className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-8 w-full appearance-none bg-transparent pointer-events-auto"
+        style={{ zIndex: 30 }}
+      />
+      <input
+        aria-label={ariaLabelMax}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={right}
+        onChange={handleRight}
+        className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-8 w-full appearance-none bg-transparent pointer-events-auto"
+        style={{ zIndex: 40 }}
+      />
+
+      {/* Styles pour les thumbs (WebKit + Firefox + Edge/Chromium) */}
+      <style jsx>{`
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 9999px;
+          background: white;
+          border: 3px solid #ef4444; /* rouge */
+          box-shadow: 0 1px 2px rgba(0,0,0,.15);
+          cursor: pointer;
+          margin-top: -8px; /* centre le thumb sur la rail */
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 9999px;
+          background: white;
+          border: 3px solid #ef4444;
+          box-shadow: 0 1px 2px rgba(0,0,0,.15);
+          cursor: pointer;
+        }
+        input[type="range"]::-ms-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 9999px;
+          background: white;
+          border: 3px solid #ef4444;
+          box-shadow: 0 1px 2px rgba(0,0,0,.15);
+          cursor: pointer;
+        }
+
+        /* Agrandit la zone cliquable sans épaissir la vraie rail */
+        input[type="range"]::-webkit-slider-runnable-track {
+          height: 32px; /* grande hitbox */
+          background: transparent;
+        }
+        input[type="range"]::-moz-range-track {
+          height: 32px;
+          background: transparent;
+        }
+        input[type="range"]::-ms-track {
+          height: 32px;
+          background: transparent;
+          border-color: transparent;
+          color: transparent;
+        }
+      `}</style>
     </div>
   );
 }
