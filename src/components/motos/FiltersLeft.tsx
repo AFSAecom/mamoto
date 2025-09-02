@@ -2,406 +2,356 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import RangeSlider from "./RangeSlider";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import RangeSlider, { RangeTuple } from "./RangeSlider";
+import { createClient } from "@supabase/supabase-js";
 
-// --- Types (kept minimal & compatible with your current code) ---
-export type Brand = { id: string; name: string };
-export type Range = { min: number; max: number };
-export type SpecOption = { value: string; label: string; count?: number };
-export type NumericRangeRow = { min: number; max: number; step?: number };
-export type SpecItem = {
+/** ————— Types minimaux pour éviter les erreurs TS (on reste permissif) ————— */
+type Brand = { id: string; name: string };
+type TextOption = { id?: string; value?: string; label?: string; name?: string };
+type NumericRangeRow = { min: number | null; max: number | null; step?: number | null };
+type SpecItem = {
   id: string;
   label: string;
-  unit: string | null;
-  data_type: string; // "number" | "bool" | "text" | ...
-  range: NumericRangeRow | null;
-  options: SpecOption[];
+  data_type: "number" | "text" | "boolean";
+  unit?: string | null;
+  range?: NumericRangeRow | null;
+  options?: TextOption[];
 };
-export type SpecGroup = { id: string; name: string; items: SpecItem[] };
+type SpecGroup = { id: string; name: string; items: SpecItem[] };
 
-export type Filters = {
+type Filters = {
+  keyword?: string;
   brandId?: string | null;
-  q?: string;
-  price?: [number, number];
-  year?: [number, number];
+  price?: RangeTuple;
+  year?: RangeTuple;
+  /** map specId -> for number: [min,max], for text: string[], for boolean: true|false|null */
   specs?: Record<string, any>;
 };
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+/** util – label robuste pour les options texte */
+function labelOf(opt?: TextOption | null): string {
+  if (!opt) return "";
+  return (
+    (opt.label ?? "").toString() ||
+    (opt.name ?? "").toString() ||
+    (opt.value ?? "").toString()
+  );
+}
+
+/** util – pas de slider « monobloc »: si aucun range connu, fallback neutre */
+function ensureTuple(v?: RangeTuple, fallback: RangeTuple = [0, 1]): RangeTuple {
+  if (!v) return fallback;
+  if (!Array.isArray(v) || v.length !== 2) return fallback;
+  const a = Number(v[0]);
+  const b = Number(v[1]);
+  if (Number.isNaN(a) || Number.isNaN(b)) return fallback;
+  return a <= b ? [a, b] as RangeTuple : [b, a] as RangeTuple;
+}
+
+/** ————— Composant ————— */
 type Props = {
   brands: Brand[];
+  /** F encodé dans l’URL (optionnel) */
   initialF?: string;
+  /** Structure de filtres déjà décodée (optionnelle) */
   initialFilters?: Filters;
+  /** Schéma des specs côté UI */
   specSchema?: SpecGroup[];
-  priceRange?: Range;
-  yearRange?: Range;
+  /** callback si tu veux pousser dans l’URL (facultatif) */
+  onFiltersChange?: (f: Filters) => void;
 };
-
-// --- helpers to (de)serialise the "f=" param safely (URL safe base64) ---
-function encodeF(obj: any): string {
-  try {
-    const raw = JSON.stringify(obj);
-    const b64 = typeof window === "undefined"
-      ? Buffer.from(raw).toString("base64")
-      : btoa(unescape(encodeURIComponent(raw)));
-    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  } catch {
-    return "";
-  }
-}
 
 export default function FiltersLeft({
   brands,
-  initialF = "",
   initialFilters,
   specSchema = [],
-  priceRange,
-  yearRange,
+  onFiltersChange,
 }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const rangesGlobal = useMemo(() => ({
-    price: priceRange ?? { min: 0, max: 500000 },
-    year: yearRange ?? { min: 1990, max: new Date().getFullYear() },
-  }), [priceRange, yearRange]);
-
+  /** — état principal des filtres — */
   const [filters, setFilters] = useState<Filters>(() => ({
     brandId: initialFilters?.brandId ?? null,
-    q: initialFilters?.q ?? "",
-    price: initialFilters?.price ?? [rangesGlobal.price.min, rangesGlobal.price.max],
-    year: initialFilters?.year ?? [rangesGlobal.year.min, rangesGlobal.year.max],
+    keyword: initialFilters?.keyword ?? "",
+    price: ensureTuple(initialFilters?.price, [0, 1]),
+    year: ensureTuple(initialFilters?.year, [2000, 2001]),
     specs: initialFilters?.specs ?? {},
   }));
 
+  /** bornes globales dynamiques pour prix + année (auto depuis DB) */
+  const [priceMinMax, setPriceMinMax] = useState<RangeTuple>([0, 500000]);
+  const [yearMinMax, setYearMinMax] = useState<RangeTuple>([2000, new Date().getFullYear()]);
+
   useEffect(() => {
-    // sécurise les tableaux par rapport aux bornes connues
-    const clampTuple = (t: [number, number], r: Range): [number, number] => {
-      const low = Math.max(r.min, Math.min(r.max, t[0]));
-      const high = Math.max(low, Math.min(r.max, t[1]));
-      return [low, high];
+    let ignore = false;
+    (async () => {
+      // Récupère min/max PRIX
+      const { data: pMin } = await supabase
+        .from("motos")
+        .select("price")
+        .order("price", { ascending: true })
+        .limit(1);
+      const { data: pMax } = await supabase
+        .from("motos")
+        .select("price")
+        .order("price", { ascending: false })
+        .limit(1);
+
+      // Récupère min/max ANNEE
+      const { data: yMin } = await supabase
+        .from("motos")
+        .select("year")
+        .order("year", { ascending: true })
+        .limit(1);
+      const { data: yMax } = await supabase
+        .from("motos")
+        .select("year")
+        .order("year", { ascending: false })
+        .limit(1);
+
+      const p0 = Number(pMin?.[0]?.price ?? 0);
+      const p1 = Number(pMax?.[0]?.price ?? 500000);
+      const y0 = Number(yMin?.[0]?.year ?? 2000);
+      const y1 = Number(yMax?.[0]?.year ?? new Date().getFullYear());
+
+      if (!ignore) {
+        const priceRange: RangeTuple = [Math.min(p0, p1), Math.max(p0, p1)];
+        const yearRange: RangeTuple = [Math.min(y0, y1), Math.max(y0, y1)];
+
+        setPriceMinMax(priceRange);
+        setYearMinMax(yearRange);
+
+        // initialise les valeurs si elles étaient incohérentes
+        setFilters((prev) => ({
+          ...prev,
+          price: ensureTuple(prev.price, priceRange),
+          year: ensureTuple(prev.year, yearRange),
+        }));
+      }
+    })();
+    return () => {
+      ignore = true;
     };
-    setFilters((f) => ({
-      ...f,
-      price: clampTuple(f.price ?? [rangesGlobal.price.min, rangesGlobal.price.max], rangesGlobal.price),
-      year: clampTuple(f.year ?? [rangesGlobal.year.min, rangesGlobal.year.max], rangesGlobal.year),
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rangesGlobal.price.min, rangesGlobal.price.max, rangesGlobal.year.min, rangesGlobal.year.max]);
+  }, []);
 
-  // Push URL on every filters change (debounced by React batching)
+  /** propager à l’URL si demandé */
   useEffect(() => {
-    const f = encodeF(filters);
-    const params = new URLSearchParams(searchParams?.toString());
-    if (f) params.set("f", f); else params.delete("f");
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [filters, pathname, router, searchParams]);
+    onFiltersChange?.(filters);
+  }, [filters, onFiltersChange]);
 
-  const setSpecRange = (specId: string, next: [number, number]) => {
-    setFilters((f) => ({
-      ...f,
-      specs: { ...(f.specs ?? {}), [specId]: { type: "range", value: next } },
-    }));
-  };
+  /** helpers de mise à jour */
+  const setPrice = (tuple: RangeTuple) => setFilters((f) => ({ ...f, price: tuple }));
+  const setYear = (tuple: RangeTuple) => setFilters((f) => ({ ...f, year: tuple }));
 
-  const setSpecCheck = (specId: string, option: string, checked: boolean) => {
+  const setSpecRange = (specId: string, tuple: RangeTuple) =>
+    setFilters((f) => ({ ...f, specs: { ...f.specs, [specId]: tuple } }));
+
+  const toggleSpecValue = (specId: string, value: string, on: boolean) =>
     setFilters((f) => {
-      const prev = ((f.specs ?? {})[specId]?.value as string[]) ?? [];
-      const next = checked ? Array.from(new Set([...prev, option])) : prev.filter((v) => v !== option);
-      return { ...f, specs: { ...(f.specs ?? {}), [specId]: { type: "options", value: next } } };
+      const prevArr: string[] = Array.isArray(f.specs?.[specId]) ? f.specs![specId] : [];
+      const nextArr = on ? Array.from(new Set([...prevArr, value])) : prevArr.filter((v) => v !== value);
+      return { ...f, specs: { ...f.specs, [specId]: nextArr } };
     });
-  };
 
-  const setSpecBool = (specId: string, v: "all" | "yes" | "no") => {
-    setFilters((f) => ({
-      ...f,
-      specs: { ...(f.specs ?? {}), [specId]: { type: "bool", value: v } },
-    }));
-  };
+  const setBoolean = (specId: string, v: boolean | null) =>
+    setFilters((f) => ({ ...f, specs: { ...f.specs, [specId]: v } }));
 
-  // --- UI helpers ---
-  const InputNumber: React.FC<{
-    value: number;
-    onChange: (n: number) => void;
-    min?: number;
-    max?: number;
-    step?: number;
-  }> = ({ value, onChange, min, max, step }) => {
-    return (
-      <input
-        type="number"
-        className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-2 py-1 text-sm"
-        value={Number.isFinite(value) ? value : ""}
-        onChange={(e) => {
-          const n = Number(e.target.value);
-          if (!Number.isFinite(n)) return;
-          if (min !== undefined && n < min) onChange(min);
-          else if (max !== undefined && n > max) onChange(max);
-          else onChange(n);
-        }}
-        min={min}
-        max={max}
-        step={step ?? 1}
-      />
-    );
-  };
-
-  const renderNumericItem = (it: SpecItem) => {
-    if (!it.range) return null;
-    const r = it.range;
-    const current: [number, number] =
-      (filters.specs?.[it.id]?.value as [number, number]) ?? [r.min, r.max];
-    const step = r.step && r.step > 0 ? r.step : (r.max - r.min <= 10 ? 0.1 : 1);
-    const minGap = step; // prevents overlap
+  /** rendu d’un item numérique avec double curseur */
+  const renderNumeric = (it: SpecItem) => {
+    const r = it.range ?? { min: 0, max: 1, step: 1 };
+    const min = Number(r.min ?? 0);
+    const max = Number(r.max ?? 1);
+    const step = Number(r.step ?? 1);
+    const current = ensureTuple(filters.specs?.[it.id], [min, max]);
 
     return (
-      <div key={it.id} className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          <InputNumber
-            value={current[0]}
-            onChange={(n) => {
-              const low = Math.max(r.min, Math.min(n, current[1] - minGap));
-              setSpecRange(it.id, [low, current[1]]);
-            }}
-            min={r.min}
-            max={r.max}
-            step={step}
-          />
-          <InputNumber
-            value={current[1]}
-            onChange={(n) => {
-              const high = Math.min(r.max, Math.max(n, current[0] + minGap));
-              setSpecRange(it.id, [current[0], high]);
-            }}
-            min={r.min}
-            max={r.max}
-            step={step}
-          />
+      <div key={it.id} className="mb-4">
+        <div className="flex items-center justify-between mb-1 text-sm">
+          <span>{it.label}{it.unit ? ` (${it.unit})` : ""}</span>
+          <span className="text-xs text-slate-400">
+            {current[0]} – {current[1]}
+          </span>
         </div>
         <RangeSlider
-          min={r.min}
-          max={r.max}
+          min={min}
+          max={max}
           step={step}
-          minGap={minGap}
+          minGap={step}
           value={current}
           onChange={(next) => setSpecRange(it.id, next)}
-          ariaLabel={it.label}
+          ariaLabelMin={`${it.label} min`}
+          ariaLabelMax={`${it.label} max`}
         />
       </div>
     );
   };
 
-  const renderOptionsItem = (it: SpecItem) => {
-    if (!it.options || it.options.length === 0) return null;
-    const selected: string[] = (filters.specs?.[it.id]?.value as string[]) ?? [];
+  /** rendu d’un item texte (checkboxes) avec label robuste */
+  const renderText = (it: SpecItem) => {
+    const selected: string[] = Array.isArray(filters.specs?.[it.id]) ? filters.specs![it.id] : [];
+    const options = (it.options ?? []).map((o) => ({
+      key: o.id ?? o.value ?? labelOf(o),
+      value: (o.value ?? labelOf(o)) as string,
+      label: labelOf(o),
+    }));
+
     return (
-      <div key={it.id} className="space-y-2 max-h-44 overflow-auto pr-1">
-        {it.options.map((op) => {
-          const checked = selected.includes(op.value);
-          return (
-            <label key={op.value} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="accent-red-600"
-                checked={checked}
-                onChange={(e) => setSpecCheck(it.id, op.value, e.target.checked)}
-              />
-              <span className="flex-1">{op.label}</span>
-              {typeof op.count === "number" ? (
-                <span className="text-neutral-400">({op.count})</span>
-              ) : null}
-            </label>
-          );
-        })}
+      <div key={it.id} className="mb-3">
+        <div className="mb-2 text-sm font-medium">{it.label}</div>
+        <div className="max-h-40 overflow-auto pr-1 space-y-2">
+          {options.length === 0 ? (
+            <div className="text-xs text-slate-400">—</div>
+          ) : (
+            options.map((opt) => (
+              <label key={opt.key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="accent-red-600"
+                  checked={selected.includes(opt.value)}
+                  onChange={(e) => toggleSpecValue(it.id, opt.value!, e.target.checked)}
+                />
+                <span>{opt.label || opt.value}</span>
+              </label>
+            ))
+          )}
+        </div>
       </div>
     );
   };
 
-  const renderBoolItem = (it: SpecItem) => {
-    const v: "all" | "yes" | "no" = (filters.specs?.[it.id]?.value as any) ?? "all";
+  /** rendu d’un booléen (Tous / Oui / Non) */
+  const renderBoolean = (it: SpecItem) => {
+    const val: boolean | null = (filters.specs?.[it.id] ?? null) as any;
     return (
-      <div key={it.id} className="flex items-center gap-4 text-sm">
-        {(["all", "yes", "no"] as const).map((k) => (
-          <label key={k} className="inline-flex items-center gap-2">
+      <div key={it.id} className="mb-3">
+        <div className="mb-2 text-sm font-medium">{it.label}</div>
+        <div className="flex items-center gap-4 text-sm">
+          <label className="flex items-center gap-2">
             <input
               type="radio"
-              className="accent-red-600"
-              name={`b-${it.id}`}
-              checked={v === k}
-              onChange={() => setSpecBool(it.id, k)}
+              name={`bool-${it.id}`}
+              checked={val === null}
+              onChange={() => setBoolean(it.id, null)}
             />
-            <span>
-              {k === "all" ? "Tous" : k === "yes" ? "Oui" : "Non"}
-            </span>
+            Tous
           </label>
-        ))}
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`bool-${it.id}`}
+              checked={val === true}
+              onChange={() => setBoolean(it.id, true)}
+            />
+            Oui
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`bool-${it.id}`}
+              checked={val === false}
+              onChange={() => setBoolean(it.id, false)}
+            />
+            Non
+          </label>
+        </div>
       </div>
     );
   };
 
-  const Group: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
-    const [open, setOpen] = useState(true);
-    return (
-      <div className="border-b border-neutral-700 py-3">
-        <button
-          className="w-full text-left font-medium text-neutral-100 flex items-center justify-between"
-          onClick={() => setOpen((o) => !o)}
-        >
-          <span>{title}</span>
-          <span className="text-neutral-400">{open ? "▾" : "▸"}</span>
-        </button>
-        {open ? <div className="mt-3 space-y-4">{children}</div> : null}
-      </div>
-    );
-  };
-
-  // --- RENDER ---
+  /** ————— Rendu ————— */
   return (
-    <div className="w-full max-w-sm pr-4">
+    <div className="w-full">
       {/* Marque */}
-      <Group title="Toutes marques">
+      <div className="mb-4">
+        <label className="block text-sm mb-1">Toutes marques</label>
         <select
-          className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-3 py-2 text-sm"
+          className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           value={filters.brandId ?? ""}
-          onChange={(e) => setFilters({ ...filters, brandId: e.target.value || null })}
+          onChange={(e) => setFilters((f) => ({ ...f, brandId: e.target.value || null }))}
         >
           <option value="">Toutes marques</option>
           {brands.map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
           ))}
         </select>
-      </Group>
+      </div>
 
       {/* Mots clefs */}
-      <Group title="Mots clefs">
+      <div className="mb-4">
+        <label className="block text-sm mb-1">Mots clefs</label>
         <input
-          type="text"
           placeholder="Rechercher"
-          className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-3 py-2 text-sm"
-          value={filters.q ?? ""}
-          onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+          className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
+          value={filters.keyword ?? ""}
+          onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value }))}
         />
-      </Group>
+      </div>
 
       {/* Prix */}
-      <Group title="Prix">
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-2 py-1 text-sm"
-            value={filters.price?.[0] ?? rangesGlobal.price.min}
-            onChange={(e) => {
-              const n = Number(e.target.value || rangesGlobal.price.min);
-              const low = Math.max(rangesGlobal.price.min, Math.min(n, (filters.price?.[1] ?? rangesGlobal.price.max) - 1));
-              setFilters((f) => ({ ...f, price: [low, f.price?.[1] ?? rangesGlobal.price.max] }));
-            }}
-            min={rangesGlobal.price.min}
-            max={rangesGlobal.price.max}
-          />
-          <input
-            type="number"
-            className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-2 py-1 text-sm"
-            value={filters.price?.[1] ?? rangesGlobal.price.max}
-            onChange={(e) => {
-              const n = Number(e.target.value || rangesGlobal.price.max);
-              const high = Math.min(rangesGlobal.price.max, Math.max(n, (filters.price?.[0] ?? rangesGlobal.price.min) + 1));
-              setFilters((f) => ({ ...f, price: [f.price?.[0] ?? rangesGlobal.price.min, high] }));
-            }}
-            min={rangesGlobal.price.min}
-            max={rangesGlobal.price.max}
-          />
+      <div className="mb-5">
+        <div className="flex items-center justify-between text-sm mb-1">
+          <span>Prix</span>
+          <span className="text-xs text-slate-400">
+            {filters.price?.[0]} – {filters.price?.[1]} DT
+          </span>
         </div>
         <RangeSlider
-          min={rangesGlobal.price.min}
-          max={rangesGlobal.price.max}
-          value={[filters.price?.[0] ?? rangesGlobal.price.min, filters.price?.[1] ?? rangesGlobal.price.max]}
-          onChange={(next) => setFilters((f) => ({ ...f, price: next }))}
+          min={priceMinMax[0]}
+          max={priceMinMax[1]}
+          step={1}
           minGap={1}
-          ariaLabel="Prix"
+          value={ensureTuple(filters.price, priceMinMax)}
+          onChange={setPrice}
+          ariaLabelMin="Prix min"
+          ariaLabelMax="Prix max"
         />
-      </Group>
+      </div>
 
       {/* Année */}
-      <Group title="Année">
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-2 py-1 text-sm"
-            value={filters.year?.[0] ?? rangesGlobal.year.min}
-            onChange={(e) => {
-              const n = Number(e.target.value || rangesGlobal.year.min);
-              const low = Math.max(rangesGlobal.year.min, Math.min(n, (filters.year?.[1] ?? rangesGlobal.year.max) - 1));
-              setFilters((f) => ({ ...f, year: [low, f.year?.[1] ?? rangesGlobal.year.max] }));
-            }}
-            min={rangesGlobal.year.min}
-            max={rangesGlobal.year.max}
-            step={1}
-          />
-          <input
-            type="number"
-            className="w-full rounded-md bg-neutral-800 border border-neutral-600 px-2 py-1 text-sm"
-            value={filters.year?.[1] ?? rangesGlobal.year.max}
-            onChange={(e) => {
-              const n = Number(e.target.value || rangesGlobal.year.max);
-              const high = Math.min(rangesGlobal.year.max, Math.max(n, (filters.year?.[0] ?? rangesGlobal.year.min) + 1));
-              setFilters((f) => ({ ...f, year: [f.year?.[0] ?? rangesGlobal.year.min, high] }));
-            }}
-            min={rangesGlobal.year.min}
-            max={rangesGlobal.year.max}
-            step={1}
-          />
+      <div className="mb-6">
+        <div className="flex items-center justify-between text-sm mb-1">
+          <span>Année</span>
+          <span className="text-xs text-slate-400">
+            {filters.year?.[0]} – {filters.year?.[1]}
+          </span>
         </div>
         <RangeSlider
-          min={rangesGlobal.year.min}
-          max={rangesGlobal.year.max}
-          value={[filters.year?.[0] ?? rangesGlobal.year.min, filters.year?.[1] ?? rangesGlobal.year.max]}
-          onChange={(next) => setFilters((f) => ({ ...f, year: next }))}
-          minGap={1}
+          min={yearMinMax[0]}
+          max={yearMinMax[1]}
           step={1}
-          ariaLabel="Année"
+          minGap={1}
+          value={ensureTuple(filters.year, yearMinMax)}
+          onChange={setYear}
+          ariaLabelMin="Année min"
+          ariaLabelMax="Année max"
         />
-      </Group>
+      </div>
 
-      {/* Groupes spécifications */}
-      {specSchema.map((g) => {
-        // Filtre : on retire "Prix" & "Année" s'ils existent dans ce groupe (déjà gérés en haut)
-        const items = g.items.filter((it) => {
-          const l = it.label.toLowerCase();
-          return !(l.includes("prix") || l.includes("année"));
-        });
+      {/* Groupes de specs */}
+      {specSchema.map((group) => {
+        // masque Année/ Prix en doublon si jamais ils existent dans ce groupe
+        const items = group.items.filter(
+          (it) => !/^(année|annee|price|prix)$/i.test(it.label.trim())
+        );
+
         if (items.length === 0) return null;
 
         return (
-          <Group key={g.id} title={g.name}>
+          <details key={group.id} className="mb-5" open>
+            <summary className="cursor-pointer text-sm font-semibold mb-2">
+              {group.name}
+            </summary>
+
             {items.map((it) => {
-              if (it.range && it.data_type !== "text") return (
-                <div key={it.id}>
-                  <div className="mb-1 text-sm text-neutral-300">{it.label}{it.unit ? ` (${it.unit})` : ""}</div>
-                  {renderNumericItem(it)}
-                </div>
-              );
-              if (it.options && it.options.length > 0) return (
-                <div key={it.id}>
-                  <div className="mb-1 text-sm text-neutral-300">{it.label}</div>
-                  {renderOptionsItem(it)}
-                </div>
-              );
-              // Bool (ABS, Contrôle de traction, etc.)
-              if (it.data_type === "bool") return (
-                <div key={it.id}>
-                  <div className="mb-1 text-sm text-neutral-300">{it.label}</div>
-                  {renderBoolItem(it)}
-                </div>
-              );
-              // Si pas de données exploitables
-              return (
-                <div key={it.id} className="text-sm text-neutral-500">
-                  {it.label} —
-                </div>
-              );
+              if (it.data_type === "number" && it.range) return renderNumeric(it);
+              if (it.data_type === "text") return renderText(it);
+              if (it.data_type === "boolean") return renderBoolean(it);
+              return null;
             })}
-          </Group>
+          </details>
         );
       })}
     </div>
