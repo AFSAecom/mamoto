@@ -1,7 +1,7 @@
 // src/components/motos/FiltersLeft.tsx
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /** ---------- Types ---------- */
@@ -13,6 +13,7 @@ type Filters = {
   price_min?: number;
   price_max?: number;
   q?: string;
+  // specs: numeric ranges or string arrays or boolean
   specs?: Record<string, any>;
 };
 export type SpecGroup = {
@@ -29,8 +30,16 @@ export type SpecGroup = {
 };
 type Range = { min: number; max: number };
 
-/** ---------- Utils ---------- */
+/** ---------- Small utils ---------- */
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
+
+const norm = (s: string) =>
+  (s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 function utoa(json: string) {
   if (typeof window === "undefined") {
@@ -44,10 +53,8 @@ function encodeF(f: { filters: Filters; page: number }) {
   const b64 = utoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   return b64;
 }
-const norm = (s: string) =>
-  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 
-/** ---------- DualRange (single thick red rail + 2 thumbs) ---------- */
+/** ---------- DualRange (one thick red rail + 2 thumbs) ---------- */
 function DualRange({
   domainMin,
   domainMax,
@@ -71,12 +78,12 @@ function DualRange({
   const [localMin, setLocalMin] = useState(valueMin);
   const [localMax, setLocalMax] = useState(valueMax);
   const [active, setActive] = useState<"min" | "max" | null>(null);
-  const minGap = Math.max(step, 1); // évite le croisement
+  const minGap = Math.max(step, 1);
 
-  // Garder les valeurs locales synchronisées
+  // Keep local values synced
   useEffect(() => {
-    setLocalMin(clamp(valueMin, domainMin, valueMax - minGap));
-    setLocalMax(clamp(valueMax, valueMin + minGap, domainMax));
+    setLocalMin(clamp(valueMin, domainMin, Math.min(valueMax - minGap, domainMax)));
+    setLocalMax(clamp(valueMax, Math.max(valueMin + minGap, domainMin), domainMax));
   }, [valueMin, valueMax, domainMin, domainMax]);
 
   const roundToStep = (val: number) => Math.round(val / step) * step;
@@ -102,7 +109,7 @@ function DualRange({
     const ratio = clamp((e.clientX - rect.left) / (rect.width || 1), 0, 1);
     const raw = domainMin + ratio * (domainMax - domainMin);
     const target = roundToStep(raw);
-    // déplacer la poignée la plus proche
+    // move the closest thumb
     const dMin = Math.abs(target - localMin);
     const dMax = Math.abs(target - localMax);
     if (dMin <= dMax) setMin(target);
@@ -112,24 +119,24 @@ function DualRange({
   const pMin = pct(localMin);
   const pMax = pct(localMax);
 
-  // z-index : la poignée MIN au-dessus par défaut pour garantir la prise
+  // Ensure MIN thumb is always easily grabbable
   const zMax = active === "max" ? 50 : 30;
   const zMin = active === "min" ? 60 : 40;
 
   return (
     <div className="relative h-10 select-none" aria-label={ariaLabel}>
-      {/* Rail cliquable */}
+      {/* clickable rail */}
       <div
         ref={railRef}
         className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[14px] rounded-full bg-white/20 cursor-pointer"
         onMouseDown={onRailClick}
       />
-      {/* Segment rouge */}
+      {/* red segment */}
       <div
         className="pointer-events-none absolute top-1/2 -translate-y-1/2 h-[10px] rounded-full"
         style={{ left: `${pMin}%`, right: `${100 - pMax}%`, background: "#E50019" }}
       />
-      {/* Range MAX (placé en premier) */}
+      {/* Max first */}
       <input
         id={id ? `${id}-max` : undefined}
         type="range"
@@ -143,7 +150,7 @@ function DualRange({
         className="range-thumb absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full bg-transparent appearance-none pointer-events-auto"
         style={{ zIndex: zMax }}
       />
-      {/* Range MIN (placé en second → au-dessus par défaut) */}
+      {/* Min second (above by default) */}
       <input
         id={id ? `${id}-min` : undefined}
         type="range"
@@ -206,20 +213,21 @@ export default function FiltersLeft({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // DOMAIN (toujours global)
+  // Global domains from server
   const priceDomain: Range = priceRange ?? { min: 0, max: 500000 };
   const yearDomain: Range = yearRange ?? { min: 1990, max: new Date().getFullYear() };
 
-  // State
+  // Init filters (normalize to domains)
   const [filters, setFilters] = useState<Filters>(() => ({
     ...initialFilters,
-    price_min: initialFilters.price_min ?? priceDomain.min,
-    price_max: initialFilters.price_max ?? priceDomain.max,
-    year_min: initialFilters.year_min ?? yearDomain.min,
-    year_max: initialFilters.year_max ?? yearDomain.max,
+    price_min: clamp(initialFilters.price_min ?? priceDomain.min, priceDomain.min, priceDomain.max),
+    price_max: clamp(initialFilters.price_max ?? priceDomain.max, priceDomain.min, priceDomain.max),
+    year_min: clamp(initialFilters.year_min ?? yearDomain.min, yearDomain.min, yearDomain.max - 1),
+    year_max: clamp(initialFilters.year_max ?? yearDomain.max, yearDomain.min + 1, yearDomain.max),
+    specs: initialFilters.specs ?? {},
   }));
 
-  // Auto-normalisation si bornes incohérentes
+  // Keep in sync if domains change
   useEffect(() => {
     setFilters((f) => ({
       ...f,
@@ -231,7 +239,7 @@ export default function FiltersLeft({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [priceDomain.min, priceDomain.max, yearDomain.min, yearDomain.max]);
 
-  // Pousser dans l’URL
+  // Push to URL
   useEffect(() => {
     const fEnc = encodeF({ filters, page: 0 });
     const q = new URLSearchParams(searchParams?.toString());
@@ -240,16 +248,17 @@ export default function FiltersLeft({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
-  const forcedNumericLabels = useMemo(() => {
-    const must = new Set(["cylindree", "puissance", "nb rapports", "couple"]);
-    const ids: string[] = [];
-    for (const g of specSchema || []) {
-      for (const it of g.items) {
-        if (must.has(norm(it.label))) ids.push(it.id);
-      }
-    }
-    return new Set(ids);
-  }, [specSchema]);
+  // Labels to hide (avoid duplicates of Price/Year in "Infos générales")
+  const hiddenLabels = useMemo(() => {
+    const S = new Set(["prix", "prix tnd", "annee", "année"]);
+    return S;
+  }, []);
+
+  // Force sliders for some numeric specs
+  const forceNumericByLabel = useMemo(() => {
+    const S = new Set(["cylindree", "cylindrée", "puissance", "nb rapports", "nombre de rapports", "couple"]);
+    return S;
+  }, []);
 
   const isBooleanLabel = (lbl: string) => {
     const s = norm(lbl);
@@ -260,11 +269,12 @@ export default function FiltersLeft({
     <input
       type="number"
       className="w-1/2 bg-transparent border border-white/20 rounded p-2 text-sm"
-      value={val}
+      value={Number.isFinite(val as number) ? val : ""}
       onChange={(e) => onChange(Number(e.target.value || 0))}
     />
   );
 
+  /** ---------- Render ---------- */
   return (
     <div className="space-y-6">
       {/* Marques */}
@@ -353,7 +363,159 @@ export default function FiltersLeft({
         />
       </div>
 
-      {/* TODO: le reste des specs — inchangé par rapport à la version précédente */}
+      {/* SPEC GROUPS */}
+      {(specSchema ?? []).map((group) => {
+        const items = (group.items ?? []).filter((it) => !hiddenLabels.has(norm(it.label)));
+        if (items.length === 0) return null;
+        return (
+          <div key={group.id} className="pt-4 border-t border-white/10">
+            <div className="font-semibold text-sm mb-3">{group.name}</div>
+            <div className="space-y-4">
+              {items.map((item) => {
+                const id = item.id;
+                const label = item.label;
+                const unit = item.unit || "";
+                const current = (filters.specs ?? {})[id];
+
+                const hasNumericRange =
+                  !!item.range &&
+                  Number.isFinite(item.range.min_value as number) &&
+                  Number.isFinite(item.range.max_value as number);
+
+                const forceNumeric = forceNumericByLabel.has(norm(label));
+                const isBool = isBooleanLabel(label);
+
+                // numeric slider
+                if (hasNumericRange || forceNumeric) {
+                  const dMin = hasNumericRange ? (item.range!.min_value as number) : 0;
+                  const dMax = hasNumericRange ? (item.range!.max_value as number) : 100;
+                  const valMin = clamp((current?.min as number) ?? dMin, dMin, dMax);
+                  const valMax = clamp((current?.max as number) ?? dMax, dMin, dMax);
+
+                  return (
+                    <div key={id}>
+                      <div className="text-xs mb-2">{label} {unit ? <span className="opacity-60">({unit})</span> : null}</div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {numberInput(valMin, (v) =>
+                          setFilters((f) => ({
+                            ...f,
+                            specs: { ...(f.specs ?? {}), [id]: { min: clamp(v, dMin, (valMax ?? dMax) - 1), max: valMax } },
+                          }))
+                        )}
+                        {numberInput(valMax, (v) =>
+                          setFilters((f) => ({
+                            ...f,
+                            specs: { ...(f.specs ?? {}), [id]: { min: valMin, max: clamp(v, (valMin ?? dMin) + 1, dMax) } },
+                          }))
+                        )}
+                      </div>
+                      <DualRange
+                        id={`spec-${id}`}
+                        domainMin={dMin}
+                        domainMax={dMax}
+                        step={1}
+                        valueMin={valMin}
+                        valueMax={valMax}
+                        onChange={({ min, max }) =>
+                          setFilters((f) => ({ ...f, specs: { ...(f.specs ?? {}), [id]: { min, max } } }))
+                        }
+                        aria-label={`Plage ${label}`}
+                      />
+                    </div>
+                  );
+                }
+
+                // boolean → tri-state
+                if (isBool) {
+                  const v = current;
+                  const val: "all" | "yes" | "no" =
+                    v === true ? "yes" : v === false ? "no" : "all";
+                  const setVal = (nv: "all" | "yes" | "no") =>
+                    setFilters((f) => ({
+                      ...f,
+                      specs: {
+                        ...(f.specs ?? {}),
+                        [id]: nv === "all" ? undefined : nv === "yes" ? true : false,
+                      },
+                    }));
+                  return (
+                    <div key={id}>
+                      <div className="text-xs mb-2">{label}</div>
+                      <div className="flex gap-3 text-sm">
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={val === "all"}
+                            onChange={() => setVal("all")}
+                          />
+                          Tous
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={val === "yes"}
+                            onChange={() => setVal("yes")}
+                          />
+                          Oui
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={val === "no"}
+                            onChange={() => setVal("no")}
+                          />
+                          Non
+                        </label>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // options (checkboxes)
+                if ((item.options ?? []).length > 0) {
+                  const selected: string[] = Array.isArray(current) ? current : [];
+                  const toggle = (opt: string) => {
+                    const has = selected.includes(opt);
+                    const next = has ? selected.filter((x) => x !== opt) : [...selected, opt];
+                    setFilters((f) => ({
+                      ...f,
+                      specs: { ...(f.specs ?? {}), [id]: next.length ? next : undefined },
+                    }));
+                  };
+                  return (
+                    <div key={id}>
+                      <div className="text-xs mb-2">{label}</div>
+                      <div className="max-h-40 overflow-auto pr-1 space-y-1">
+                        {(item.options ?? []).map((opt) => (
+                          <label key={opt.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(opt.value)}
+                              onChange={() => toggle(opt.value)}
+                            />
+                            <span>
+                              {opt.value}{" "}
+                              <span className="opacity-50 text-xs">({opt.count})</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // default: empty
+                return (
+                  <div key={id}>
+                    <div className="text-xs mb-2">{label}</div>
+                    <div className="opacity-50 text-sm">—</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
