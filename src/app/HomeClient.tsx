@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
-// ✅ Correct relative path from src/app/HomeClient.tsx to src/components/MotoCard.tsx
-import MotoCardView from "../components/MotoCard";
+// Import component via path alias to avoid type/value collision
+import MotoCardView from "@/components/MotoCard";
 
 type MotoRow = {
   id: string;

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import MotoFilters from "../../components/MotoFilters";  // ✅ relative import
-import MotoTile from "../../components/MotoTile";        // ✅ relative import
+import MotoFilters from "@/components/MotoFilters";
+import MotoTile from "@/components/MotoTile";
 
 type Moto = {
   id: string;
