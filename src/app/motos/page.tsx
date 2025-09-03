@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import FilterSidebar from "../../components/FilterSidebar";
-import MotoTile from "../../components/MotoTile";        // ✅ relative import
+import FilterSidebar from "@/components/FilterSidebar";
+import MotoTile from "@/components/MotoTile";
 import { Filters } from "@/types";
 
 type Moto = {
