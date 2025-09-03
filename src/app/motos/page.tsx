@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import MotoFilters from "../../components/MotoFilters";
-import MotoCard from "../../components/MotoCard";
+// ✅ Use alias imports to match common Next.js tsconfig baseUrl: "src"
+import MotoFilters from "@/components/MotoFilters";
+import MotoTile from "@/components/MotoTile";
 
 type Moto = {
   id: string;
@@ -66,7 +67,7 @@ export default function MotosPage() {
     if (urlState.search) sp.set("q", urlState.search);
     if (urlState.sort) sp.set("sort", urlState.sort);
     if (urlState.page && urlState.page > 1) sp.set("page", String(urlState.page));
-    if (urlState.offset) sp.set("limit", String(urlState.limit));
+    if (urlState.limit && urlState.limit !== 24) sp.set("limit", String(urlState.limit));
     const qs = sp.toString();
     const newUrl = qs ? `/motos?${qs}` : `/motos`;
     if (typeof window !== "undefined" && newUrl !== window.location.pathname + window.location.search) {
@@ -130,7 +131,7 @@ export default function MotosPage() {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {motos.map((m) => (
-              <MotoCard key={m.id} moto={m} />
+              <MotoTile key={m.id} moto={m} />
             ))}
           </div>
           <div className="flex items-center justify-center gap-2 mt-8">
