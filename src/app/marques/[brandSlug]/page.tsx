@@ -21,7 +21,7 @@ export default async function BrandPage({ params }: PageProps) {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-3xl font-semibold mb-4">
-        {filtered[0].brand_name}
+        {filtered[0].brand_name ?? ''}
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((m) => (
