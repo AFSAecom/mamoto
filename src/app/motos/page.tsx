@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import MotoFilters from "../../components/MotoFilters";  // ✅ relative import
-import MotoTile from "../../components/MotoTile";        // ✅ relative import
+import FilterSidebar from "@/components/FilterSidebar";
+import MotoTile from "@/components/MotoTile";
+import { Filters } from "@/types";
 
 type Moto = {
   id: string;
@@ -56,7 +57,18 @@ export default function MotosPage() {
     return parseSearchParams(new URLSearchParams(window.location.search));
   });
 
-  // Sync URL when filters change (debounced inside MotoFilters)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>({
+    brands: ["Aprilia", "BMW", "Honda", "Kawasaki", "KTM", "Suzuki", "Triumph", "Yamaha", "Harley-Davidson"],
+    categories: ["Sport", "Roadster", "Trail", "Scooter"],
+    priceRange: [urlState.priceMin ?? 0, urlState.priceMax ?? 100000],
+    engineRange: [50, 2000],
+    powerRange: [10, 250],
+    selectedBrands: urlState.brands,
+    selectedCategories: [],
+  });
+
+  // Sync URL when filters change
   useEffect(() => {
     const sp = new URLSearchParams();
     if (urlState.brands.length) sp.set("brand", urlState.brands.join(","));
@@ -110,48 +122,63 @@ export default function MotosPage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-semibold mb-4">Motos neuves</h1>
-      <MotoFilters
-        value={urlState}
-        onChange={(next) => setUrlState((prev) => ({ ...prev, ...next, page: 1, offset: 0 }))}
-        onReset={() => setUrlState({ brands: [], years: [], priceMin: null, priceMax: null, search: null, sort: "price_asc", limit: 24, offset: 0, page: 1 })}
-      />
-      {error && (
-        <div className="mt-4 p-3 border border-red-300 bg-red-50 rounded">Erreur : {error}</div>
-      )}
-      {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse bg-gray-100 rounded" />
-          ))}
+      <div className="flex gap-6">
+        <FilterSidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          filters={filters}
+          onFiltersChange={(next) => {
+            setFilters(next);
+            setUrlState((prev) => ({
+              ...prev,
+              brands: next.selectedBrands,
+              priceMin: next.priceRange[0] > 0 ? next.priceRange[0] : null,
+              priceMax: next.priceRange[1] < 100000 ? next.priceRange[1] : null,
+              page: 1,
+              offset: 0,
+            }));
+          }}
+        />
+        <div className="flex-1">
+          {error && (
+            <div className="mb-4 p-3 border border-red-300 bg-red-50 rounded">Erreur : {error}</div>
+          )}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-64 animate-pulse bg-gray-100 rounded" />
+              ))}
+            </div>
+          ) : motos.length === 0 ? (
+            <div className="mt-6 text-gray-600">Aucun résultat. Essayez d’élargir vos filtres.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+                {motos.map((m) => (
+                  <MotoTile key={m.id} moto={m} />
+                ))}
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  className="px-3 py-2 border rounded disabled:opacity-50"
+                  disabled={urlState.page <= 1}
+                  onClick={() => setUrlState((s) => ({ ...s, page: s.page - 1, offset: (s.page - 2) * s.limit }))}
+                >
+                  Précédent
+                </button>
+                <span className="text-sm">Page {urlState.page} / {totalPages}</span>
+                <button
+                  className="px-3 py-2 border rounded disabled:opacity-50"
+                  disabled={urlState.page >= totalPages}
+                  onClick={() => setUrlState((s) => ({ ...s, page: s.page + 1, offset: s.page * s.limit }))}
+                >
+                  Suivant
+                </button>
+              </div>
+            </>
+          )}
         </div>
-      ) : motos.length === 0 ? (
-        <div className="mt-6 text-gray-600">Aucun résultat. Essayez d’élargir vos filtres.</div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-            {motos.map((m) => (
-              <MotoTile key={m.id} moto={m} />
-            ))}
-          </div>
-          <div className="flex items-center justify-center gap-2 mt-8">
-            <button
-              className="px-3 py-2 border rounded disabled:opacity-50"
-              disabled={urlState.page <= 1}
-              onClick={() => setUrlState((s) => ({ ...s, page: s.page - 1, offset: (s.page - 2) * s.limit }))}
-            >
-              Précédent
-            </button>
-            <span className="text-sm">Page {urlState.page} / {totalPages}</span>
-            <button
-              className="px-3 py-2 border rounded disabled:opacity-50"
-              disabled={urlState.page >= totalPages}
-              onClick={() => setUrlState((s) => ({ ...s, page: s.page + 1, offset: s.page * s.limit }))}
-            >
-              Suivant
-            </button>
-          </div>
-        </>
-      )}
+      </div>
     </main>
   );
 }

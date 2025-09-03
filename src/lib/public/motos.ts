@@ -11,16 +11,24 @@ function supabaseServer() {
 }
 
 export type MotoCard = {
-  id: string; brand: string|null; model: string|null; year: number|null; price: number|null;
-  slug: string|null; display_image: string|null;
+  id: string;
+  brand_name: string | null;
+  model_name: string | null;
+  year: number | null;
+  price_tnd: number | null;
+  slug: string | null;
+  display_image: string | null;
 };
 
 export async function getPublishedMotos(): Promise<MotoCard[]> {
   const s = supabaseServer();
-  const { data } = await s.from('motos_public')
-    .select('id,brand,model,year,price,slug,display_image')
+  const { data } = await s
+    .from('motos_public')
+    .select(
+      'id,brand_name:brand,model_name:model,year,price_tnd:price,slug,display_image'
+    )
     .order('id', { ascending: false });
-  return data ?? [];
+  return (data ?? []) as MotoCard[];
 }
 
 export type MotoSpec = {

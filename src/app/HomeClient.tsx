@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
-// ✅ Correct relative path from src/app/HomeClient.tsx to src/components/MotoCard.tsx
-import MotoCardView from "../components/MotoCard";
+import MotoCard from "@/components/MotoCard";
 
 type MotoRow = {
   id: string;
@@ -12,9 +11,6 @@ type MotoRow = {
   year: number | null;
   price_tnd: number | null;
 };
-
-// Re-expose as `MotoCard` locally so existing JSX `<MotoCard .../>` works
-const MotoCard = (props: { moto: MotoRow }) => <MotoCardView {...props} />;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -45,7 +41,7 @@ export default function HomeClient() {
     }
     run();
     return () => {
-      cancelled = true; // ✅ bugfix
+      cancelled = true;
     };
   }, []);
 
