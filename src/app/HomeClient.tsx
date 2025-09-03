@@ -2,26 +2,15 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
-// ✅ Correct relative path from src/app/HomeClient.tsx to src/components/MotoCard.tsx
-import MotoCardView from "../components/MotoCard";
-
-type MotoRow = {
-  id: string;
-  brand_name: string;
-  model_name: string;
-  year: number | null;
-  price_tnd: number | null;
-};
-
-// Re-expose as `MotoCard` locally so existing JSX `<MotoCard .../>` works
-const MotoCard = (props: { moto: MotoRow }) => <MotoCardView {...props} />;
+import MotoCard from "@/components/MotoCard";
+import type { MotoCard as MotoCardType } from "@/lib/public/motos";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function HomeClient() {
-  const [motos, setMotos] = useState<MotoRow[]>([]);
+  const [motos, setMotos] = useState<MotoCardType[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
@@ -36,7 +25,7 @@ export default function HomeClient() {
           .select("id,brand_name,model_name,year,price_tnd")
           .limit(12);
         if (error) throw error;
-        if (!cancelled) setMotos((data ?? []) as MotoRow[]);
+        if (!cancelled) setMotos((data ?? []) as MotoCardType[]);
       } catch (e: any) {
         if (!cancelled) setErr(e.message || "Erreur inconnue");
       } finally {
@@ -45,7 +34,7 @@ export default function HomeClient() {
     }
     run();
     return () => {
-      cancelled = true; // ✅ bugfix
+      cancelled = true;
     };
   }, []);
 
