@@ -32,7 +32,7 @@ export default function MotoFilters({ value, onChange, onReset }: Props) {
   const debouncedChange = useDebouncedCallback((next: Partial<Props["value"]>) => onChange(next), 400);
   useEffect(() => {
     debouncedChange(local);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(local)]);
 
   const allYears = useMemo(() => [2025, 2024, 2023, 2022], []);
