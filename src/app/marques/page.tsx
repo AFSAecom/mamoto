@@ -17,7 +17,7 @@ export default async function MarquesPage() {
   const motos = await getPublishedMotos();
   const brandMap: Record<string, number> = {};
   motos.forEach((m) => {
-    const b = m.brand || 'Autres';
+    const b = m.brand_name || 'Autres';
     brandMap[b] = (brandMap[b] || 0) + 1;
   });
   const brands: BrandInfo[] = Object.entries(brandMap)
