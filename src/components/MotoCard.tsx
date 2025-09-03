@@ -8,7 +8,7 @@ export default function MotoCard({ moto }: { moto: {
   year: number | null;
   price_tnd: number | null;
 }}) {
-  const img = `/images/motos/${moto.id}.webp`; // fallback simple
+  const img = `/images/motos/${moto.id}.webp`;
   return (
     <Link href={`/motos/${moto.id}`} className="block border rounded overflow-hidden hover:shadow-sm bg-white">
       <div className="aspect-[4/3] bg-gray-100">
