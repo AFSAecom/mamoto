@@ -22,7 +22,7 @@ export default function CompareTable({ motos }: CompareTableProps) {
             <th className="p-2 text-left">Spécifications</th>
             {motos.map((m) => (
               <th key={m.slug ?? m.id} className="p-2 text-left">
-                {m.model}
+                {`${m.brand_name ?? ''} ${m.model_name ?? ''}`.trim()}
               </th>
             ))}
           </tr>
@@ -40,7 +40,7 @@ export default function CompareTable({ motos }: CompareTableProps) {
             <th className="p-2 text-left font-medium">Prix (TND)</th>
             {motos.map((m) => (
               <td key={(m.slug ?? m.id) + '_price'} className="p-2">
-                {fmtPrice(m.price)}
+                {fmtPrice(m.price_tnd)}
               </td>
             ))}
           </tr>
