@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-// ✅ Use alias imports to match common Next.js tsconfig baseUrl: "src"
-import MotoFilters from "@/components/MotoFilters";
-import MotoTile from "@/components/MotoTile";
+import MotoFilters from "../../components/MotoFilters";  // ✅ relative import
+import MotoTile from "../../components/MotoTile";        // ✅ relative import
 
 type Moto = {
   id: string;
