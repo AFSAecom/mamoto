@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
-// ✅ Import the *component value* from components, but alias to avoid any type-name collision
-import MotoCardView from "../../components/MotoCard";
+// ✅ Correct relative path from src/app/HomeClient.tsx to src/components/MotoCard.tsx
+import MotoCardView from "../components/MotoCard";
 
 type MotoRow = {
   id: string;
@@ -13,7 +13,7 @@ type MotoRow = {
   price_tnd: number | null;
 };
 
-// Re-expose as `MotoCard` in local scope so existing JSX `<MotoCard .../>` keeps working
+// Re-expose as `MotoCard` locally so existing JSX `<MotoCard .../>` works
 const MotoCard = (props: { moto: MotoRow }) => <MotoCardView {...props} />;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
@@ -30,11 +30,9 @@ export default function HomeClient() {
     async function run() {
       setLoading(true);
       setErr(null);
-      // ✅ Requête simple: prendre 12 motos "featured" si la vue existe sinon fallback sur table
       try {
-        // Essayez d'abord la RPC de recherche si elle existe pour rester cohérent
         const { data, error } = await supabase
-          .from("vw_motos_min") // fallback courant: une vue de listing minimal, sinon changez le nom ci-dessous
+          .from("vw_motos_min") // Remplace si ta vue/table a un autre nom
           .select("id,brand_name,model_name,year,price_tnd")
           .limit(12);
         if (error) throw error;
@@ -47,7 +45,7 @@ export default function HomeClient() {
     }
     run();
     return () => {
-      cancelled = True;
+      cancelled = true; // ✅ bugfix
     };
   }, []);
 
@@ -71,7 +69,6 @@ export default function HomeClient() {
             {loading ? (
               <div className="h-64 bg-gray-100 rounded animate-pulse" />
             ) : (
-              // ⚠️ Conserve exactement le tag attendu dans les logs: <MotoCard moto={m} />
               <MotoCard moto={m} />
             )}
           </motion.div>
